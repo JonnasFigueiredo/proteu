@@ -12,6 +12,7 @@ import {
 import { gerar } from "../core/gerador.js";
 import { gerarSeedAleatoria } from "../core/config.js";
 import { normalizarSeed } from "../core/seed.js";
+import { gerarSetFronteira } from "../core/field.js";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -204,6 +205,26 @@ function mostrarCampoDetectado(d) {
   if (d.pattern) partes.push("pattern");
   if (d.required) partes.push("required");
   $("#campo-descricao").textContent = `<${d.tag}> ${partes.join(" · ")}`;
+
+  // Chips de fronteira: clique insere direto no campo detectado.
+  const chips = $("#chips-fronteira");
+  chips.textContent = "";
+  for (const item of gerarSetFronteira(d)) {
+    const chip = document.createElement("button");
+    chip.className = "chip";
+    chip.textContent = item.rotulo;
+    chip.title = item.valor === "" ? "(string vazia)" : item.valor;
+    chip.addEventListener("click", async () => {
+      const r = await inserirNoCampoAtivo(item.valor, config.insercao.modo);
+      mostrarFeedback(
+        r.ok ? `"${item.rotulo}" inserido ✓` : "Não foi possível inserir",
+        r.ok ? "ok" : "erro",
+        "#feedback-campo"
+      );
+    });
+    chips.appendChild(chip);
+  }
+
   $("#secao-campo").hidden = false;
 }
 
@@ -285,17 +306,17 @@ function alternar(sel) {
   el.hidden = !el.hidden;
 }
 
-let timerFeedback = null;
-function mostrarFeedback(texto, tipo) {
-  const el = $("#feedback");
+const timersFeedback = {};
+function mostrarFeedback(texto, tipo, sel = "#feedback") {
+  const el = $(sel);
   el.textContent = texto;
   el.className = `feedback ${tipo}`;
-  clearTimeout(timerFeedback);
-  timerFeedback = setTimeout(() => limparFeedback(), 2500);
+  clearTimeout(timersFeedback[sel]);
+  timersFeedback[sel] = setTimeout(() => limparFeedback(sel), 2500);
 }
 
-function limparFeedback() {
-  const el = $("#feedback");
+function limparFeedback(sel = "#feedback") {
+  const el = $(sel);
   el.textContent = "";
   el.className = "feedback";
 }

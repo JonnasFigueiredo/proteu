@@ -120,6 +120,33 @@ body {
   color: var(--texto);
 }
 
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.chips:empty {
+  margin-top: 0;
+}
+
+.chip {
+  padding: 4px 10px;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  border-color: var(--azul);
+  color: var(--azul);
+}
+
 /* Opções */
 .opcoes {
   display: flex;
