@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cenários e2e — Reproduzível</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 16px; }
+      #placar { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+      .ok { color: #2e7d32; }
+      .fail { color: #c62828; }
+      ul { list-style: none; padding: 0; }
+      li { padding: 3px 0; font-family: ui-monospace, monospace; font-size: 13px; }
+      .fixtures { position: fixed; left: -9999px; top: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="placar">rodando…</div>
+    <ul id="lista"></ul>
+
+    <!-- Fixtures fora da tela -->
+    <div class="fixtures">
+      <input id="f-text" type="text" />
+      <textarea id="f-textarea"></textarea>
+      <div id="f-ce" contenteditable="true"></div>
+      <input id="f-number" type="number" max="100" />
+      <input id="f-maxlen" type="text" maxlength="14" />
+      <input id="f-email" type="email" />
+      <button id="f-btn">botão</button>
+      <div id="f-host"></div>
+      <iframe id="f-frame"></iframe>
+    </div>
+
+    <script type="module">
+      import { gerarSetFronteira } from "/src/core/field.js";
+      import { gerar, TIPOS } from "/src/core/gerador.js";
+      import { configPadrao } from "/src/core/config.js";
+
+      const resultados = [];
+      const assert = (nome, cond, detalhe = "") =>
+        resultados.push({ nome, ok: !!cond, detalhe: cond ? "" : detalhe });
+
+      // --- mock do chrome + injeção do content.js real -----------------------
+      let textoContent = null;
+      function instalarChrome(win) {
+        win.chrome = {
+          runtime: { onMessage: { addListener: (fn) => { win.__rzListener = fn; } } },
+        };
+      }
+      async function injetar(win) {
+        if (!textoContent) textoContent = await (await fetch("/src/content/content.js")).text();
+        win.eval(textoContent);
+      }
+      // envia uma mensagem ao listener capturado e devolve a resposta síncrona
+      function enviar(win, msg) {
+        let resp;
+        win.__rzListener({ app: "reproduzivel", ...msg }, {}, (r) => (resp = r));
+        return resp;
+      }
+      // simula foco: dispara focusin composto no elemento (cobre Shadow DOM)
+      function focar(el) {
+        const win = el.ownerDocument.defaultView;
+        el.dispatchEvent(new win.FocusEvent("focusin", { bubbles: true, composed: true }));
+      }
+      const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+
+      // ======================= CENÁRIOS ======================================
+      async function rodar() {
+        instalarChrome(window);
+        await injetar(window);
+
+        // ---- Inserção modo "valor" + eventos (I1..I4) ----
+        {
+          const el = document.querySelector("#f-text");
+          let inputs = 0, changes = 0;
+          el.addEventListener("input", () => inputs++);
+          el.addEventListener("change", () => changes++);
+          focar(el);
+          const r = enviar(window, { tipo: "INSERIR", valor: "529.982.247-25", modo: "valor" });
+          assert("I1 input text: valor inserido", el.value === "529.982.247-25", el.value);
+          assert("I1 resposta ok", r && r.ok === true, JSON.stringify(r));
+          assert("I4 evento input disparou (bubbles)", inputs > 0);
+          assert("I4 evento change disparou (bubbles)", changes > 0);
+        }
+        {
+          const el = document.querySelector("#f-textarea");
+          focar(el);
+          enviar(window, { tipo: "INSERIR", valor: "linha1", modo: "valor" });
+          assert("I2 textarea: valor inserido", el.value === "linha1", el.value);
+        }
+        {
+          const el = document.querySelector("#f-ce");
+          let inputs = 0;
+          el.addEventListener("input", () => inputs++);
+          focar(el);
+          enviar(window, { tipo: "INSERIR", valor: "conteúdo", modo: "valor" });
+          assert("I3 contenteditable: texto inserido", el.textContent === "conteúdo", el.textContent);
+          assert("I3 contenteditable: input disparou", inputs > 0);
+        }
+
+        // ---- Framework: setter do prototype contorna o rastreador (F1) ----
+        {
+          const el = document.querySelector("#f-textarea");
+          el.value = "";
+          // Simula o value tracker do React: sobrescreve o setter na INSTÂNCIA.
+          let setInstancia = 0;
+          Object.defineProperty(el, "value", {
+            configurable: true,
+            get() { return this.__v ?? ""; },
+            set(v) { setInstancia++; this.__v = v; },
+          });
+          let ev = null;
+          el.addEventListener("input", (e) => (ev = e), { once: true });
+          focar(el);
+          enviar(window, { tipo: "INSERIR", valor: "via-prototype", modo: "valor" });
+          const nativo = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").get.call(el);
+          delete el.value; // restaura o descriptor do prototype p/ próximos usos
+          assert("F1 usa setter do prototype (rastreador da instância não chamado)", setInstancia === 0, "setInstancia=" + setInstancia);
+          assert("F1 valor foi ao slot nativo (React percebe)", nativo === "via-prototype", nativo);
+          assert("F1 dispara InputEvent real com bubbles+inputType", ev instanceof InputEvent && ev.bubbles && ev.inputType === "insertText", ev && ev.inputType);
+        }
+
+        // ---- Inserção modo "colar" (cursor/seleção) (C1..C2) ----
+        {
+          const el = document.querySelector("#f-text");
+          el.value = "AB";
+          focar(el);
+          el.setSelectionRange(1, 1);
+          enviar(window, { tipo: "INSERIR", valor: "X", modo: "colar" });
+          assert("C1 colar no cursor: AB + X@1 = AXB", el.value === "AXB", el.value);
+        }
+        {
+          const el = document.querySelector("#f-text");
+          el.value = "HELLO";
+          focar(el);
+          el.setSelectionRange(1, 3); // seleciona "EL"
+          enviar(window, { tipo: "INSERIR", valor: "X", modo: "colar" });
+          assert("C2 colar sobre seleção: HELLO[1..3]=X = HXLO", el.value === "HXLO", el.value);
+        }
+
+        // ---- Shadow DOM aberto (SD1) ----
+        {
+          const host = document.querySelector("#f-host");
+          const raiz = host.shadowRoot || host.attachShadow({ mode: "open" });
+          raiz.innerHTML = '<input id="s" type="text" />';
+          const inner = raiz.querySelector("#s");
+          focar(inner);
+          const r = enviar(window, { tipo: "INSERIR", valor: "shadow-ok", modo: "valor" });
+          assert("SD1 Shadow DOM aberto: inserido via composedPath", inner.value === "shadow-ok", inner.value + " r=" + JSON.stringify(r));
+        }
+
+        // ---- iframe same-origin (IF1) ----
+        {
+          const iframe = document.querySelector("#f-frame");
+          await new Promise((res) => {
+            iframe.onload = res;
+            iframe.srcdoc = '<!doctype html><input id="i" type="text" />';
+          });
+          const win = iframe.contentWindow;
+          instalarChrome(win);
+          await injetar(win);
+          const inner = iframe.contentDocument.querySelector("#i");
+          focar(inner);
+          const r = enviar(win, { tipo: "INSERIR", valor: "iframe-ok", modo: "valor" });
+          assert("IF1 iframe same-origin: inserido no frame", inner.value === "iframe-ok", inner.value + " r=" + JSON.stringify(r));
+        }
+
+        // ---- Detecção → fronteira (D1..D3) ----
+        {
+          const el = document.querySelector("#f-maxlen");
+          focar(el);
+          const d = enviar(window, { tipo: "DETECTAR" });
+          const set = gerarSetFronteira(d.descritor);
+          const tams = set.map((i) => i.valor.length);
+          assert("D1 maxlength=14 detectado", d.descritor && d.descritor.maxlength === "14", JSON.stringify(d.descritor));
+          assert("D1 fronteira 13/14/15", [13, 14, 15].every((n) => tams.includes(n)), tams.join(","));
+        }
+        {
+          const el = document.querySelector("#f-number");
+          focar(el);
+          const d = enviar(window, { tipo: "DETECTAR" });
+          const vals = gerarSetFronteira(d.descritor).map((i) => i.valor);
+          assert("D2 number max=100 → 100,101,-1,1e999,NaN",
+            ["100", "101", "-1", "1e999", "NaN"].every((v) => vals.includes(v)), vals.join(","));
+        }
+        {
+          const el = document.querySelector("#f-email");
+          focar(el);
+          const d = enviar(window, { tipo: "DETECTAR" });
+          const vals = gerarSetFronteira(d.descritor).map((i) => i.valor);
+          assert("D3 email → valores com @", vals.length > 0 && vals.every((v) => v.includes("@")), vals.join(" | "));
+        }
+
+        // ---- Robustez / bordas (R1..R4) ----
+        {
+          // R3 primeiro: foca input editável, depois botão; alvo não muda p/ botão
+          const inputA = document.querySelector("#f-text");
+          focar(inputA);
+          focar(document.querySelector("#f-btn"));
+          const d = enviar(window, { tipo: "DETECTAR" });
+          assert("R3 <button> não vira alvo (segue no input)", d.descritor && d.descritor.tag === "input", JSON.stringify(d.descritor));
+        }
+        {
+          const r = enviar(window, { tipo: "PING" });
+          assert("R2 PING responde ok", r && r.ok === true, JSON.stringify(r));
+        }
+        {
+          const temp = document.createElement("input");
+          document.body.appendChild(temp);
+          focar(temp);
+          temp.remove(); // alvo sai do DOM
+          const r = enviar(window, { tipo: "INSERIR", valor: "x", modo: "valor" });
+          assert("R4 alvo removido → sem-campo", r && r.ok === false && r.erro === "sem-campo", JSON.stringify(r));
+        }
+
+        // ---- Reprodutibilidade ponta a ponta (RP1..RP2) ----
+        {
+          let todosDeterministicos = true, detalhe = "";
+          for (const tipo of Object.keys(TIPOS)) {
+            const cfg = { ...configPadrao(), seed: "7f2a91", contador: 5 };
+            const a = gerar(tipo, cfg).valor;
+            const b = gerar(tipo, { ...configPadrao(), seed: "7f2a91", contador: 5 }).valor;
+            if (a !== b) { todosDeterministicos = false; detalhe = `${tipo}: ${a} != ${b}`; }
+          }
+          assert("RP1 todos os 13 tipos determinísticos p/ mesma seed+contador", todosDeterministicos, detalhe);
+
+          const s1 = gerar("cpf", { ...configPadrao(), seed: "aaa111", contador: 0 }).valor;
+          const s2 = gerar("cpf", { ...configPadrao(), seed: "bbb222", contador: 0 }).valor;
+          assert("RP2 seeds diferentes divergem", s1 !== s2, `${s1} vs ${s2}`);
+        }
+
+        // ------------------- placar -------------------
+        const passou = resultados.filter((r) => r.ok).length;
+        const total = resultados.length;
+        const placar = document.querySelector("#placar");
+        placar.textContent = `${passou}/${total} cenários passaram`;
+        placar.className = passou === total ? "ok" : "fail";
+        const lista = document.querySelector("#lista");
+        for (const r of resultados) {
+          const li = document.createElement("li");
+          li.className = r.ok ? "ok" : "fail";
+          li.textContent = `${r.ok ? "✓" : "✗"} ${r.nome}${r.detalhe ? "  →  " + r.detalhe : ""}`;
+          lista.appendChild(li);
+        }
+        window.__resultados = { passou, total, resultados };
+        window.__pronto = true;
+      }
+
+      rodar().catch((e) => {
+        document.querySelector("#placar").textContent = "ERRO no runner: " + e.message;
+        document.querySelector("#placar").className = "fail";
+        window.__erroRunner = String(e.stack || e);
+        window.__pronto = true;
+      });
+    </script>
+  </body>
+</html>
