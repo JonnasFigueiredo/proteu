@@ -1,108 +1,139 @@
 # Reproduzível
 
 Extensão de navegador (Chrome/Chromium, **Manifest V3**) para profissionais de
-QA gerarem **massa de dados de teste** direto no navegador — com uma diferença
-que dá nome ao projeto: **toda geração usa uma seed determinística e visível**.
-A mesma seed reproduz exatamente a mesma massa, então um bug encontrado com
-dados gerados deixa de ser "não reproduzível".
+QA gerarem **massa de dados de teste** direto no navegador — com a diferença que
+dá nome ao projeto: **toda geração usa uma seed determinística e visível**. A
+mesma seed reproduz exatamente a mesma massa, então um bug encontrado com dados
+gerados deixa de ser "não reproduzível".
 
-Roda **100% local**: nenhuma requisição de rede, nenhuma coleta de dados,
-permissões mínimas, sem dependências de terceiros em runtime.
+**100% local** · sem requisições de rede · sem coleta de dados · sem dependências
+em runtime · apenas 4 permissões · Vanilla JS (sem build).
+
+---
 
 ## Diferenciais
 
 1. **Seed determinística** — a seed (ex.: `7f2a91`) fica no rodapé do popup. A
-   mesma seed + a mesma sequência de gerações produz sempre os mesmos valores.
-   Trocar a seed reinicia a sequência.
+   mesma seed + a mesma sequência de gerações produz sempre os mesmos valores;
+   trocar a seed reinicia a sequência. Anexe a seed ao relatório de bug e quem
+   for reproduzir gera exatamente os mesmos dados.
 2. **Detecção de campo** — ao acionar a extensão sobre um campo, ela lê os
    atributos (`type`, `maxlength`, `min`, `max`, `pattern`, `required`,
-   `inputmode`) e serve valores coerentes com aquele campo.
+   `inputmode`) e oferece valores de fronteira específicos daquele campo.
 3. **Inserção robusta** — funciona em campos controlados por frameworks
-   (React/Vue/Angular), **Shadow DOM aberto** e **iframes de mesma origem**, que
-   é onde as concorrentes costumam falhar.
+   (React/Vue/Angular), **Shadow DOM aberto** e **iframes de mesma origem** —
+   onde as concorrentes costumam falhar.
 
-## Estado atual (v0.5.0)
+## Recursos
 
-- PRNG determinístico (`core/seed.js`).
-- **11 tipos de documento**: CPF; **CNPJ** com uma **única função para o formato
-  numérico e o alfanumérico** (padrão vigente desde jul/2026, incluindo o caso
-  oficial SERPRO `12.ABC.345/01DE-35`; o toggle "CNPJ alfanumérico" fica na tela
-  principal); RG (SSP-SP); CNH; PIS/PASEP; título de eleitor; RENAVAM;
-  Inscrição Estadual (SP); CEP coerente por UF; telefone fixo/celular com DDD
-  real; placa (Mercosul e antiga).
-- **Detecção de campo → set de fronteira** (`core/field.js`): o campo focado
-  vira chips clicáveis no popup (maxlength ±1, number min/max + `1e999`/`NaN`,
-  datas de fronteira, e-mails traiçoeiros, strings Unicode).
-- **Texto** (`core/text/`): geração em **9 idiomas** (cada um cobrindo um
-  problema real de i18n, documentado no código); **geração por tamanho** exata
-  nas **4 unidades de contagem** (grafemas, code points, code units UTF-16,
-  bytes UTF-8) exibidas lado a lado; **pseudolocale** (`Save` → `Šávé`) com
-  expansão ~40%, marcadores `⟦…⟧`, preservação de placeholders e modo
-  `fakebidi`.
-- **Massa inválida e payloads** (`core/invalid/`): CPF/CNPJ com DV errado e
-  sequências uniformes; fronteiras Unicode canônicas; payloads XSS/SQLi/formato
-  e overflow (uso defensivo — ver aviso abaixo). Expostos no popup na seção
-  "Inválidos & payloads" — clique num chip insere direto no campo ativo (ou
-  copia, se não houver campo focado).
-- **Tema** claro/escuro/automático (segue o sistema), com alternância no
-  cabeçalho e no painel de Configurações, persistido. Interface sem emojis
-  (ícones SVG).
-- Popup com todos os tipos, bloco de texto com as 4 contagens, seed no rodapé,
-  cópia, histórico da sessão e opções persistidas.
-- Camada de inserção no content script com dois modos e disparo de eventos
-  nativos.
-- Menu de contexto (um item por tipo) e atalho de teclado.
+| Área | O que gera |
+|------|------------|
+| **Documentos BR** (11) | CPF · **CNPJ numérico *e* alfanumérico na mesma função** (novo padrão jul/2026, incl. o caso oficial SERPRO `12.ABC.345/01DE-35`) · RG (SSP-SP) · CNH · PIS/PASEP · título de eleitor · RENAVAM · Inscrição Estadual (SP) · CEP coerente por UF · telefone fixo/celular com DDD real · placa (Mercosul e antiga). Com e sem máscara. |
+| **Detecção → fronteira** | Chips clicáveis a partir do campo focado: `maxlength` ±1, `number` min/max + `1e999`/`NaN`, datas de fronteira, e-mails que passam na regex mas quebram no servidor, strings Unicode. |
+| **Texto** | 9 idiomas (pt, es, ar, tr, ru, zh, hi, ja, he — cada um cobrindo um problema real de i18n) · geração **por tamanho exata** nas 4 unidades de contagem · **pseudolocale** (`Save` → `Šávé`) com expansão, marcadores `⟦…⟧`, preservação de placeholders e modo `fakebidi`. |
+| **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. |
+| **Massa inválida & payloads** | CPF/CNPJ com DV errado e sequências uniformes · fronteiras Unicode canônicas · payloads XSS/SQLi/formato e overflow (**uso defensivo** — ver aviso). |
 
-O restante das funcionalidades descritas abaixo está planejado (ver
-[Backlog](#backlog)).
+Mais: **histórico** da sessão, cópia com um clique, **tema** claro/escuro/automático,
+menu de contexto (um item por tipo de documento) e atalho de teclado.
+
+## Como usar
+
+### Carregar no Chrome (Load unpacked)
+
+1. Abra `chrome://extensions`.
+2. Ative o **Modo do desenvolvedor** (canto superior direito).
+3. Clique em **Carregar sem compactação** (*Load unpacked*).
+4. Selecione a pasta raiz do projeto (a que contém o `manifest.json`).
+5. Fixe o ícone **R** na barra e clique para abrir o popup.
+
+### O popup
+
+- **Abas** — *Documentos*, *Texto* e *Inválidos*; os ícones do cabeçalho abrem
+  *Histórico* e *Configurações*. Só um bloco aparece por vez.
+- **Documentos** — opção "Com máscara" e o toggle "CNPJ alfanumérico (novo
+  padrão)" ficam no topo; os botões são agrupados por categoria (Pessoa,
+  Empresa, Veículo, Contato).
+- **Gerar → Copiar / Inserir no campo** — o valor aparece no card de resultado.
+- **Seed** no rodapé (editável); o botão ao lado sorteia uma nova (e reinicia a
+  sequência). Selo **100% local** sempre à vista.
+
+### Menu de contexto e atalhos
+
+- Clique com o **botão direito** num campo editável → *Reproduzível* → *Gerar …*.
+- Atalhos (ajustáveis em `chrome://extensions/shortcuts`):
+  - `Ctrl+Shift+9` — abrir o Reproduzível.
+  - `Ctrl+Shift+8` — inserir a última geração no campo focado.
+
+### Prévia sem instalar
+
+Dá para ver o popup real (com o `chrome.*` simulado) sem carregar a extensão:
+
+```bash
+node tests/e2e/servir.mjs
+# abra http://localhost:8791/tests/e2e/preview.html
+```
+
+## Reprodutibilidade — como funciona
+
+Cada geração usa um PRNG determinístico (`xmur3` → `sfc32`) derivado de
+`` `${seed}:${contador}` ``. O **contador** é persistido e avança a cada valor
+gerado. Assim "o N-ésimo valor gerado com a seed X" é sempre o mesmo, e o
+histórico só precisa guardar `(seed, contador, tipo)` para reproduzir qualquer
+item. Nenhuma parte da geração usa `Math.random()`.
 
 ## Arquitetura
 
 ```
 reproduzivel/
-├── manifest.json            # MV3, service_worker, 4 permissões
+├── manifest.json                     # MV3, service_worker, 4 permissões
+├── icons/                            # 16 / 32 / 48 / 128 px
 ├── src/
-│   ├── core/                # lógica PURA: sem DOM, sem chrome.* → 100% testável
-│   │   ├── seed.js          # PRNG determinístico (xmur3 → sfc32)
-│   │   ├── config.js        # defaults + normalização/validação da config
-│   │   ├── gerador.js       # amarra seed + contador + tipo de documento
-│   │   └── documents/
-│   │       ├── cpf.js
-│   │       └── cnpj.js      # numérico + alfanumérico na mesma função
-│   ├── storage.js           # adaptador chrome.storage (ponte para core/config)
-│   ├── content/content.js   # detecção do campo + inserção robusta
-│   ├── background/service-worker.js  # menu de contexto, atalhos, injeção
-│   └── popup/               # popup.html / .css / .js (Vanilla JS)
-└── tests/                   # espelha src/core; roda com Vitest
+│   ├── core/                         # lógica PURA: sem DOM, sem chrome.* → 100% testável
+│   │   ├── seed.js                   # PRNG determinístico (xmur3 → sfc32)
+│   │   ├── config.js                 # defaults + normalização/validação (inclui tema)
+│   │   ├── gerador.js                # registro TIPOS: amarra seed + contador + documento
+│   │   ├── field.js                  # descritor do campo → set de fronteira
+│   │   ├── documents/                # cpf, cnpj, rg, cnh, pis, titulo, renavam,
+│   │   │                             #   ie, cep, telefone, placa
+│   │   ├── text/                     # contagem, idiomas, tamanho, pseudolocale
+│   │   └── invalid/                  # documentos-invalidos, unicode, payloads
+│   ├── storage.js                    # adaptador chrome.storage (ponte p/ core/config)
+│   ├── content/content.js            # detecção do campo + inserção robusta (injetado sob demanda)
+│   ├── background/service-worker.js  # menu de contexto, atalhos, roteamento da inserção
+│   └── popup/                        # popup.html / .css / .js (Vanilla JS, sem framework)
+└── tests/                            # Vitest (unitário) + e2e no navegador
+    ├── *.test.js                     # espelha src/core + storage + service-worker
+    ├── documents/  text/             # testes por documento e por módulo de texto
+    └── e2e/                          # cenarios.md, runner.html, popup-runner.html,
+                                      #   preview.html, servir.mjs
 ```
 
 ### Decisões de arquitetura
 
 - **Lógica separada da UI e do DOM.** Tudo em `core/` é JavaScript puro, sem
-  `document` nem `chrome.*`, e por isso é coberto por testes que rodam em
-  Node/Vitest sem navegador. A UI (popup) e a camada de página (content script)
-  só orquestram.
+  `document` nem `chrome.*`, e por isso roda em Node/Vitest sem navegador. A UI
+  (popup) e a camada de página (content script) só orquestram.
 
-- **Sem `content_scripts` no manifest.** Declarar um content script com `matches`
-  exigiria host permission ampla, que este projeto não pede. Em vez disso, o
-  content script é **injetado sob demanda** via `chrome.scripting.executeScript`,
-  aproveitando o grant de `activeTab` que surge quando o usuário abre o popup,
-  usa o menu de contexto ou o atalho. Consequência: a detecção passa a valer a
-  partir do momento em que você aciona a extensão na aba.
+- **Sem `content_scripts` no manifest.** Declará-los com `matches` exigiria host
+  permission ampla, que este projeto não pede. O content script é **injetado sob
+  demanda** via `chrome.scripting.executeScript`, aproveitando o grant de
+  `activeTab` que surge quando o usuário abre o popup, usa o menu de contexto ou
+  o atalho. Consequência: a detecção vale a partir do momento em que você aciona
+  a extensão na aba.
 
 - **O content script não gera dados.** Scripts injetados via `executeScript` não
-  são módulos ES; para não duplicar a lógica de `core/`, a geração roda no popup
-  e no service worker (que importam `core/` como módulos) e só o **valor pronto**
-  é enviado ao content script, que detecta o campo e insere.
+  são módulos ES; para não duplicar `core/`, a geração roda no popup e no service
+  worker (que importam `core/` como módulos) e só o **valor pronto** é enviado ao
+  content script, que detecta o campo e insere.
 
-- **Reprodutibilidade por índice.** Cada geração usa um rng derivado de
-  `${seed}:${contador}`; o contador é persistido e avança a cada valor. Assim "o
-  N-ésimo valor gerado com a seed X" é sempre o mesmo, e o histórico só precisa
-  guardar `(seed, contador, tipo)` para reproduzir.
+- **A UI acompanha o core sozinha.** Adicionar um documento é **uma entrada** no
+  registro `TIPOS` (`core/gerador.js`); popup (botões agrupados por categoria) e
+  menu de contexto se montam a partir dele.
 
 - **Sem etapa de build.** Popup e service worker usam ES modules nativos; o
   content script é um arquivo plano. Carrega direto em *Load unpacked*. O
-  `package.json` existe apenas para o Vitest (devDependency).
+  `package.json` existe só para o Vitest (devDependency).
 
 ### Permissões (só estas quatro)
 
@@ -122,58 +153,61 @@ capturante e `composedPath()`, o que cobre **Shadow DOM aberto**) e oferece dois
 modos:
 
 - **Injetar valor** — usa o *setter nativo* de `value` do prototype
-  (`HTMLInputElement`/`HTMLTextAreaElement`) e dispara `InputEvent` e `change`
-  com `bubbles: true`, para que React/Vue/Angular registrem a mudança.
+  (`HTMLInputElement`/`HTMLTextAreaElement`) e dispara `InputEvent` + `change`
+  com `bubbles: true`, para que React/Vue/Angular registrem a mudança. (O setter
+  do prototype contorna o *value tracker* que frameworks instalam na instância —
+  é isso que faz a mudança "colar".)
 - **Simular colagem** — insere na posição do cursor/seleção, preservando o
   restante do texto.
 
-A injeção é feita com `allFrames: true`, então **iframes de mesma origem** também
-são cobertos: o frame que tem o campo focado é quem insere. Um `MutationObserver`
+A injeção usa `allFrames: true`, então **iframes de mesma origem** também são
+cobertos: o frame com o campo focado é quem insere. Um `MutationObserver`
 descarta o alvo caso ele saia do DOM (formulários multi-etapa).
 
-## Como carregar (Load unpacked)
-
-1. Abra `chrome://extensions`.
-2. Ative o **Modo do desenvolvedor** (canto superior direito).
-3. Clique em **Carregar sem compactação** (*Load unpacked*).
-4. Selecione a pasta raiz do projeto (a que contém o `manifest.json`).
-5. Fixe o ícone **R** na barra e clique para abrir o popup.
-
-Atalhos padrão (ajustáveis em `chrome://extensions/shortcuts`):
-
-- `Ctrl+Shift+9` — abrir o Reproduzível.
-- `Ctrl+Shift+8` — inserir a última geração no campo focado.
-
-## Como rodar os testes
+## Testes
 
 ```bash
-npm install     # instala o Vitest (única devDependency)
-npm test        # roda toda a suíte uma vez
+npm install        # instala o Vitest (única devDependency)
+npm test           # roda toda a suíte unitária uma vez
 npm run test:watch
 ```
 
-Os testes cobrem o PRNG (determinismo), CPF, CNPJ (numérico, alfanumérico e o
-caso oficial `12.ABC.345/01DE-35`), a normalização/persistência da config e o
-gerador. **A extensão em si não carrega nada disso** — Vitest é só de
-desenvolvimento.
+- **Unitário (Vitest, Node):** cobre PRNG, os 11 documentos (incl. o caso oficial
+  `12.ABC.345/01DE-35`), detecção→fronteira, os módulos de texto, a massa
+  inválida, a persistência de config e o **service worker** (menu de contexto,
+  cadeia gerar → contador → histórico → inserir, atalho). **A extensão não
+  carrega nada disso** — Vitest é só de desenvolvimento.
+
+- **End-to-end (navegador):** validam a camada de DOM que os unitários não
+  alcançam — inserção nos dois modos, eventos nativos, Shadow DOM (incl.
+  aninhado), iframes same-origin, detecção→fronteira, e o mecanismo React/Vue.
+  Ver [`tests/e2e/cenarios.md`](tests/e2e/cenarios.md).
+
+  ```bash
+  node tests/e2e/servir.mjs
+  # content script:  http://localhost:8791/tests/e2e/runner.html
+  # popup completo:  http://localhost:8791/tests/e2e/popup-runner.html
+  ```
 
 ## Aviso sobre os payloads (uso defensivo)
 
-Parte do backlog inclui um conjunto de **massa inválida e payloads** (XSS básico,
-SQL injection, strings de overflow) voltado a **teste exploratório defensivo**.
-Esses valores existem para você exercitar a validação **de sistemas próprios, em
-ambientes de teste sob sua responsabilidade**. Não use contra sistemas de
+A seção **"Inválidos & payloads"** inclui strings de ataque (XSS básico, SQL
+injection, overflow de tamanho) voltadas a **teste exploratório defensivo**. Elas
+existem para você exercitar a validação e o escaping **de sistemas próprios, em
+ambientes de teste sob sua responsabilidade**. **Não** as use contra sistemas de
 terceiros sem autorização — isso pode ser ilegal. A ferramenta não realiza
 nenhum ataque: apenas coloca strings em campos que você mesmo escolhe.
 
 ## Backlog
 
-Planejado para as próximas versões (ainda **não** implementado):
+Ainda **não** implementado:
 
-- **Inscrição Estadual das demais UFs** (hoje só SP).
-- **Não previstos para a v1**: vocabulário customizado por clique direito; configs
-  por domínio compartilháveis; export para fixtures de Playwright/Selenium;
-  preencher formulário inteiro de uma vez; pacote npm que consome o mesmo formato.
+- **Inscrição Estadual das demais UFs** (hoje só SP; cada UF tem algoritmo de DV
+  próprio).
+- **Não previstos para a v1:** vocabulário customizado por clique direito;
+  configs por domínio compartilháveis; export para fixtures de
+  Playwright/Selenium; preencher formulário inteiro de uma vez; pacote npm que
+  consome o mesmo formato.
 
 ## Licença
 
