@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Preview — Reproduzível</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #eceff3;
+        font-family: system-ui, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) { body { background: #14161a; } }
+      .moldura {
+        width: 380px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(128, 128, 128, 0.25);
+        background: canvas;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="moldura"><div id="app"></div></div>
+
+    <script>
+      // chrome mockado — popup 100% funcional só para visualização.
+      const mem = { sync: {}, local: {} };
+      const loja = (b) => ({
+        async get(k) { return k in mem[b] ? { [k]: structuredClone(mem[b][k]) } : {}; },
+        async set(o) { Object.assign(mem[b], structuredClone(o)); },
+      });
+      window.chrome = {
+        storage: { sync: loja("sync"), local: loja("local") },
+        tabs: { async query() { return [{ id: 1 }]; }, async sendMessage() { return { ok: false, erro: "sem-campo" }; } },
+        scripting: { async executeScript() { return []; } },
+        runtime: {},
+      };
+    </script>
+    <script type="module">
+      const html = await (await fetch("/src/popup/popup.html")).text();
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const css = await (await fetch("/src/popup/popup.css")).text();
+      const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+      document.getElementById("app").replaceChildren(...doc.body.childNodes);
+      await import("/src/popup/popup.js");
+      document.dispatchEvent(new Event("DOMContentLoaded"));
+    </script>
+  </body>
+</html>
