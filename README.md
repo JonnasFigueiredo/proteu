@@ -21,7 +21,7 @@ permissões mínimas, sem dependências de terceiros em runtime.
    (React/Vue/Angular), **Shadow DOM aberto** e **iframes de mesma origem**, que
    é onde as concorrentes costumam falhar.
 
-## Estado atual (v0.2.0)
+## Estado atual (v0.3.0)
 
 - PRNG determinístico (`core/seed.js`).
 - **13 tipos de documento**: CPF; **CNPJ** com uma **única função para o formato
@@ -33,8 +33,17 @@ permissões mínimas, sem dependências de terceiros em runtime.
 - **Detecção de campo → set de fronteira** (`core/field.js`): o campo focado
   vira chips clicáveis no popup (maxlength ±1, number min/max + `1e999`/`NaN`,
   datas de fronteira, e-mails traiçoeiros, strings Unicode).
-- Popup com todos os tipos, seed no rodapé, cópia, histórico da sessão e
-  opções persistidas.
+- **Texto** (`core/text/`): geração em **9 idiomas** (cada um cobrindo um
+  problema real de i18n, documentado no código); **geração por tamanho** exata
+  nas **4 unidades de contagem** (grafemas, code points, code units UTF-16,
+  bytes UTF-8) exibidas lado a lado; **pseudolocale** (`Save` → `Šávé`) com
+  expansão ~40%, marcadores `⟦…⟧`, preservação de placeholders e modo
+  `fakebidi`.
+- **Massa inválida e payloads** (`core/invalid/`): CPF/CNPJ com DV errado e
+  sequências uniformes; fronteiras Unicode canônicas; payloads XSS/SQLi/formato
+  e overflow (uso defensivo — ver aviso abaixo).
+- Popup com todos os tipos, bloco de texto com as 4 contagens, seed no rodapé,
+  cópia, histórico da sessão e opções persistidas.
 - Camada de inserção no content script com dois modos e disparo de eventos
   nativos.
 - Menu de contexto (um item por tipo) e atalho de teclado.
@@ -156,13 +165,9 @@ nenhum ataque: apenas coloca strings em campos que você mesmo escolhe.
 
 Planejado para as próximas versões (ainda **não** implementado):
 
-- **Texto multilíngue** em 9 idiomas (pt, es, ar, tr, ru, zh, hi, ja, he), cada
-  um cobrindo um problema real de i18n.
-- **Texto por tamanho** com 4 unidades de contagem (grafemas, code points, code
-  units UTF-16, bytes UTF-8) exibidas lado a lado.
-- **Pseudolocale** (`Save` → `Šàvē`), com preservação de placeholders e modo
-  `fakebidi`.
-- **Massa inválida e payloads** (DV errado, fronteiras Unicode, XSS/SQLi/overflow).
+- **Bloco de texto na UI**: a massa inválida e os payloads já existem em
+  `core/invalid/` com testes, mas ainda não têm botões próprios no popup (só
+  documentos e texto estão expostos). Próximo passo de UI.
 - **Inscrição Estadual das demais UFs** (hoje só SP).
 - **Não previstos para a v1**: vocabulário customizado por clique direito; configs
   por domínio compartilháveis; export para fixtures de Playwright/Selenium;

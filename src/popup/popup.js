@@ -11,24 +11,42 @@ import {
 } from "../storage.js";
 import { gerar, TIPOS } from "../core/gerador.js";
 import { gerarSeedAleatoria } from "../core/config.js";
-import { normalizarSeed } from "../core/seed.js";
+import { normalizarSeed, criarRng } from "../core/seed.js";
 import { gerarSetFronteira } from "../core/field.js";
+import { IDIOMAS, CODIGOS_IDIOMA, RTL, gerarPalavras } from "../core/text/idiomas.js";
+import { gerarPorTamanho } from "../core/text/tamanho.js";
+import { contarTudo } from "../core/text/contagem.js";
+import { pseudolocalizar } from "../core/text/pseudolocale.js";
 
 const $ = (sel) => document.querySelector(sel);
 
 // Estado local do popup; a fonte da verdade é o chrome.storage.
 let config = null;
 let ultimoValor = null;
+let ultimoTexto = null;
+let ultimoIdioma = null;
 
 // --- Inicialização ----------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", async () => {
   config = await carregarConfig();
   montarBotoesDocumento();
+  montarIdiomas();
   refletirConfigNaUI();
   ligarEventos();
   await detectarCampo();
 });
+
+/** Opções do seletor de idioma, a partir de core/text/idiomas.js. */
+function montarIdiomas() {
+  const sel = $("#idioma");
+  for (const cod of CODIGOS_IDIOMA) {
+    const opt = document.createElement("option");
+    opt.value = cod;
+    opt.textContent = `${IDIOMAS[cod].rotulo} (${cod})`;
+    sel.appendChild(opt);
+  }
+}
 
 /** Um botão por tipo registrado em TIPOS — a UI acompanha o core sozinha. */
 function montarBotoesDocumento() {
@@ -79,6 +97,12 @@ function ligarEventos() {
   $("#campo-seed").addEventListener("change", aoMudarSeed);
   $("#btn-nova-seed").addEventListener("click", aoNovaSeed);
 
+  $("#btn-palavras").addEventListener("click", aoGerarPalavras);
+  $("#btn-tamanho").addEventListener("click", aoGerarTamanho);
+  $("#btn-pseudo").addEventListener("click", aoPseudo);
+  $("#btn-copiar-texto").addEventListener("click", () => copiar(ultimoTexto, "#feedback-texto"));
+  $("#btn-inserir-texto").addEventListener("click", aoInserirTexto);
+
   $("#btn-config").addEventListener("click", () => alternar("#secao-config"));
   $("#btn-historico").addEventListener("click", aoAlternarHistorico);
   $("#btn-limpar-hist").addEventListener("click", async () => {
@@ -117,15 +141,115 @@ async function aoGerar(tipo) {
   if (!$("#secao-historico").hidden) await renderizarHistorico();
 }
 
+// --- Geração de texto -------------------------------------------------------
+
+/** Deriva um rng do par (seed, contador) e avança o contador persistido. */
+async function proximoRng() {
+  config = await carregarConfig();
+  const usado = config.contador;
+  const rng = criarRng(`${config.seed}:${usado}`);
+  await persistirContador(usado + 1);
+  config.contador = usado + 1;
+  return { rng, usado };
+}
+
+async function aoGerarPalavras() {
+  const idioma = $("#idioma").value;
+  const { rng, usado } = await proximoRng();
+  const texto = gerarPalavras(rng, idioma, 6);
+  mostrarTexto(texto, idioma);
+  await adicionarHistorico({
+    tipo: `texto:${idioma}`,
+    valor: texto,
+    seed: config.seed,
+    contador: usado,
+    em: Date.now(),
+  });
+  if (!$("#secao-historico").hidden) await renderizarHistorico();
+}
+
+async function aoGerarTamanho() {
+  const unidade = $("#tam-unidade").value;
+  const alvo = parseInt($("#tam-alvo").value, 10);
+  if (!Number.isInteger(alvo) || alvo < 0) {
+    mostrarFeedback("Informe um tamanho válido", "erro", "#feedback-texto");
+    return;
+  }
+  const { rng, usado } = await proximoRng();
+  const r = gerarPorTamanho(rng, { unidade, alvo });
+  mostrarTexto(r.texto, null);
+  await adicionarHistorico({
+    tipo: `texto:${unidade}=${alvo}`,
+    valor: r.texto,
+    seed: config.seed,
+    contador: usado,
+    em: Date.now(),
+  });
+  if (!$("#secao-historico").hidden) await renderizarHistorico();
+}
+
+function aoPseudo() {
+  if (!ultimoTexto) return;
+  const transformado = pseudolocalizar(ultimoTexto);
+  mostrarTexto(transformado, null);
+}
+
+/** Mostra o texto, marca a direção (RTL) e exibe as 4 contagens. */
+function mostrarTexto(texto, idioma) {
+  ultimoTexto = texto;
+  ultimoIdioma = idioma;
+  const out = $("#valor-texto");
+  out.textContent = texto;
+  out.dir = idioma && RTL.has(idioma) ? "rtl" : "ltr";
+  renderContagens(texto);
+  $("#resultado-texto").hidden = false;
+  limparFeedback("#feedback-texto");
+}
+
+function renderContagens(texto) {
+  const c = contarTudo(texto);
+  const tiles = [
+    ["grafemas", c.grafemas],
+    ["code points", c.codePoints],
+    ["code units", c.codeUnits],
+    ["bytes", c.bytes],
+  ];
+  const cont = $("#contagens");
+  cont.textContent = "";
+  for (const [rot, num] of tiles) {
+    const div = document.createElement("div");
+    div.className = "contagem";
+    const n = document.createElement("span");
+    n.className = "num";
+    n.textContent = String(num);
+    const r = document.createElement("span");
+    r.className = "rot";
+    r.textContent = rot;
+    div.append(n, r);
+    cont.appendChild(div);
+  }
+}
+
+async function aoInserirTexto() {
+  if (!ultimoTexto) return;
+  const r = await inserirNoCampoAtivo(ultimoTexto, config.insercao.modo);
+  mostrarFeedback(
+    r.ok ? "Inserido no campo ✓" : r.motivo === "sem-campo"
+      ? "Clique num campo da página primeiro" : "Não foi possível inserir",
+    r.ok ? "ok" : "erro",
+    "#feedback-texto"
+  );
+}
+
 // --- Copiar -----------------------------------------------------------------
 
-async function copiar(valor) {
+async function copiar(valor, sel = "#feedback") {
   if (!valor) return;
   try {
     await navigator.clipboard.writeText(valor);
-    mostrarFeedback("Copiado ✓", "ok");
+    mostrarFeedback("Copiado ✓", "ok", sel);
   } catch {
-    mostrarFeedback("Não foi possível copiar", "erro");
+    mostrarFeedback("Não foi possível copiar", "erro", sel);
   }
 }
 

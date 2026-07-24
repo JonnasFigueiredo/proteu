@@ -270,6 +270,71 @@ select {
   min-height: 15px;
 }
 
+/* Bloco de texto */
+.linha-texto {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.linha-texto select,
+.linha-texto input {
+  flex: 1;
+  min-width: 0;
+}
+
+#tam-alvo {
+  flex: 0 0 72px;
+  padding: 5px 8px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 13px;
+}
+
+.linha-texto .secundario {
+  flex: 0 0 auto;
+}
+
+.valor-texto {
+  font-size: 14px;
+  white-space: pre-wrap;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+/* As 4 contagens lado a lado */
+.contagens {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.contagem {
+  text-align: center;
+  padding: 6px 2px;
+  background: var(--fundo);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+}
+
+.contagem .num {
+  display: block;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--azul);
+}
+
+.contagem .rot {
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--texto-fraco);
+}
+
 .feedback.ok {
   color: var(--verde);
 }

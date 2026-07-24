@@ -6,10 +6,31 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Planejado
-- Texto multilíngue (9 idiomas) e texto por tamanho com 4 unidades de contagem.
-- Pseudolocale com preservação de placeholders e modo `fakebidi`.
-- Massa inválida e payloads (uso defensivo).
+- Botões de massa inválida e payloads no popup (o core já existe em
+  `core/invalid/` com testes).
 - Inscrição Estadual das demais UFs (hoje só SP).
+
+## [0.3.0] — 2026-07-23
+
+### Adicionado
+- `core/text/contagem.js`: contagem nas 4 unidades (grafemas via
+  `Intl.Segmenter`, code points, code units UTF-16, bytes UTF-8).
+- `core/text/idiomas.js`: geração de texto em 9 idiomas (pt, es, ar, tr, ru,
+  zh, hi, ja, he), cada um documentando o problema de i18n que expõe.
+- `core/text/tamanho.js`: geração por tamanho **exata** na unidade escolhida,
+  inclusive com filler multibyte.
+- `core/text/pseudolocale.js`: pseudolocalização (transliteração acentuada,
+  expansão ~40%, marcadores `⟦…⟧`, preservação de placeholders, modo
+  `fakebidi` com controles RLO/PDF).
+- `core/invalid/`: documentos inválidos (DV errado, sequências uniformes),
+  fronteiras Unicode canônicas e payloads XSS/SQLi/formato/overflow (uso
+  defensivo).
+- Bloco **Texto** no popup: idioma + geração por tamanho com unidade, e as **4
+  contagens exibidas lado a lado**; botão de pseudolocalização; direção RTL
+  automática para árabe e hebraico.
+
+### Notas
+- 178 testes no total.
 
 ## [0.2.0] — 2026-07-23
 
@@ -53,5 +74,6 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.3.0]: https://example.com/
 [0.2.0]: https://example.com/
 [0.1.0]: https://example.com/

@@ -74,6 +74,45 @@
       </div>
     </section>
 
+    <!-- Texto -->
+    <section class="secao">
+      <h2>Texto</h2>
+
+      <div class="linha-texto">
+        <select id="idioma" aria-label="Idioma"></select>
+        <button id="btn-palavras" class="secundario">Gerar palavras</button>
+      </div>
+
+      <div class="linha-texto">
+        <input
+          id="tam-alvo"
+          type="number"
+          min="0"
+          max="100000"
+          value="100"
+          aria-label="Tamanho alvo"
+        />
+        <select id="tam-unidade" aria-label="Unidade de contagem">
+          <option value="grafemas">grafemas</option>
+          <option value="codePoints">code points</option>
+          <option value="codeUnits">code units</option>
+          <option value="bytes">bytes UTF-8</option>
+        </select>
+        <button id="btn-tamanho" class="secundario">Por tamanho</button>
+      </div>
+
+      <div id="resultado-texto" class="resultado" hidden>
+        <output id="valor-texto" class="valor valor-texto"></output>
+        <div id="contagens" class="contagens"></div>
+        <div class="acoes-resultado">
+          <button id="btn-copiar-texto" class="secundario">Copiar</button>
+          <button id="btn-pseudo" class="secundario" title="Pseudolocalizar">Pseudo</button>
+          <button id="btn-inserir-texto" class="primario">Inserir</button>
+        </div>
+        <p id="feedback-texto" class="feedback" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
     <!-- Histórico (toggle pelo relógio) -->
     <section id="secao-historico" class="secao" hidden>
       <div class="cabecalho-historico">
