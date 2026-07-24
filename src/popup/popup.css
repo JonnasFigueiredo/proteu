@@ -147,6 +147,41 @@ body {
   color: var(--azul);
 }
 
+.gerar.invalido {
+  border-color: var(--vermelho);
+  background: transparent;
+  color: var(--vermelho);
+}
+
+.gerar.invalido:hover {
+  background: var(--vermelho);
+  color: #fff;
+}
+
+.grupo-chips {
+  margin-top: 10px;
+}
+
+.rot-grupo {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--texto-fraco);
+  margin-bottom: 4px;
+}
+
+.chip.perigo {
+  border-color: var(--vermelho);
+  color: var(--vermelho);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}
+
+.chip.perigo:hover {
+  background: var(--vermelho);
+  color: #fff;
+}
+
 /* Opções */
 .opcoes {
   display: flex;

@@ -41,7 +41,9 @@ permissões mínimas, sem dependências de terceiros em runtime.
   `fakebidi`.
 - **Massa inválida e payloads** (`core/invalid/`): CPF/CNPJ com DV errado e
   sequências uniformes; fronteiras Unicode canônicas; payloads XSS/SQLi/formato
-  e overflow (uso defensivo — ver aviso abaixo).
+  e overflow (uso defensivo — ver aviso abaixo). Expostos no popup na seção
+  "Inválidos & payloads" — clique num chip insere direto no campo ativo (ou
+  copia, se não houver campo focado).
 - Popup com todos os tipos, bloco de texto com as 4 contagens, seed no rodapé,
   cópia, histórico da sessão e opções persistidas.
 - Camada de inserção no content script com dois modos e disparo de eventos
@@ -165,9 +167,6 @@ nenhum ataque: apenas coloca strings em campos que você mesmo escolhe.
 
 Planejado para as próximas versões (ainda **não** implementado):
 
-- **Bloco de texto na UI**: a massa inválida e os payloads já existem em
-  `core/invalid/` com testes, mas ainda não têm botões próprios no popup (só
-  documentos e texto estão expostos). Próximo passo de UI.
 - **Inscrição Estadual das demais UFs** (hoje só SP).
 - **Não previstos para a v1**: vocabulário customizado por clique direito; configs
   por domínio compartilháveis; export para fixtures de Playwright/Selenium;

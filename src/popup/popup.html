@@ -113,6 +113,40 @@
       </div>
     </section>
 
+    <!-- Massa inválida e payloads -->
+    <section class="secao">
+      <h2>Inválidos & payloads</h2>
+
+      <div class="botoes-doc">
+        <button class="gerar invalido" data-invalido="cpf">CPF inválido</button>
+        <button class="gerar invalido" data-invalido="cnpj">CNPJ inválido</button>
+      </div>
+
+      <div class="grupo-chips">
+        <span class="rot-grupo">Unicode</span>
+        <div id="chips-unicode" class="chips"></div>
+      </div>
+
+      <div class="grupo-chips">
+        <span class="rot-grupo">Payloads (uso defensivo)</span>
+        <div id="chips-payloads" class="chips"></div>
+      </div>
+
+      <div class="linha-texto">
+        <input
+          id="overflow-tam"
+          type="number"
+          min="1"
+          max="1000000"
+          value="10000"
+          aria-label="Tamanho do overflow"
+        />
+        <button id="btn-overflow" class="secundario">Gerar overflow</button>
+      </div>
+
+      <p id="feedback-invalido" class="feedback" role="status" aria-live="polite"></p>
+    </section>
+
     <!-- Histórico (toggle pelo relógio) -->
     <section id="secao-historico" class="secao" hidden>
       <div class="cabecalho-historico">

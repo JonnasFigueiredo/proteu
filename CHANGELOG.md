@@ -6,9 +6,17 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Planejado
-- Botões de massa inválida e payloads no popup (o core já existe em
-  `core/invalid/` com testes).
 - Inscrição Estadual das demais UFs (hoje só SP).
+
+## [0.4.0] — 2026-07-23
+
+### Adicionado
+- Seção **"Inválidos & payloads"** no popup: botões de CPF/CNPJ inválidos
+  (determinísticos pela seed, com o motivo no feedback); chips das fronteiras
+  Unicode e dos payloads (XSS/SQLi/formato); campo de overflow que gera a string
+  e mostra as 4 contagens no bloco Texto.
+- Clique num chip insere no campo ativo; sem campo focado, cai para a área de
+  transferência automaticamente.
 
 ## [0.3.0] — 2026-07-23
 
@@ -74,6 +82,7 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.4.0]: https://example.com/
 [0.3.0]: https://example.com/
 [0.2.0]: https://example.com/
 [0.1.0]: https://example.com/

@@ -17,6 +17,9 @@ import { IDIOMAS, CODIGOS_IDIOMA, RTL, gerarPalavras } from "../core/text/idioma
 import { gerarPorTamanho } from "../core/text/tamanho.js";
 import { contarTudo } from "../core/text/contagem.js";
 import { pseudolocalizar } from "../core/text/pseudolocale.js";
+import { gerarCpfInvalido, gerarCnpjInvalido } from "../core/invalid/documentos-invalidos.js";
+import { FRONTEIRAS_UNICODE } from "../core/invalid/unicode.js";
+import { todosPayloads, gerarOverflow } from "../core/invalid/payloads.js";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -32,10 +35,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   config = await carregarConfig();
   montarBotoesDocumento();
   montarIdiomas();
+  montarChipsInvalidos();
   refletirConfigNaUI();
   ligarEventos();
   await detectarCampo();
 });
+
+/** Chips estáticos de Unicode e payloads (clique insere no campo / copia). */
+function montarChipsInvalidos() {
+  const uni = $("#chips-unicode");
+  for (const item of FRONTEIRAS_UNICODE) {
+    uni.appendChild(criarChipValor(item.rotulo, item.valor, item.nota, false));
+  }
+  const pay = $("#chips-payloads");
+  for (const item of todosPayloads()) {
+    pay.appendChild(criarChipValor(item.rotulo, item.valor, item.valor, true));
+  }
+}
+
+/** Cria um chip que, ao clicar, insere o valor no campo ativo (ou copia). */
+function criarChipValor(rotulo, valor, titulo, perigo) {
+  const chip = document.createElement("button");
+  chip.className = perigo ? "chip perigo" : "chip";
+  chip.textContent = rotulo;
+  chip.title = titulo;
+  chip.addEventListener("click", () => usarValorAvulso(valor, rotulo));
+  return chip;
+}
 
 /** Opções do seletor de idioma, a partir de core/text/idiomas.js. */
 function montarIdiomas() {
@@ -96,6 +122,11 @@ function ligarEventos() {
 
   $("#campo-seed").addEventListener("change", aoMudarSeed);
   $("#btn-nova-seed").addEventListener("click", aoNovaSeed);
+
+  document.querySelectorAll(".gerar.invalido").forEach((b) =>
+    b.addEventListener("click", () => aoGerarInvalido(b.dataset.invalido))
+  );
+  $("#btn-overflow").addEventListener("click", aoGerarOverflow);
 
   $("#btn-palavras").addEventListener("click", aoGerarPalavras);
   $("#btn-tamanho").addEventListener("click", aoGerarTamanho);
@@ -239,6 +270,54 @@ async function aoInserirTexto() {
     r.ok ? "ok" : "erro",
     "#feedback-texto"
   );
+}
+
+// --- Massa inválida e payloads ----------------------------------------------
+
+async function aoGerarInvalido(tipo) {
+  const { rng, usado } = await proximoRng();
+  const r =
+    tipo === "cnpj"
+      ? gerarCnpjInvalido(rng, { mascara: config.documentos.mascara })
+      : gerarCpfInvalido(rng, { mascara: config.documentos.mascara });
+  ultimoValor = r.valor;
+
+  $("#valor-gerado").textContent = r.valor;
+  $("#resultado").hidden = false;
+  mostrarFeedback(`Inválido (${r.motivo}) — pronto para copiar/inserir`, "ok", "#feedback-invalido");
+
+  await adicionarHistorico({
+    tipo: `inválido:${tipo}`,
+    valor: r.valor,
+    seed: config.seed,
+    contador: usado,
+    em: Date.now(),
+  });
+  if (!$("#secao-historico").hidden) await renderizarHistorico();
+}
+
+async function aoGerarOverflow() {
+  const tam = parseInt($("#overflow-tam").value, 10);
+  if (!Number.isInteger(tam) || tam < 1) {
+    mostrarFeedback("Informe um tamanho válido", "erro", "#feedback-invalido");
+    return;
+  }
+  const texto = gerarOverflow(tam);
+  mostrarTexto(texto, null); // mostra as 4 contagens do overflow
+  mostrarFeedback(`Overflow de ${tam} chars gerado (veja no bloco Texto)`, "ok", "#feedback-invalido");
+}
+
+/** Insere um valor avulso (chip Unicode/payload) no campo ativo, ou copia. */
+async function usarValorAvulso(valor, rotulo) {
+  const r = await inserirNoCampoAtivo(valor, config.insercao.modo);
+  if (r.ok) {
+    mostrarFeedback(`"${rotulo}" inserido ✓`, "ok", "#feedback-invalido");
+  } else if (r.motivo === "sem-campo") {
+    // Sem campo focado: cai para a área de transferência.
+    await copiar(valor, "#feedback-invalido");
+  } else {
+    mostrarFeedback("Não foi possível inserir", "erro", "#feedback-invalido");
+  }
 }
 
 // --- Copiar -----------------------------------------------------------------
