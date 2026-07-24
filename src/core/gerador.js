@@ -21,15 +21,38 @@ import { gerarPix } from "./documents/pix.js";
 import { gerarCartao } from "./documents/cartao.js";
 
 // Registro de tipos disponíveis. Cada entrada recebe (rng, config) e retorna
-// a string gerada. Adicionar um documento novo = adicionar uma linha aqui —
-// popup e menu de contexto se montam a partir deste objeto.
+// a string gerada. `categoria` é só metadado de exibição (agrupa os botões no
+// popup). Adicionar um documento novo = adicionar uma linha aqui — popup e menu
+// de contexto se montam a partir deste objeto.
 export const TIPOS = {
   cpf: {
     rotulo: "CPF",
+    categoria: "Pessoa",
     gerar: (rng, config) => gerarCpf(rng, { mascara: config.documentos.mascara }),
+  },
+  rg: {
+    rotulo: "RG",
+    categoria: "Pessoa",
+    gerar: (rng, config) => gerarRg(rng, { mascara: config.documentos.mascara }),
+  },
+  cnh: {
+    rotulo: "CNH",
+    categoria: "Pessoa",
+    gerar: (rng) => gerarCnh(rng),
+  },
+  pis: {
+    rotulo: "PIS/PASEP",
+    categoria: "Pessoa",
+    gerar: (rng, config) => gerarPis(rng, { mascara: config.documentos.mascara }),
+  },
+  titulo: {
+    rotulo: "Título de eleitor",
+    categoria: "Pessoa",
+    gerar: (rng, config) => gerarTitulo(rng, { mascara: config.documentos.mascara }),
   },
   cnpj: {
     rotulo: "CNPJ",
+    categoria: "Empresa",
     gerar: (rng, config) =>
       gerarCnpj(rng, {
         mascara: config.documentos.mascara,
@@ -37,40 +60,19 @@ export const TIPOS = {
         excluirAmbiguas: config.documentos.cnpjExcluirAmbiguas,
       }),
   },
-  rg: {
-    rotulo: "RG",
-    gerar: (rng, config) => gerarRg(rng, { mascara: config.documentos.mascara }),
-  },
-  cnh: {
-    rotulo: "CNH",
-    gerar: (rng) => gerarCnh(rng),
-  },
-  pis: {
-    rotulo: "PIS/PASEP",
-    gerar: (rng, config) => gerarPis(rng, { mascara: config.documentos.mascara }),
-  },
-  titulo: {
-    rotulo: "Título de eleitor",
-    gerar: (rng, config) => gerarTitulo(rng, { mascara: config.documentos.mascara }),
+  ie: {
+    rotulo: "Inscrição Estadual (SP)",
+    categoria: "Empresa",
+    gerar: (rng, config) => gerarIe(rng, { mascara: config.documentos.mascara }),
   },
   renavam: {
     rotulo: "RENAVAM",
+    categoria: "Veículo",
     gerar: (rng) => gerarRenavam(rng),
-  },
-  ie: {
-    rotulo: "Inscrição Estadual (SP)",
-    gerar: (rng, config) => gerarIe(rng, { mascara: config.documentos.mascara }),
-  },
-  cep: {
-    rotulo: "CEP",
-    gerar: (rng, config) => gerarCep(rng, { mascara: config.documentos.mascara }),
-  },
-  telefone: {
-    rotulo: "Telefone",
-    gerar: (rng, config) => gerarTelefone(rng, { mascara: config.documentos.mascara }),
   },
   placa: {
     rotulo: "Placa",
+    categoria: "Veículo",
     // Alterna entre os dois padrões pelo próprio rng (determinístico).
     gerar: (rng, config) =>
       gerarPlaca(rng, {
@@ -78,12 +80,24 @@ export const TIPOS = {
         mascara: config.documentos.mascara,
       }),
   },
+  cep: {
+    rotulo: "CEP",
+    categoria: "Contato",
+    gerar: (rng, config) => gerarCep(rng, { mascara: config.documentos.mascara }),
+  },
+  telefone: {
+    rotulo: "Telefone",
+    categoria: "Contato",
+    gerar: (rng, config) => gerarTelefone(rng, { mascara: config.documentos.mascara }),
+  },
   pix: {
     rotulo: "Chave Pix",
+    categoria: "Financeiro",
     gerar: (rng) => gerarPix(rng), // sorteia um dos 4 formatos
   },
   cartao: {
     rotulo: "Cartão de crédito",
+    categoria: "Financeiro",
     gerar: (rng, config) => gerarCartao(rng, { mascara: config.documentos.mascara }),
   },
 };

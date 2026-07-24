@@ -8,6 +8,23 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ### Planejado
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.4.1] — 2026-07-23
+
+### Alterado (UX/UI)
+- Popup reorganizado com **navegação por abas** (Documentos · Texto ·
+  Inválidos); Configurações e Histórico viram views acionadas pelos ícones do
+  cabeçalho — só um bloco visível por vez (divulgação progressiva).
+- Documentos **agrupados por categoria** (Pessoa, Empresa, Veículo, Contato,
+  Financeiro) com botões de contorno leves, em vez da parede de 13 botões azuis.
+  O azul sólido fica só na ação primária.
+- Opções específicas de CNPJ (alfanumérico, excluir ambíguas) movidas para
+  Configurações; só "Com máscara" (agora um switch) fica à vista.
+- Aba Inválidos ganhou card de resultado próprio; overflow leva à aba Texto
+  para mostrar as 4 contagens.
+- Paleta refinada, menos bordas divisórias, hierarquia por espaçamento; ambos os
+  temas (claro/escuro) revisados.
+- `TIPOS` (core/gerador.js) ganhou `categoria` como metadado de exibição.
+
 ## [0.4.0] — 2026-07-23
 
 ### Adicionado
@@ -82,6 +99,7 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.4.1]: https://example.com/
 [0.4.0]: https://example.com/
 [0.3.0]: https://example.com/
 [0.2.0]: https://example.com/

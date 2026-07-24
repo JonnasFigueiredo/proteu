@@ -21,146 +21,173 @@
       </div>
     </header>
 
-    <!-- Campo detectado (aparece quando há um campo ativo na página) -->
-    <section id="secao-campo" class="secao campo-detectado" hidden>
-      <h2>Campo detectado</h2>
-      <p id="campo-descricao" class="campo-descricao"></p>
+    <!-- Abas principais -->
+    <nav class="abas" role="tablist">
+      <button class="aba aba--ativa" data-view="documentos" role="tab">Documentos</button>
+      <button class="aba" data-view="texto" role="tab">Texto</button>
+      <button class="aba" data-view="invalidos" role="tab">Inválidos</button>
+    </nav>
+
+    <!-- Campo detectado: banner contextual, acima dos painéis -->
+    <section id="secao-campo" class="banner-campo" hidden>
+      <div class="banner-campo__cab">
+        <span class="banner-campo__rot">📍 Campo detectado</span>
+        <code id="campo-descricao"></code>
+      </div>
       <div id="chips-fronteira" class="chips"></div>
       <p id="feedback-campo" class="feedback" role="status" aria-live="polite"></p>
     </section>
 
-    <!-- Configurações (toggle pela engrenagem) -->
-    <section id="secao-config" class="secao" hidden>
-      <h2>Configurações</h2>
-      <label class="linha-config">
-        <span>Modo de inserção</span>
-        <select id="modo-insercao">
-          <option value="valor">Injetar valor</option>
-          <option value="colar">Simular colagem</option>
-        </select>
-      </label>
-      <p class="ajuda">
-        "Injetar valor" substitui o conteúdo (melhor para React/Vue). "Simular
-        colagem" insere na posição do cursor.
-      </p>
-    </section>
-
-    <!-- Documentos -->
-    <section class="secao">
-      <h2>Documentos</h2>
-
-      <div class="opcoes">
-        <label class="check">
-          <input type="checkbox" id="opt-mascara" /> Com máscara
+    <main class="conteudo">
+      <!-- Documentos -->
+      <section class="painel painel--ativo" data-view="documentos" role="tabpanel">
+        <label class="switch">
+          <input type="checkbox" id="opt-mascara" />
+          <span class="switch__trilho"></span>
+          <span class="switch__rot">Com máscara</span>
         </label>
-        <label class="check">
-          <input type="checkbox" id="opt-alfanumerico" /> CNPJ alfanumérico
-        </label>
-        <label class="check" id="wrap-ambiguas" hidden>
-          <input type="checkbox" id="opt-ambiguas" /> Excluir ambíguas (I,O,U,Q,F)
-        </label>
-      </div>
 
-      <!-- Botões montados dinamicamente a partir de TIPOS (core/gerador.js) -->
-      <div id="botoes-doc" class="botoes-doc"></div>
+        <!-- Grupos por categoria, montados de TIPOS (core/gerador.js) -->
+        <div id="botoes-doc" class="grupos-doc"></div>
 
-      <div id="resultado" class="resultado" hidden>
-        <output id="valor-gerado" class="valor"></output>
-        <div class="acoes-resultado">
-          <button id="btn-copiar" class="secundario">Copiar</button>
-          <button id="btn-inserir" class="primario">Inserir no campo</button>
+        <div id="resultado" class="resultado" hidden>
+          <output id="valor-gerado" class="valor"></output>
+          <div class="acoes-resultado">
+            <button id="btn-copiar" class="secundario">Copiar</button>
+            <button id="btn-inserir" class="primario">Inserir no campo</button>
+          </div>
+          <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
         </div>
-        <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
-      </div>
-    </section>
+      </section>
 
-    <!-- Texto -->
-    <section class="secao">
-      <h2>Texto</h2>
-
-      <div class="linha-texto">
-        <select id="idioma" aria-label="Idioma"></select>
-        <button id="btn-palavras" class="secundario">Gerar palavras</button>
-      </div>
-
-      <div class="linha-texto">
-        <input
-          id="tam-alvo"
-          type="number"
-          min="0"
-          max="100000"
-          value="100"
-          aria-label="Tamanho alvo"
-        />
-        <select id="tam-unidade" aria-label="Unidade de contagem">
-          <option value="grafemas">grafemas</option>
-          <option value="codePoints">code points</option>
-          <option value="codeUnits">code units</option>
-          <option value="bytes">bytes UTF-8</option>
-        </select>
-        <button id="btn-tamanho" class="secundario">Por tamanho</button>
-      </div>
-
-      <div id="resultado-texto" class="resultado" hidden>
-        <output id="valor-texto" class="valor valor-texto"></output>
-        <div id="contagens" class="contagens"></div>
-        <div class="acoes-resultado">
-          <button id="btn-copiar-texto" class="secundario">Copiar</button>
-          <button id="btn-pseudo" class="secundario" title="Pseudolocalizar">Pseudo</button>
-          <button id="btn-inserir-texto" class="primario">Inserir</button>
+      <!-- Texto -->
+      <section class="painel" data-view="texto" role="tabpanel">
+        <div class="campo-rotulado">
+          <span class="rot-mini">Idioma (9)</span>
+          <div class="linha-texto">
+            <select id="idioma" aria-label="Idioma"></select>
+            <button id="btn-palavras" class="secundario">Gerar</button>
+          </div>
         </div>
-        <p id="feedback-texto" class="feedback" role="status" aria-live="polite"></p>
-      </div>
-    </section>
 
-    <!-- Massa inválida e payloads -->
-    <section class="secao">
-      <h2>Inválidos & payloads</h2>
+        <div class="campo-rotulado">
+          <span class="rot-mini">Por tamanho</span>
+          <div class="linha-texto">
+            <input
+              id="tam-alvo"
+              type="number"
+              min="0"
+              max="100000"
+              value="100"
+              aria-label="Tamanho alvo"
+            />
+            <select id="tam-unidade" aria-label="Unidade de contagem">
+              <option value="grafemas">grafemas</option>
+              <option value="codePoints">code points</option>
+              <option value="codeUnits">code units</option>
+              <option value="bytes">bytes UTF-8</option>
+            </select>
+            <button id="btn-tamanho" class="secundario">Gerar</button>
+          </div>
+        </div>
 
-      <div class="botoes-doc">
-        <button class="gerar invalido" data-invalido="cpf">CPF inválido</button>
-        <button class="gerar invalido" data-invalido="cnpj">CNPJ inválido</button>
-      </div>
+        <div id="resultado-texto" class="resultado" hidden>
+          <output id="valor-texto" class="valor valor-texto"></output>
+          <div id="contagens" class="contagens"></div>
+          <div class="acoes-resultado">
+            <button id="btn-copiar-texto" class="secundario">Copiar</button>
+            <button id="btn-pseudo" class="secundario" title="Pseudolocalizar">Pseudo</button>
+            <button id="btn-inserir-texto" class="primario">Inserir</button>
+          </div>
+          <p id="feedback-texto" class="feedback" role="status" aria-live="polite"></p>
+        </div>
+      </section>
 
-      <div class="grupo-chips">
-        <span class="rot-grupo">Unicode</span>
-        <div id="chips-unicode" class="chips"></div>
-      </div>
+      <!-- Inválidos & payloads -->
+      <section class="painel" data-view="invalidos" role="tabpanel">
+        <div class="grupo-doc">
+          <span class="grupo-doc__rot">Documentos com DV errado</span>
+          <div class="grade-doc">
+            <button class="doc-btn perigo-btn" data-invalido="cpf">CPF inválido</button>
+            <button class="doc-btn perigo-btn" data-invalido="cnpj">CNPJ inválido</button>
+          </div>
+          <div id="resultado-invalido" class="resultado" hidden>
+            <output id="valor-invalido" class="valor"></output>
+            <div class="acoes-resultado">
+              <button id="btn-copiar-invalido" class="secundario">Copiar</button>
+              <button id="btn-inserir-invalido" class="primario">Inserir no campo</button>
+            </div>
+          </div>
+        </div>
 
-      <div class="grupo-chips">
-        <span class="rot-grupo">Payloads (uso defensivo)</span>
-        <div id="chips-payloads" class="chips"></div>
-      </div>
+        <div class="campo-rotulado">
+          <span class="rot-mini">Fronteiras Unicode</span>
+          <div id="chips-unicode" class="chips"></div>
+        </div>
 
-      <div class="linha-texto">
-        <input
-          id="overflow-tam"
-          type="number"
-          min="1"
-          max="1000000"
-          value="10000"
-          aria-label="Tamanho do overflow"
-        />
-        <button id="btn-overflow" class="secundario">Gerar overflow</button>
-      </div>
+        <div class="campo-rotulado">
+          <span class="rot-mini">⚠️ Payloads — uso defensivo</span>
+          <div id="chips-payloads" class="chips"></div>
+        </div>
 
-      <p id="feedback-invalido" class="feedback" role="status" aria-live="polite"></p>
-    </section>
+        <div class="campo-rotulado">
+          <span class="rot-mini">Overflow de tamanho</span>
+          <div class="linha-texto">
+            <input
+              id="overflow-tam"
+              type="number"
+              min="1"
+              max="1000000"
+              value="10000"
+              aria-label="Tamanho do overflow"
+            />
+            <button id="btn-overflow" class="secundario">Gerar overflow</button>
+          </div>
+        </div>
 
-    <!-- Histórico (toggle pelo relógio) -->
-    <section id="secao-historico" class="secao" hidden>
-      <div class="cabecalho-historico">
-        <h2>Histórico da sessão</h2>
-        <button id="btn-limpar-hist" class="link">Limpar</button>
-      </div>
-      <ul id="lista-historico" class="lista-historico"></ul>
-      <p id="historico-vazio" class="ajuda">Nada gerado ainda.</p>
-    </section>
+        <p id="feedback-invalido" class="feedback" role="status" aria-live="polite"></p>
+      </section>
+
+      <!-- Configurações -->
+      <section class="painel" data-view="config" role="tabpanel">
+        <div class="campo-rotulado">
+          <span class="rot-mini">Modo de inserção</span>
+          <select id="modo-insercao">
+            <option value="valor">Injetar valor (React/Vue)</option>
+            <option value="colar">Simular colagem (cursor)</option>
+          </select>
+          <p class="ajuda">
+            "Injetar valor" substitui o conteúdo do campo; "simular colagem"
+            insere na posição do cursor.
+          </p>
+        </div>
+
+        <div class="campo-rotulado">
+          <span class="rot-mini">Opções de CNPJ</span>
+          <label class="check">
+            <input type="checkbox" id="opt-alfanumerico" /> Gerar alfanumérico
+          </label>
+          <label class="check" id="wrap-ambiguas" hidden>
+            <input type="checkbox" id="opt-ambiguas" /> Excluir ambíguas (I, O, U, Q, F)
+          </label>
+        </div>
+      </section>
+
+      <!-- Histórico -->
+      <section class="painel" data-view="historico" role="tabpanel">
+        <div class="cabecalho-historico">
+          <span class="rot-mini">Histórico da sessão</span>
+          <button id="btn-limpar-hist" class="link">Limpar</button>
+        </div>
+        <ul id="lista-historico" class="lista-historico"></ul>
+        <p id="historico-vazio" class="ajuda">Nada gerado ainda.</p>
+      </section>
+    </main>
 
     <!-- Rodapé: seed + selo 100% local -->
     <footer class="rodape">
       <div class="seed">
-        <label for="campo-seed">seed:</label>
+        <label for="campo-seed">seed</label>
         <input
           id="campo-seed"
           type="text"

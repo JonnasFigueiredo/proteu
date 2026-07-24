@@ -27,6 +27,7 @@ const $ = (sel) => document.querySelector(sel);
 let config = null;
 let ultimoValor = null;
 let ultimoTexto = null;
+let ultimoInvalido = null;
 
 // --- Inicialização ----------------------------------------------------------
 
@@ -73,16 +74,44 @@ function montarIdiomas() {
   }
 }
 
-/** Um botão por tipo registrado em TIPOS — a UI acompanha o core sozinha. */
+// Ordem em que as categorias aparecem no painel Documentos.
+const ORDEM_CATEGORIAS = ["Pessoa", "Empresa", "Veículo", "Contato", "Financeiro"];
+
+/** Botões de documento agrupados por categoria — a UI acompanha o core sozinha. */
 function montarBotoesDocumento() {
   const container = $("#botoes-doc");
+
+  // Agrupa os tipos por categoria (default "Outros" para novos sem categoria).
+  const grupos = new Map();
   for (const [tipo, def] of Object.entries(TIPOS)) {
-    const btn = document.createElement("button");
-    btn.className = "gerar";
-    btn.dataset.tipo = tipo;
-    btn.textContent = def.rotulo;
-    btn.title = `Gerar ${def.rotulo}`;
-    container.appendChild(btn);
+    const cat = def.categoria || "Outros";
+    if (!grupos.has(cat)) grupos.set(cat, []);
+    grupos.get(cat).push([tipo, def]);
+  }
+
+  const ordem = [...ORDEM_CATEGORIAS, ...[...grupos.keys()].filter((c) => !ORDEM_CATEGORIAS.includes(c))];
+  for (const cat of ordem) {
+    const itens = grupos.get(cat);
+    if (!itens) continue;
+
+    const grupo = document.createElement("div");
+    grupo.className = "grupo-doc";
+    const rot = document.createElement("span");
+    rot.className = "grupo-doc__rot";
+    rot.textContent = cat;
+    const grade = document.createElement("div");
+    grade.className = "grade-doc";
+
+    for (const [tipo, def] of itens) {
+      const btn = document.createElement("button");
+      btn.className = "doc-btn";
+      btn.dataset.tipo = tipo;
+      btn.textContent = def.rotulo;
+      btn.title = `Gerar ${def.rotulo}`;
+      grade.appendChild(btn);
+    }
+    grupo.append(rot, grade);
+    container.appendChild(grupo);
   }
 }
 
@@ -98,8 +127,13 @@ function refletirConfigNaUI() {
 // --- Eventos ----------------------------------------------------------------
 
 function ligarEventos() {
-  document.querySelectorAll(".gerar").forEach((b) =>
+  document.querySelectorAll(".doc-btn[data-tipo]").forEach((b) =>
     b.addEventListener("click", () => aoGerar(b.dataset.tipo))
+  );
+
+  // Abas principais.
+  document.querySelectorAll(".aba").forEach((aba) =>
+    aba.addEventListener("click", () => mostrarView(aba.dataset.view))
   );
 
   $("#btn-copiar").addEventListener("click", () => copiar(ultimoValor));
@@ -122,10 +156,12 @@ function ligarEventos() {
   $("#campo-seed").addEventListener("change", aoMudarSeed);
   $("#btn-nova-seed").addEventListener("click", aoNovaSeed);
 
-  document.querySelectorAll(".gerar.invalido").forEach((b) =>
+  document.querySelectorAll(".doc-btn[data-invalido]").forEach((b) =>
     b.addEventListener("click", () => aoGerarInvalido(b.dataset.invalido))
   );
   $("#btn-overflow").addEventListener("click", aoGerarOverflow);
+  $("#btn-copiar-invalido").addEventListener("click", () => copiar(ultimoInvalido, "#feedback-invalido"));
+  $("#btn-inserir-invalido").addEventListener("click", aoInserirInvalido);
 
   $("#btn-palavras").addEventListener("click", aoGerarPalavras);
   $("#btn-tamanho").addEventListener("click", aoGerarTamanho);
@@ -133,12 +169,41 @@ function ligarEventos() {
   $("#btn-copiar-texto").addEventListener("click", () => copiar(ultimoTexto, "#feedback-texto"));
   $("#btn-inserir-texto").addEventListener("click", aoInserirTexto);
 
-  $("#btn-config").addEventListener("click", () => alternar("#secao-config"));
-  $("#btn-historico").addEventListener("click", aoAlternarHistorico);
+  $("#btn-config").addEventListener("click", () => alternarView("config"));
+  $("#btn-historico").addEventListener("click", () => alternarView("historico"));
   $("#btn-limpar-hist").addEventListener("click", async () => {
     await limparHistorico();
     await renderizarHistorico();
   });
+}
+
+// --- Navegação entre views (abas + painéis de ícone) ------------------------
+
+// Views acionadas por abas; config/histórico entram pelos ícones do cabeçalho.
+const VIEWS_ABA = new Set(["documentos", "texto", "invalidos"]);
+let viewAtual = "documentos";
+
+function mostrarView(nome) {
+  viewAtual = nome;
+  document.querySelectorAll(".painel").forEach((p) =>
+    p.classList.toggle("painel--ativo", p.dataset.view === nome)
+  );
+  // Aba fica ativa só para as 3 principais; ícones ganham realce quando ativos.
+  document.querySelectorAll(".aba").forEach((a) =>
+    a.classList.toggle("aba--ativa", a.dataset.view === nome)
+  );
+  $("#btn-config").classList.toggle("ativo", nome === "config");
+  $("#btn-historico").classList.toggle("ativo", nome === "historico");
+}
+
+/** Ícone do cabeçalho: abre a view; clicar de novo volta para Documentos. */
+async function alternarView(nome) {
+  if (viewAtual === nome) {
+    mostrarView("documentos");
+    return;
+  }
+  if (nome === "historico") await renderizarHistorico();
+  mostrarView(nome);
 }
 
 /** Aplica uma mutação na config em memória e persiste. */
@@ -278,10 +343,10 @@ async function aoGerarInvalido(tipo) {
     tipo === "cnpj"
       ? gerarCnpjInvalido(rng, { mascara: config.documentos.mascara })
       : gerarCpfInvalido(rng, { mascara: config.documentos.mascara });
-  ultimoValor = r.valor;
+  ultimoInvalido = r.valor;
 
-  $("#valor-gerado").textContent = r.valor;
-  $("#resultado").hidden = false;
+  $("#valor-invalido").textContent = r.valor;
+  $("#resultado-invalido").hidden = false;
   mostrarFeedback(`Inválido (${r.motivo}) — pronto para copiar/inserir`, "ok", "#feedback-invalido");
 
   await adicionarHistorico({
@@ -302,7 +367,19 @@ async function aoGerarOverflow() {
   }
   const texto = gerarOverflow(tam);
   mostrarTexto(texto, null); // mostra as 4 contagens do overflow
-  mostrarFeedback(`Overflow de ${tam} chars gerado (veja no bloco Texto)`, "ok", "#feedback-invalido");
+  mostrarView("texto"); // leva o usuário ao painel onde o resultado aparece
+  mostrarFeedback(`Overflow de ${tam} chars gerado`, "ok", "#feedback-texto");
+}
+
+async function aoInserirInvalido() {
+  if (!ultimoInvalido) return;
+  const r = await inserirNoCampoAtivo(ultimoInvalido, config.insercao.modo);
+  mostrarFeedback(
+    r.ok ? "Inserido no campo ✓" : r.motivo === "sem-campo"
+      ? "Clique num campo da página primeiro" : "Não foi possível inserir",
+    r.ok ? "ok" : "erro",
+    "#feedback-invalido"
+  );
 }
 
 /** Insere um valor avulso (chip Unicode/payload) no campo ativo, ou copia. */
@@ -472,12 +549,6 @@ async function aoNovaSeed() {
 
 // --- Histórico --------------------------------------------------------------
 
-async function aoAlternarHistorico() {
-  const escondido = $("#secao-historico").hidden;
-  if (escondido) await renderizarHistorico();
-  alternar("#secao-historico");
-}
-
 async function renderizarHistorico() {
   const hist = await carregarHistorico();
   const lista = $("#lista-historico");
@@ -515,11 +586,6 @@ async function copiarTexto(texto) {
 }
 
 // --- Utilitários de UI ------------------------------------------------------
-
-function alternar(sel) {
-  const el = $(sel);
-  el.hidden = !el.hidden;
-}
 
 const timersFeedback = {};
 function mostrarFeedback(texto, tipo, sel = "#feedback") {
