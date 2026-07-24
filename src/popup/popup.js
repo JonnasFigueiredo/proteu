@@ -27,7 +27,6 @@ const $ = (sel) => document.querySelector(sel);
 let config = null;
 let ultimoValor = null;
 let ultimoTexto = null;
-let ultimoIdioma = null;
 
 // --- Inicialização ----------------------------------------------------------
 
@@ -228,7 +227,6 @@ function aoPseudo() {
 /** Mostra o texto, marca a direção (RTL) e exibe as 4 contagens. */
 function mostrarTexto(texto, idioma) {
   ultimoTexto = texto;
-  ultimoIdioma = idioma;
   const out = $("#valor-texto");
   out.textContent = texto;
   out.dir = idioma && RTL.has(idioma) ? "rtl" : "ltr";

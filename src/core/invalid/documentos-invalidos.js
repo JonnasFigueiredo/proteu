@@ -6,8 +6,8 @@
 //   - sequência uniforme: 000.000.000-00 etc. passam no módulo 11 mas nunca são
 //     documentos reais (pega validador que esquece esse caso).
 
-import { gerarCpf } from "../documents/cpf.js";
-import { gerarCnpj } from "../documents/cnpj.js";
+import { gerarCpf, mascararCpf } from "../documents/cpf.js";
+import { gerarCnpj, mascararCnpj } from "../documents/cnpj.js";
 
 /** Sequências uniformes clássicas que enganam o módulo 11. */
 export const CPF_UNIFORMES = [
@@ -38,16 +38,10 @@ export function gerarCpfInvalido(rng, { mascara = false } = {}) {
     const valido = gerarCpf(rng, { mascara: false });
     const ultimo = valido[valido.length - 1];
     const corrompido = valido.slice(0, -1) + outroDigito(rng, ultimo);
-    const valor = mascara
-      ? corrompido.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
-      : corrompido;
-    return { valor, motivo: "dv-errado" };
+    return { valor: mascara ? mascararCpf(corrompido) : corrompido, motivo: "dv-errado" };
   }
   const base = rng.escolher(CPF_UNIFORMES);
-  const valor = mascara
-    ? base.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
-    : base;
-  return { valor, motivo: "sequencia-uniforme" };
+  return { valor: mascara ? mascararCpf(base) : base, motivo: "sequencia-uniforme" };
 }
 
 /**
@@ -59,14 +53,8 @@ export function gerarCnpjInvalido(rng, { mascara = false } = {}) {
     const valido = gerarCnpj(rng, { mascara: false });
     const ultimo = valido[valido.length - 1];
     const corrompido = valido.slice(0, -1) + outroDigito(rng, ultimo);
-    const valor = mascara
-      ? corrompido.replace(/(.{2})(.{3})(.{3})(.{4})(.{2})/, "$1.$2.$3/$4-$5")
-      : corrompido;
-    return { valor, motivo: "dv-errado" };
+    return { valor: mascara ? mascararCnpj(corrompido) : corrompido, motivo: "dv-errado" };
   }
   const base = rng.escolher(CNPJ_UNIFORMES);
-  const valor = mascara
-    ? base.replace(/(.{2})(.{3})(.{3})(.{4})(.{2})/, "$1.$2.$3/$4-$5")
-    : base;
-  return { valor, motivo: "sequencia-uniforme" };
+  return { valor: mascara ? mascararCnpj(base) : base, motivo: "sequencia-uniforme" };
 }

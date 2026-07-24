@@ -9,23 +9,34 @@
 // unidades) para cravar o número exato. Assim o resultado é exato para qualquer
 // unidade, inclusive com filler multibyte.
 
-import { contarTudo, paraGrafemas } from "./contagem.js";
+import {
+  contarTudo,
+  paraGrafemas,
+  contarGrafemas,
+  contarCodePoints,
+  contarCodeUnits,
+  contarBytes,
+} from "./contagem.js";
 
 export const UNIDADES = ["grafemas", "codePoints", "codeUnits", "bytes"];
+
+// Contador específico de cada unidade — evita computar as 4 (e o Segmenter)
+// a cada grafema testado no loop de preenchimento.
+const CONTADOR = {
+  grafemas: contarGrafemas,
+  codePoints: contarCodePoints,
+  codeUnits: contarCodeUnits,
+  bytes: contarBytes,
+};
 
 // Filler padrão: palavras latinas neutras (estilo lorem ipsum).
 const FILLER_PADRAO =
   "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor";
 
 function contarNa(texto, unidade) {
-  const c = contarTudo(texto);
-  switch (unidade) {
-    case "grafemas": return c.grafemas;
-    case "codePoints": return c.codePoints;
-    case "codeUnits": return c.codeUnits;
-    case "bytes": return c.bytes;
-    default: throw new Error(`Unidade desconhecida: ${unidade}`);
-  }
+  const contador = CONTADOR[unidade];
+  if (!contador) throw new Error(`Unidade desconhecida: ${unidade}`);
+  return contador(texto);
 }
 
 /**
