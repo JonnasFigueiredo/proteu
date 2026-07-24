@@ -6,12 +6,29 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Planejado
-- Demais documentos brasileiros (RG, CNH, PIS, título, RENAVAM, IE, CEP,
-  telefone, placa, Pix, cartão).
 - Texto multilíngue (9 idiomas) e texto por tamanho com 4 unidades de contagem.
 - Pseudolocale com preservação de placeholders e modo `fakebidi`.
 - Massa inválida e payloads (uso defensivo).
-- Detecção de campo → set de fronteira automático.
+- Inscrição Estadual das demais UFs (hoje só SP).
+
+## [0.2.0] — 2026-07-23
+
+### Adicionado
+- `core/field.js`: detecção de campo → **set de fronteira automático**
+  (maxlength/minlength ±1, number min/max + `1e999`/`NaN`, datas de fronteira
+  sem bug de fuso, e-mails que passam em regex de front, URLs, strings Unicode
+  traiçoeiras), exibido como chips clicáveis no bloco "Campo detectado".
+- Onze novos tipos de documento, todos determinísticos e com testes:
+  - **RG** (SSP-SP, DV com "X"), **CNH** (DENATRAN), **PIS/PASEP**,
+    **título de eleitor** (UF 01–28 e regra especial SP/MG), **RENAVAM**;
+  - **Inscrição Estadual de SP** (2 DVs embutidos), **CEP** coerente com a
+    faixa principal de cada uma das 27 UFs (+ `ufDoCep`), **telefone**
+    fixo/celular com DDDs reais da Anatel, **placa** Mercosul e antiga;
+  - **chave Pix** nos 4 formatos (CPF, e-mail em domínio de teste, telefone
+    E.164, UUID v4 gerado pelo rng), **cartão de crédito** com Luhn válido
+    (Visa, Mastercard, Amex, Elo, Hipercard).
+- Popup monta os botões de documento dinamicamente a partir do registro
+  `TIPOS`; menu de contexto ganha os novos itens automaticamente.
 
 ## [0.1.0] — 2026-07-23
 
@@ -36,4 +53,5 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.2.0]: https://example.com/
 [0.1.0]: https://example.com/

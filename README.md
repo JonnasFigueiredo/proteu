@@ -21,19 +21,23 @@ permissões mínimas, sem dependências de terceiros em runtime.
    (React/Vue/Angular), **Shadow DOM aberto** e **iframes de mesma origem**, que
    é onde as concorrentes costumam falhar.
 
-## Estado atual (v0.1.0)
-
-Primeira rodada entregue:
+## Estado atual (v0.2.0)
 
 - PRNG determinístico (`core/seed.js`).
-- **CPF** e **CNPJ** — o CNPJ com uma **única função para o formato numérico e o
-  alfanumérico** (padrão vigente desde jul/2026), incluindo o caso oficial
-  SERPRO `12.ABC.345/01DE-35`.
-- Popup funcional gerando CPF/CNPJ, com seed no rodapé, cópia, histórico da
-  sessão e opções persistidas.
+- **13 tipos de documento**: CPF; **CNPJ** com uma **única função para o formato
+  numérico e o alfanumérico** (padrão vigente desde jul/2026, incluindo o caso
+  oficial SERPRO `12.ABC.345/01DE-35`); RG (SSP-SP); CNH; PIS/PASEP; título de
+  eleitor; RENAVAM; Inscrição Estadual (SP); CEP coerente por UF; telefone
+  fixo/celular com DDD real; placa (Mercosul e antiga); chave Pix (4 formatos);
+  cartão de crédito (5 bandeiras, Luhn válido).
+- **Detecção de campo → set de fronteira** (`core/field.js`): o campo focado
+  vira chips clicáveis no popup (maxlength ±1, number min/max + `1e999`/`NaN`,
+  datas de fronteira, e-mails traiçoeiros, strings Unicode).
+- Popup com todos os tipos, seed no rodapé, cópia, histórico da sessão e
+  opções persistidas.
 - Camada de inserção no content script com dois modos e disparo de eventos
   nativos.
-- Menu de contexto e atalho de teclado.
+- Menu de contexto (um item por tipo) e atalho de teclado.
 
 O restante das funcionalidades descritas abaixo está planejado (ver
 [Backlog](#backlog)).
@@ -152,9 +156,6 @@ nenhum ataque: apenas coloca strings em campos que você mesmo escolhe.
 
 Planejado para as próximas versões (ainda **não** implementado):
 
-- **Documentos**: RG, CNH, PIS/PASEP, título de eleitor, RENAVAM, inscrição
-  estadual, CEP (coerente por região), telefone, placa (Mercosul e antiga),
-  chave Pix (4 formatos), cartão de crédito (por bandeira, com Luhn).
 - **Texto multilíngue** em 9 idiomas (pt, es, ar, tr, ru, zh, hi, ja, he), cada
   um cobrindo um problema real de i18n.
 - **Texto por tamanho** com 4 unidades de contagem (grafemas, code points, code
@@ -162,7 +163,7 @@ Planejado para as próximas versões (ainda **não** implementado):
 - **Pseudolocale** (`Save` → `Šàvē`), com preservação de placeholders e modo
   `fakebidi`.
 - **Massa inválida e payloads** (DV errado, fronteiras Unicode, XSS/SQLi/overflow).
-- **Detecção de campo → set de fronteira automático** a partir dos atributos.
+- **Inscrição Estadual das demais UFs** (hoje só SP).
 - **Não previstos para a v1**: vocabulário customizado por clique direito; configs
   por domínio compartilháveis; export para fixtures de Playwright/Selenium;
   preencher formulário inteiro de uma vez; pacote npm que consome o mesmo formato.

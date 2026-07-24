@@ -9,7 +9,7 @@ import {
   adicionarHistorico,
   limparHistorico,
 } from "../storage.js";
-import { gerar } from "../core/gerador.js";
+import { gerar, TIPOS } from "../core/gerador.js";
 import { gerarSeedAleatoria } from "../core/config.js";
 import { normalizarSeed } from "../core/seed.js";
 import { gerarSetFronteira } from "../core/field.js";
@@ -24,10 +24,24 @@ let ultimoValor = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   config = await carregarConfig();
+  montarBotoesDocumento();
   refletirConfigNaUI();
   ligarEventos();
   await detectarCampo();
 });
+
+/** Um botão por tipo registrado em TIPOS — a UI acompanha o core sozinha. */
+function montarBotoesDocumento() {
+  const container = $("#botoes-doc");
+  for (const [tipo, def] of Object.entries(TIPOS)) {
+    const btn = document.createElement("button");
+    btn.className = "gerar";
+    btn.dataset.tipo = tipo;
+    btn.textContent = def.rotulo;
+    btn.title = `Gerar ${def.rotulo}`;
+    container.appendChild(btn);
+  }
+}
 
 function refletirConfigNaUI() {
   $("#opt-mascara").checked = config.documentos.mascara;

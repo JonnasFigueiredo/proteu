@@ -61,10 +61,8 @@
         </label>
       </div>
 
-      <div class="botoes-doc">
-        <button class="gerar" data-tipo="cpf">Gerar CPF</button>
-        <button class="gerar" data-tipo="cnpj">Gerar CNPJ</button>
-      </div>
+      <!-- Botões montados dinamicamente a partir de TIPOS (core/gerador.js) -->
+      <div id="botoes-doc" class="botoes-doc"></div>
 
       <div id="resultado" class="resultado" hidden>
         <output id="valor-gerado" class="valor"></output>

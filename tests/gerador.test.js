@@ -67,4 +67,25 @@ describe("gerar", () => {
       expect(typeof def.gerar).toBe("function");
     }
   });
+
+  it("todo tipo registrado gera string não vazia e é determinístico", () => {
+    for (const tipo of Object.keys(TIPOS)) {
+      const a = gerar(tipo, configCom({ contador: 3 }));
+      const b = gerar(tipo, configCom({ contador: 3 }));
+      expect(a.valor, `tipo ${tipo}`).toBeTypeOf("string");
+      expect(a.valor.length, `tipo ${tipo}`).toBeGreaterThan(0);
+      expect(a.valor, `tipo ${tipo} não determinístico`).toBe(b.valor);
+    }
+  });
+
+  it("máscara desligada nunca deixa pontuação de máscara em documentos numéricos", () => {
+    const semMascara = configCom({
+      contador: 0,
+      documentos: { mascara: false, cnpjAlfanumerico: false, cnpjExcluirAmbiguas: false },
+    });
+    for (const tipo of ["cpf", "cnpj", "rg", "pis", "titulo", "ie", "cep", "telefone", "cartao"]) {
+      const { valor } = gerar(tipo, { ...semMascara });
+      expect(valor, `tipo ${tipo}: ${valor}`).not.toMatch(/[.\-/() ]/);
+    }
+  });
 });

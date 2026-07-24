@@ -8,9 +8,21 @@
 import { criarRng } from "./seed.js";
 import { gerarCpf } from "./documents/cpf.js";
 import { gerarCnpj } from "./documents/cnpj.js";
+import { gerarRg } from "./documents/rg.js";
+import { gerarCnh } from "./documents/cnh.js";
+import { gerarPis } from "./documents/pis.js";
+import { gerarTitulo } from "./documents/titulo.js";
+import { gerarRenavam } from "./documents/renavam.js";
+import { gerarIe } from "./documents/ie.js";
+import { gerarCep } from "./documents/cep.js";
+import { gerarTelefone } from "./documents/telefone.js";
+import { gerarPlaca } from "./documents/placa.js";
+import { gerarPix } from "./documents/pix.js";
+import { gerarCartao } from "./documents/cartao.js";
 
 // Registro de tipos disponíveis. Cada entrada recebe (rng, config) e retorna
-// a string gerada. Adicionar um documento novo = adicionar uma linha aqui.
+// a string gerada. Adicionar um documento novo = adicionar uma linha aqui —
+// popup e menu de contexto se montam a partir deste objeto.
 export const TIPOS = {
   cpf: {
     rotulo: "CPF",
@@ -24,6 +36,55 @@ export const TIPOS = {
         alfanumerico: config.documentos.cnpjAlfanumerico,
         excluirAmbiguas: config.documentos.cnpjExcluirAmbiguas,
       }),
+  },
+  rg: {
+    rotulo: "RG",
+    gerar: (rng, config) => gerarRg(rng, { mascara: config.documentos.mascara }),
+  },
+  cnh: {
+    rotulo: "CNH",
+    gerar: (rng) => gerarCnh(rng),
+  },
+  pis: {
+    rotulo: "PIS/PASEP",
+    gerar: (rng, config) => gerarPis(rng, { mascara: config.documentos.mascara }),
+  },
+  titulo: {
+    rotulo: "Título de eleitor",
+    gerar: (rng, config) => gerarTitulo(rng, { mascara: config.documentos.mascara }),
+  },
+  renavam: {
+    rotulo: "RENAVAM",
+    gerar: (rng) => gerarRenavam(rng),
+  },
+  ie: {
+    rotulo: "Inscrição Estadual (SP)",
+    gerar: (rng, config) => gerarIe(rng, { mascara: config.documentos.mascara }),
+  },
+  cep: {
+    rotulo: "CEP",
+    gerar: (rng, config) => gerarCep(rng, { mascara: config.documentos.mascara }),
+  },
+  telefone: {
+    rotulo: "Telefone",
+    gerar: (rng, config) => gerarTelefone(rng, { mascara: config.documentos.mascara }),
+  },
+  placa: {
+    rotulo: "Placa",
+    // Alterna entre os dois padrões pelo próprio rng (determinístico).
+    gerar: (rng, config) =>
+      gerarPlaca(rng, {
+        padrao: rng.escolher(["mercosul", "antiga"]),
+        mascara: config.documentos.mascara,
+      }),
+  },
+  pix: {
+    rotulo: "Chave Pix",
+    gerar: (rng) => gerarPix(rng), // sorteia um dos 4 formatos
+  },
+  cartao: {
+    rotulo: "Cartão de crédito",
+    gerar: (rng, config) => gerarCartao(rng, { mascara: config.documentos.mascara }),
   },
 };
 

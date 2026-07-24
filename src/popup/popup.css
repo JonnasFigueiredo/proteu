@@ -188,20 +188,23 @@ select {
 
 /* Botões de documento */
 .botoes-doc {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
 .gerar {
-  flex: 1;
-  padding: 9px 12px;
+  padding: 8px 10px;
   border: 1px solid var(--azul);
   border-radius: var(--raio);
   background: var(--azul);
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .gerar:hover {
