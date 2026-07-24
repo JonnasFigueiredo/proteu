@@ -56,6 +56,20 @@ imprimindo ✓/✗ por cenário. (Ver o comando no rodapé.)
 - **R4 — alvo removido do DOM**: se o campo focado sai do DOM, `INSERIR` responde
   `sem-campo` (o `MutationObserver` limpa o alvo).
 
+## Bordas extras do content.js
+
+- **G1 — `<select>` ignorado**: não é alvo de inserção de texto (o valor teria
+  que casar com uma opção existente); tratado como checkbox/botão.
+- **G2 — `input[type=number]`**: inserção não quebra (o `setSelectionRange` que
+  lança em `number` é tratado).
+- **G3 — colar em contenteditable**: o texto aparece (via `execCommand` ou
+  fallback).
+- **G4 — Shadow DOM aninhado**: input no shadow-root mais interno é alcançado.
+- **G5 — checkbox ignorado**: `input[type=checkbox]` não vira alvo de texto.
+- **G6 — Unicode preservado**: emoji com ZWJ inserido byte a byte, sem corromper.
+- **G7 — substituição**: modo "valor" troca todo o conteúdo existente.
+- **G8 — fronteira de texto livre**: inclui os casos Unicode.
+
 ## Reprodutibilidade ponta a ponta
 
 - **RP1 — todos os tipos**: para cada tipo em `TIPOS`, `gerar` com a mesma seed e

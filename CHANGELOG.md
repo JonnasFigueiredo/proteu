@@ -5,6 +5,23 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado
+- `tests/service-worker.test.js`: cobre o service worker (antes 0%) com `chrome`
+  mockado — menu de contexto criando itens, cadeia gerar → contador → histórico
+  → inserir, e o atalho "repetir última geração".
+- `tests/e2e/popup-runner.html`: 15 cenários dirigindo o popup real (gerar os 13
+  tipos, reprodutibilidade por seed, persistência de config, texto por tamanho,
+  pseudo, RTL, inválidos, navegação por abas).
+- `tests/e2e/runner.html`: 8 cenários extras do content.js (select ignorado,
+  number, colar em contenteditable, Shadow DOM aninhado, checkbox ignorado,
+  Unicode preservado, substituição, fronteira de texto).
+
+### Corrigido
+- `content.js`: removido ramo morto de `HTMLSelectElement` em `setterNativo`
+  (um `<select>` nunca passava por `ehEditavel`, então o ramo era inalcançável).
+  `<select>` agora é explicitamente tratado como não-alvo, de forma consistente
+  com checkbox/botão. (Achado pelo cenário e2e G1.)
+
 ### Planejado
 - Inscrição Estadual das demais UFs (hoje só SP).
 

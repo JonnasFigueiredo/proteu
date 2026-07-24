@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cenários e2e do popup — Reproduzível</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 16px; }
+      #placar { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+      .ok { color: #2e7d32; } .fail { color: #c62828; }
+      ul { list-style: none; padding: 0; } li { padding: 3px 0; font-family: ui-monospace, monospace; font-size: 13px; }
+      #app { position: fixed; left: -9999px; top: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="placar">rodando…</div>
+    <ul id="lista"></ul>
+    <div id="app"></div>
+
+    <script>
+      // chrome mock instalado ANTES do popup.js rodar.
+      const mem = { sync: {}, local: {} };
+      const loja = (b) => ({
+        async get(k) { return k in mem[b] ? { [k]: structuredClone(mem[b][k]) } : {}; },
+        async set(o) { Object.assign(mem[b], structuredClone(o)); },
+      });
+      window.chrome = {
+        storage: { sync: loja("sync"), local: loja("local") },
+        tabs: { async query() { return [{ id: 1 }]; }, async sendMessage() { return { ok: false, erro: "sem-campo" }; } },
+        scripting: { async executeScript() { return []; } },
+        runtime: {},
+      };
+      window.__mem = mem;
+    </script>
+
+    <script type="module">
+      import { validarCpf } from "/src/core/documents/cpf.js";
+      import { validarCnpj } from "/src/core/documents/cnpj.js";
+      import { TIPOS } from "/src/core/gerador.js";
+      import { contarTudo } from "/src/core/text/contagem.js";
+
+      const resultados = [];
+      const assert = (nome, cond, detalhe = "") => resultados.push({ nome, ok: !!cond, detalhe: cond ? "" : String(detalhe) });
+      const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+      const $ = (s) => document.querySelector(s);
+
+      async function montarPopup() {
+        const html = await (await fetch("/src/popup/popup.html")).text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        const css = await (await fetch("/src/popup/popup.css")).text();
+        const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+        $("#app").replaceChildren(...doc.body.childNodes);
+        await import("/src/popup/popup.js");
+        document.dispatchEvent(new Event("DOMContentLoaded"));
+        // espera o init assíncrono (seed preenchida ao fim de refletirConfigNaUI)
+        for (let i = 0; i < 100 && !$("#campo-seed").value; i++) await espera(20);
+      }
+
+      const cfg = () => window.__mem.sync.config;
+      const hist = () => window.__mem.local.historico || [];
+
+      async function rodar() {
+        await montarPopup();
+
+        // P1 — seed persistida no primeiro carregamento
+        assert("P1 seed gerada e persistida", /^[0-9a-f]{6}$/.test(cfg().seed), cfg().seed);
+
+        // P2 — todos os 13 botões de documento geram valor não vazio
+        let todosGeram = true, falhou = "";
+        for (const tipo of Object.keys(TIPOS)) {
+          $(`.doc-btn[data-tipo="${tipo}"]`).click();
+          await espera(15);
+          const v = $("#valor-gerado").textContent;
+          if (!v) { todosGeram = false; falhou = tipo; }
+        }
+        assert("P2 todos os 13 tipos geram valor", todosGeram, "falhou: " + falhou);
+
+        // P3 — CPF e CNPJ gerados pelo popup são válidos
+        $('.doc-btn[data-tipo="cpf"]').click(); await espera(15);
+        assert("P3 CPF gerado é válido", validarCpf($("#valor-gerado").textContent), $("#valor-gerado").textContent);
+        $('.doc-btn[data-tipo="cnpj"]').click(); await espera(15);
+        assert("P3 CNPJ gerado é válido", validarCnpj($("#valor-gerado").textContent), $("#valor-gerado").textContent);
+
+        // P4 — histórico registrou as gerações
+        assert("P4 histórico registra gerações", hist().length > 0, "len=" + hist().length);
+
+        // P5 — gerar avança o contador; trocar a seed reinicia para 0
+        const antes = cfg().contador;
+        $('.doc-btn[data-tipo="cpf"]').click(); await espera(15);
+        assert("P5 gerar avança o contador", cfg().contador === antes + 1, `${antes}→${cfg().contador}`);
+        $("#campo-seed").value = "7f2a91";
+        $("#campo-seed").dispatchEvent(new Event("change"));
+        await espera(20);
+        assert("P5 trocar a seed reinicia o contador", cfg().contador === 0 && cfg().seed === "7f2a91", JSON.stringify({ s: cfg().seed, c: cfg().contador }));
+
+        // P6 — reprodutibilidade: mesma seed → mesma sequência de CPFs
+        function proximosDoisCpf() {
+          const out = [];
+          $("#campo-seed").value = "abcdef";
+          $("#campo-seed").dispatchEvent(new Event("change"));
+          return espera(20).then(async () => {
+            $('.doc-btn[data-tipo="cpf"]').click(); await espera(15); out.push($("#valor-gerado").textContent);
+            $('.doc-btn[data-tipo="cpf"]').click(); await espera(15); out.push($("#valor-gerado").textContent);
+            return out;
+          });
+        }
+        const seqA = await proximosDoisCpf();
+        const seqB = await proximosDoisCpf();
+        assert("P6 mesma seed reproduz a mesma sequência", JSON.stringify(seqA) === JSON.stringify(seqB), `${seqA} vs ${seqB}`);
+
+        // P7 — config persiste: alternar "Com máscara" grava no storage
+        const mascaraAntes = cfg().documentos.mascara;
+        $("#opt-mascara").checked = !mascaraAntes;
+        $("#opt-mascara").dispatchEvent(new Event("change"));
+        await espera(20);
+        assert("P7 alternar máscara persiste no storage", cfg().documentos.mascara === !mascaraAntes, JSON.stringify(cfg().documentos));
+
+        // P8 — texto por tamanho exato + 4 contagens exibidas
+        $('.aba[data-view="texto"]').click();
+        $("#tam-unidade").value = "bytes";
+        $("#tam-alvo").value = "40";
+        $("#btn-tamanho").click(); await espera(30);
+        assert("P8 texto por tamanho: 40 bytes exatos", contarTudo($("#valor-texto").textContent).bytes === 40, $("#valor-texto").textContent);
+        assert("P8 as 4 contagens são exibidas", document.querySelectorAll("#contagens .contagem").length === 4);
+
+        // P9 — pseudolocalização transforma e mantém marcadores
+        $("#btn-pseudo").click(); await espera(20);
+        const ps = $("#valor-texto").textContent;
+        assert("P9 pseudo envolve em marcadores ⟦…⟧", ps.startsWith("⟦") && ps.endsWith("⟧"), ps.slice(0, 20));
+
+        // P10 — idioma RTL marca direção
+        $("#idioma").value = "ar";
+        $("#btn-palavras").click(); await espera(30);
+        assert("P10 idioma árabe marca dir=rtl", $("#valor-texto").dir === "rtl", $("#valor-texto").dir);
+
+        // P11 — documentos inválidos gerados pelo popup são realmente inválidos
+        $('.aba[data-view="invalidos"]').click();
+        $('.doc-btn[data-invalido="cpf"]').click(); await espera(15);
+        assert("P11 CPF inválido gerado é rejeitado", validarCpf($("#valor-invalido").textContent) === false, $("#valor-invalido").textContent);
+
+        // P12 — navegação por abas troca o painel ativo
+        $('.aba[data-view="documentos"]').click();
+        const docAtivo = $('.painel[data-view="documentos"]').classList.contains("painel--ativo");
+        const textoInativo = !$('.painel[data-view="texto"]').classList.contains("painel--ativo");
+        assert("P12 abas alternam o painel ativo (um por vez)", docAtivo && textoInativo);
+
+        // placar
+        const passou = resultados.filter((r) => r.ok).length;
+        const total = resultados.length;
+        const placar = $("#placar");
+        placar.textContent = `${passou}/${total} cenários do popup passaram`;
+        placar.className = passou === total ? "ok" : "fail";
+        for (const r of resultados) {
+          const li = document.createElement("li");
+          li.className = r.ok ? "ok" : "fail";
+          li.textContent = `${r.ok ? "✓" : "✗"} ${r.nome}${r.detalhe ? "  →  " + r.detalhe : ""}`;
+          $("#lista").appendChild(li);
+        }
+        window.__resultados = { passou, total, resultados };
+        window.__pronto = true;
+      }
+
+      rodar().catch((e) => {
+        $("#placar").textContent = "ERRO: " + e.message;
+        $("#placar").className = "fail";
+        window.__erroRunner = String(e.stack || e);
+        window.__pronto = true;
+      });
+    </script>
+  </body>
+</html>

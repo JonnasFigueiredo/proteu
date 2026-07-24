@@ -64,7 +64,6 @@
     let proto = null;
     if (el instanceof HTMLTextAreaElement) proto = HTMLTextAreaElement.prototype;
     else if (el instanceof HTMLInputElement) proto = HTMLInputElement.prototype;
-    else if (el instanceof HTMLSelectElement) proto = HTMLSelectElement.prototype;
     if (!proto) return null;
     return Object.getOwnPropertyDescriptor(proto, "value").set;
   }

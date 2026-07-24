@@ -26,7 +26,10 @@
       <input id="f-maxlen" type="text" maxlength="14" />
       <input id="f-email" type="email" />
       <button id="f-btn">botão</button>
+      <input id="f-checkbox" type="checkbox" />
+      <select id="f-select"><option value="a">a</option><option value="b">b</option></select>
       <div id="f-host"></div>
+      <div id="f-host2"></div>
       <iframe id="f-frame"></iframe>
     </div>
 
@@ -226,6 +229,74 @@
           const s1 = gerar("cpf", { ...configPadrao(), seed: "aaa111", contador: 0 }).valor;
           const s2 = gerar("cpf", { ...configPadrao(), seed: "bbb222", contador: 0 }).valor;
           assert("RP2 seeds diferentes divergem", s1 !== s2, `${s1} vs ${s2}`);
+        }
+
+        // ---- Bordas extras do content.js (G1..G8) ----
+        {
+          // <select> não é alvo de inserção de texto (valor teria que casar com
+          // uma opção existente); deve ser ignorado como checkbox/botão.
+          const sel = document.querySelector("#f-select");
+          const txt = document.querySelector("#f-text");
+          txt.value = "";
+          focar(txt);
+          focar(sel);
+          enviar(window, { tipo: "INSERIR", valor: "vai-no-texto", modo: "valor" });
+          assert("G1 <select> ignorado (alvo segue no input)", txt.value === "vai-no-texto" && sel.value === "a", `txt=${txt.value} sel=${sel.value}`);
+        }
+        {
+          const el = document.querySelector("#f-number");
+          focar(el);
+          // setSelectionRange lança em type=number; content.js trata e insere.
+          enviar(window, { tipo: "INSERIR", valor: "42", modo: "colar" });
+          assert("G2 input number: inserido sem quebrar (setSelectionRange tratado)", el.value === "42", el.value);
+        }
+        {
+          const el = document.querySelector("#f-ce");
+          el.textContent = "";
+          focar(el);
+          enviar(window, { tipo: "INSERIR", valor: "PALAVRA", modo: "colar" });
+          assert("G3 contenteditable modo colar: texto presente", el.textContent.includes("PALAVRA"), el.textContent);
+        }
+        {
+          const host = document.querySelector("#f-host2");
+          const r1 = host.shadowRoot || host.attachShadow({ mode: "open" });
+          r1.innerHTML = "<div id='meio'></div>";
+          const meio = r1.querySelector("#meio");
+          const r2 = meio.shadowRoot || meio.attachShadow({ mode: "open" });
+          r2.innerHTML = '<input id="deep" type="text" />';
+          const deep = r2.querySelector("#deep");
+          focar(deep);
+          enviar(window, { tipo: "INSERIR", valor: "aninhado", modo: "valor" });
+          assert("G4 Shadow DOM aninhado: inserido no input mais interno", deep.value === "aninhado", deep.value);
+        }
+        {
+          const cb = document.querySelector("#f-checkbox");
+          const txt = document.querySelector("#f-text");
+          txt.value = "";
+          focar(txt);
+          focar(cb); // checkbox não é editável de texto → não vira alvo
+          enviar(window, { tipo: "INSERIR", valor: "vai-no-texto", modo: "valor" });
+          assert("G5 checkbox ignorado (alvo segue no input)", txt.value === "vai-no-texto" && cb.checked === false, `txt=${txt.value} cb=${cb.checked}`);
+        }
+        {
+          const el = document.querySelector("#f-text");
+          const emoji = "a👩‍👩‍👧‍👦b";
+          focar(el);
+          enviar(window, { tipo: "INSERIR", valor: emoji, modo: "valor" });
+          assert("G6 valor Unicode (emoji ZWJ) preservado byte a byte", el.value === emoji, el.value);
+        }
+        {
+          const el = document.querySelector("#f-text");
+          el.value = "antigo";
+          focar(el);
+          enviar(window, { tipo: "INSERIR", valor: "novo", modo: "valor" });
+          assert("G7 modo valor substitui o conteúdo existente", el.value === "novo", el.value);
+        }
+        {
+          const r = enviar(window, { tipo: "DETECTAR" });
+          // Após focar #f-text (texto livre), a fronteira inclui casos Unicode.
+          const rotulos = gerarSetFronteira(r.descritor).map((i) => i.rotulo);
+          assert("G8 fronteira de texto livre inclui casos Unicode", rotulos.includes("emoji ZWJ") && rotulos.includes("homoglifos"), rotulos.join(","));
         }
 
         // ------------------- placar -------------------
