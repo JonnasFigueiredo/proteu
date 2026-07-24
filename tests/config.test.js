@@ -21,6 +21,10 @@ describe("configPadrao", () => {
     a.documentos.mascara = false;
     expect(configPadrao().documentos.mascara).toBe(true);
   });
+
+  it("tema começa em 'auto' (segue o sistema)", () => {
+    expect(configPadrao().tema).toBe("auto");
+  });
 });
 
 describe("normalizarConfig", () => {
@@ -66,6 +70,13 @@ describe("normalizarConfig", () => {
   it("rejeita seed inválida (vira null)", () => {
     expect(normalizarConfig({ seed: "xyz!" }).seed).toBeNull();
     expect(normalizarConfig({ seed: "" }).seed).toBeNull();
+  });
+
+  it("aceita temas válidos e rejeita o resto", () => {
+    expect(normalizarConfig({ tema: "claro" }).tema).toBe("claro");
+    expect(normalizarConfig({ tema: "escuro" }).tema).toBe("escuro");
+    expect(normalizarConfig({ tema: "auto" }).tema).toBe("auto");
+    expect(normalizarConfig({ tema: "roxo" }).tema).toBe("auto");
   });
 
   it("ignora chaves desconhecidas", () => {

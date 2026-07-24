@@ -23,6 +23,17 @@ import { todosPayloads, gerarOverflow } from "../core/invalid/payloads.js";
 
 const $ = (sel) => document.querySelector(sel);
 
+// Ícones SVG (sem emojis). Herdam a cor via currentColor.
+const ICONE_COPIAR =
+  '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+const ICONES_TEMA = {
+  auto: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>',
+  claro: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  escuro: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>',
+};
+const ROTULO_TEMA = { auto: "Tema: automático", claro: "Tema: claro", escuro: "Tema: escuro" };
+const PROXIMO_TEMA = { auto: "claro", claro: "escuro", escuro: "auto" };
+
 // Estado local do popup; a fonte da verdade é o chrome.storage.
 let config = null;
 let ultimoValor = null;
@@ -121,7 +132,34 @@ function refletirConfigNaUI() {
   $("#opt-ambiguas").checked = config.documentos.cnpjExcluirAmbiguas;
   $("#wrap-ambiguas").hidden = !config.documentos.cnpjAlfanumerico;
   $("#modo-insercao").value = config.insercao.modo;
+  $("#sel-tema").value = config.tema;
   $("#campo-seed").value = config.seed;
+  aplicarTema(config.tema);
+}
+
+// --- Tema (claro / escuro / automático) -------------------------------------
+
+/** Aplica o tema: força data-theme, ou remove p/ seguir o sistema (auto). */
+function aplicarTema(tema) {
+  const root = document.documentElement;
+  if (tema === "claro" || tema === "escuro") root.setAttribute("data-theme", tema);
+  else root.removeAttribute("data-theme");
+  const btn = $("#btn-tema");
+  btn.innerHTML = ICONES_TEMA[tema] || ICONES_TEMA.auto;
+  btn.title = ROTULO_TEMA[tema] || "Tema";
+}
+
+async function aoAlternarTema() {
+  const proximo = PROXIMO_TEMA[config.tema] || "auto";
+  await atualizarConfig((c) => (c.tema = proximo));
+  aplicarTema(proximo);
+  $("#sel-tema").value = proximo;
+}
+
+async function aoMudarTema(e) {
+  const tema = e.target.value;
+  await atualizarConfig((c) => (c.tema = tema));
+  aplicarTema(tema);
 }
 
 // --- Eventos ----------------------------------------------------------------
@@ -155,6 +193,9 @@ function ligarEventos() {
 
   $("#campo-seed").addEventListener("change", aoMudarSeed);
   $("#btn-nova-seed").addEventListener("click", aoNovaSeed);
+
+  $("#btn-tema").addEventListener("click", aoAlternarTema);
+  $("#sel-tema").addEventListener("change", aoMudarTema);
 
   document.querySelectorAll(".doc-btn[data-invalido]").forEach((b) =>
     b.addEventListener("click", () => aoGerarInvalido(b.dataset.invalido))
@@ -328,7 +369,7 @@ async function aoInserirTexto() {
   if (!ultimoTexto) return;
   const r = await inserirNoCampoAtivo(ultimoTexto, config.insercao.modo);
   mostrarFeedback(
-    r.ok ? "Inserido no campo ✓" : r.motivo === "sem-campo"
+    r.ok ? "Inserido no campo" : r.motivo === "sem-campo"
       ? "Clique num campo da página primeiro" : "Não foi possível inserir",
     r.ok ? "ok" : "erro",
     "#feedback-texto"
@@ -375,7 +416,7 @@ async function aoInserirInvalido() {
   if (!ultimoInvalido) return;
   const r = await inserirNoCampoAtivo(ultimoInvalido, config.insercao.modo);
   mostrarFeedback(
-    r.ok ? "Inserido no campo ✓" : r.motivo === "sem-campo"
+    r.ok ? "Inserido no campo" : r.motivo === "sem-campo"
       ? "Clique num campo da página primeiro" : "Não foi possível inserir",
     r.ok ? "ok" : "erro",
     "#feedback-invalido"
@@ -386,7 +427,7 @@ async function aoInserirInvalido() {
 async function usarValorAvulso(valor, rotulo) {
   const r = await inserirNoCampoAtivo(valor, config.insercao.modo);
   if (r.ok) {
-    mostrarFeedback(`"${rotulo}" inserido ✓`, "ok", "#feedback-invalido");
+    mostrarFeedback(`"${rotulo}" inserido`, "ok", "#feedback-invalido");
   } else if (r.motivo === "sem-campo") {
     // Sem campo focado: cai para a área de transferência.
     await copiar(valor, "#feedback-invalido");
@@ -401,7 +442,7 @@ async function copiar(valor, sel = "#feedback") {
   if (!valor) return;
   try {
     await navigator.clipboard.writeText(valor);
-    mostrarFeedback("Copiado ✓", "ok", sel);
+    mostrarFeedback("Copiado", "ok", sel);
   } catch {
     mostrarFeedback("Não foi possível copiar", "erro", sel);
   }
@@ -413,7 +454,7 @@ async function aoInserir() {
   if (!ultimoValor) return;
   const r = await inserirNoCampoAtivo(ultimoValor, config.insercao.modo);
   if (r.ok) {
-    mostrarFeedback("Inserido no campo ✓", "ok");
+    mostrarFeedback("Inserido no campo", "ok");
   } else if (r.motivo === "sem-campo") {
     mostrarFeedback("Clique num campo da página primeiro", "erro");
   } else if (r.motivo === "pagina-bloqueada") {
@@ -509,7 +550,7 @@ function mostrarCampoDetectado(d) {
     chip.addEventListener("click", async () => {
       const r = await inserirNoCampoAtivo(item.valor, config.insercao.modo);
       mostrarFeedback(
-        r.ok ? `"${item.rotulo}" inserido ✓` : "Não foi possível inserir",
+        r.ok ? `"${item.rotulo}" inserido` : "Não foi possível inserir",
         r.ok ? "ok" : "erro",
         "#feedback-campo"
       );
@@ -569,7 +610,8 @@ async function renderizarHistorico() {
     const copiar = document.createElement("button");
     copiar.className = "item-copiar";
     copiar.title = "Copiar";
-    copiar.textContent = "📋";
+    copiar.setAttribute("aria-label", "Copiar");
+    copiar.innerHTML = ICONE_COPIAR;
     copiar.addEventListener("click", () => copiarTexto(item.valor));
 
     li.append(tipo, valor, copiar);

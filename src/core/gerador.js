@@ -17,8 +17,6 @@ import { gerarIe } from "./documents/ie.js";
 import { gerarCep } from "./documents/cep.js";
 import { gerarTelefone } from "./documents/telefone.js";
 import { gerarPlaca } from "./documents/placa.js";
-import { gerarPix } from "./documents/pix.js";
-import { gerarCartao } from "./documents/cartao.js";
 
 // Registro de tipos disponíveis. Cada entrada recebe (rng, config) e retorna
 // a string gerada. `categoria` é só metadado de exibição (agrupa os botões no
@@ -89,16 +87,6 @@ export const TIPOS = {
     rotulo: "Telefone",
     categoria: "Contato",
     gerar: (rng, config) => gerarTelefone(rng, { mascara: config.documentos.mascara }),
-  },
-  pix: {
-    rotulo: "Chave Pix",
-    categoria: "Financeiro",
-    gerar: (rng) => gerarPix(rng), // sorteia um dos 4 formatos
-  },
-  cartao: {
-    rotulo: "Cartão de crédito",
-    categoria: "Financeiro",
-    gerar: (rng, config) => gerarCartao(rng, { mascara: config.documentos.mascara }),
   },
 };
 

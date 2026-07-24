@@ -5,25 +5,39 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
-### Adicionado
-- `tests/service-worker.test.js`: cobre o service worker (antes 0%) com `chrome`
-  mockado — menu de contexto criando itens, cadeia gerar → contador → histórico
-  → inserir, e o atalho "repetir última geração".
-- `tests/e2e/popup-runner.html`: 15 cenários dirigindo o popup real (gerar os 13
-  tipos, reprodutibilidade por seed, persistência de config, texto por tamanho,
-  pseudo, RTL, inválidos, navegação por abas).
-- `tests/e2e/runner.html`: 8 cenários extras do content.js (select ignorado,
-  number, colar em contenteditable, Shadow DOM aninhado, checkbox ignorado,
-  Unicode preservado, substituição, fronteira de texto).
-
-### Corrigido
-- `content.js`: removido ramo morto de `HTMLSelectElement` em `setterNativo`
-  (um `<select>` nunca passava por `ehEditavel`, então o ramo era inalcançável).
-  `<select>` agora é explicitamente tratado como não-alvo, de forma consistente
-  com checkbox/botão. (Achado pelo cenário e2e G1.)
-
 ### Planejado
 - Inscrição Estadual das demais UFs (hoje só SP).
+
+## [0.5.0] — 2026-07-24
+
+### Removido
+- **Chave Pix** e **Cartão de crédito** (a pedido): tirados do gerador, do menu
+  de contexto e da UI; módulos e testes correspondentes apagados. A categoria
+  "Financeiro" deixa de existir. Ficam **11 tipos de documento**.
+
+### Adicionado
+- **Tema** claro/escuro/automático, persistido em `config.tema`, com alternância
+  no cabeçalho (cicla auto → claro → escuro) e no painel Configurações. O escuro
+  deixa de ser só automático (via `prefers-color-scheme`) e pode ser forçado.
+- `tests/service-worker.test.js`: cobre o service worker (antes 0%) com `chrome`
+  mockado — menu de contexto, cadeia gerar → contador → histórico → inserir e o
+  atalho "repetir última geração".
+- `tests/e2e/popup-runner.html` (15 cenários do popup real) e +8 cenários no
+  `tests/e2e/runner.html` (bordas do content.js).
+
+### Alterado
+- **CNPJ alfanumérico (novo padrão)** agora tem seu toggle na **tela principal**
+  (painel Documentos), junto de "Com máscara" e "Excluir ambíguas" — antes ficava
+  em Configurações.
+- **Sem emojis**: todos substituídos por ícones SVG (cabeçalho, seed, selo,
+  copiar do histórico) ou texto; removidos os "✓" dos feedbacks.
+
+### Corrigido
+- `[hidden]` agora vence regras de `display` (ex.: `.check{display:flex}`), então
+  "Excluir ambíguas" fica realmente oculto até marcar "CNPJ alfanumérico".
+- `content.js`: removido ramo morto de `HTMLSelectElement` em `setterNativo`
+  (inalcançável via `ehEditavel`); `<select>` tratado como não-alvo, consistente
+  com checkbox/botão. (Achado pelo cenário e2e G1.)
 
 ## [0.4.1] — 2026-07-23
 
@@ -116,6 +130,7 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.5.0]: https://example.com/
 [0.4.1]: https://example.com/
 [0.4.0]: https://example.com/
 [0.3.0]: https://example.com/

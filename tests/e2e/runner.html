@@ -224,7 +224,7 @@
             const b = gerar(tipo, { ...configPadrao(), seed: "7f2a91", contador: 5 }).valor;
             if (a !== b) { todosDeterministicos = false; detalhe = `${tipo}: ${a} != ${b}`; }
           }
-          assert("RP1 todos os 13 tipos determinísticos p/ mesma seed+contador", todosDeterministicos, detalhe);
+          assert("RP1 todos os tipos determinísticos p/ mesma seed+contador", todosDeterministicos, detalhe);
 
           const s1 = gerar("cpf", { ...configPadrao(), seed: "aaa111", contador: 0 }).valor;
           const s2 = gerar("cpf", { ...configPadrao(), seed: "bbb222", contador: 0 }).valor;

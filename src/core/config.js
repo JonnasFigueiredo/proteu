@@ -18,9 +18,13 @@ export function configPadrao() {
     insercao: {
       modo: "valor", // "valor" | "colar"
     },
+    tema: "auto", // "auto" (segue o sistema) | "claro" | "escuro"
     contador: 0, // avança a cada geração; garante reprodutibilidade por índice
   };
 }
+
+// Valores aceitos para o tema.
+const TEMAS = ["auto", "claro", "escuro"];
 
 /** Gera uma seed hex curta e aleatória (não faz parte da lógica determinística). */
 export function gerarSeedAleatoria() {
@@ -64,6 +68,7 @@ export function normalizarConfig(parcial) {
     insercao: {
       modo: ins.modo === "colar" ? "colar" : base.insercao.modo,
     },
+    tema: TEMAS.includes(p.tema) ? p.tema : base.tema,
     contador,
   };
 }

@@ -83,7 +83,7 @@ describe("gerar", () => {
       contador: 0,
       documentos: { mascara: false, cnpjAlfanumerico: false, cnpjExcluirAmbiguas: false },
     });
-    for (const tipo of ["cpf", "cnpj", "rg", "pis", "titulo", "ie", "cep", "telefone", "cartao"]) {
+    for (const tipo of ["cpf", "cnpj", "rg", "pis", "titulo", "ie", "cep", "telefone"]) {
       const { valor } = gerar(tipo, { ...semMascara });
       expect(valor, `tipo ${tipo}: ${valor}`).not.toMatch(/[.\-/() ]/);
     }

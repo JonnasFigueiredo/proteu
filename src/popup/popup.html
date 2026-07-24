@@ -16,8 +16,13 @@
         </div>
       </div>
       <div class="acoes-cabecalho">
-        <button id="btn-historico" class="icone" title="Histórico" aria-label="Histórico">🕘</button>
-        <button id="btn-config" class="icone" title="Configurações" aria-label="Configurações">⚙️</button>
+        <button id="btn-tema" class="icone" title="Tema" aria-label="Alternar tema"></button>
+        <button id="btn-historico" class="icone" title="Histórico" aria-label="Histórico">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+        </button>
+        <button id="btn-config" class="icone" title="Configurações" aria-label="Configurações">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+        </button>
       </div>
     </header>
 
@@ -31,7 +36,7 @@
     <!-- Campo detectado: banner contextual, acima dos painéis -->
     <section id="secao-campo" class="banner-campo" hidden>
       <div class="banner-campo__cab">
-        <span class="banner-campo__rot">📍 Campo detectado</span>
+        <span class="banner-campo__rot">Campo detectado</span>
         <code id="campo-descricao"></code>
       </div>
       <div id="chips-fronteira" class="chips"></div>
@@ -41,11 +46,19 @@
     <main class="conteudo">
       <!-- Documentos -->
       <section class="painel painel--ativo" data-view="documentos" role="tabpanel">
-        <label class="switch">
-          <input type="checkbox" id="opt-mascara" />
-          <span class="switch__trilho"></span>
-          <span class="switch__rot">Com máscara</span>
-        </label>
+        <div class="opcoes-doc">
+          <label class="switch">
+            <input type="checkbox" id="opt-mascara" />
+            <span class="switch__trilho"></span>
+            <span class="switch__rot">Com máscara</span>
+          </label>
+          <label class="check">
+            <input type="checkbox" id="opt-alfanumerico" /> CNPJ alfanumérico (novo padrão)
+          </label>
+          <label class="check" id="wrap-ambiguas" hidden>
+            <input type="checkbox" id="opt-ambiguas" /> Excluir ambíguas (I, O, U, Q, F)
+          </label>
+        </div>
 
         <!-- Grupos por categoria, montados de TIPOS (core/gerador.js) -->
         <div id="botoes-doc" class="grupos-doc"></div>
@@ -73,14 +86,7 @@
         <div class="campo-rotulado">
           <span class="rot-mini">Por tamanho</span>
           <div class="linha-texto">
-            <input
-              id="tam-alvo"
-              type="number"
-              min="0"
-              max="100000"
-              value="100"
-              aria-label="Tamanho alvo"
-            />
+            <input id="tam-alvo" type="number" min="0" max="100000" value="100" aria-label="Tamanho alvo" />
             <select id="tam-unidade" aria-label="Unidade de contagem">
               <option value="grafemas">grafemas</option>
               <option value="codePoints">code points</option>
@@ -126,21 +132,14 @@
         </div>
 
         <div class="campo-rotulado">
-          <span class="rot-mini">⚠️ Payloads — uso defensivo</span>
+          <span class="rot-mini">Payloads — uso defensivo</span>
           <div id="chips-payloads" class="chips"></div>
         </div>
 
         <div class="campo-rotulado">
           <span class="rot-mini">Overflow de tamanho</span>
           <div class="linha-texto">
-            <input
-              id="overflow-tam"
-              type="number"
-              min="1"
-              max="1000000"
-              value="10000"
-              aria-label="Tamanho do overflow"
-            />
+            <input id="overflow-tam" type="number" min="1" max="1000000" value="10000" aria-label="Tamanho do overflow" />
             <button id="btn-overflow" class="secundario">Gerar overflow</button>
           </div>
         </div>
@@ -151,6 +150,15 @@
       <!-- Configurações -->
       <section class="painel" data-view="config" role="tabpanel">
         <div class="campo-rotulado">
+          <span class="rot-mini">Tema</span>
+          <select id="sel-tema">
+            <option value="auto">Automático (segue o sistema)</option>
+            <option value="claro">Claro</option>
+            <option value="escuro">Escuro</option>
+          </select>
+        </div>
+
+        <div class="campo-rotulado">
           <span class="rot-mini">Modo de inserção</span>
           <select id="modo-insercao">
             <option value="valor">Injetar valor (React/Vue)</option>
@@ -160,16 +168,6 @@
             "Injetar valor" substitui o conteúdo do campo; "simular colagem"
             insere na posição do cursor.
           </p>
-        </div>
-
-        <div class="campo-rotulado">
-          <span class="rot-mini">Opções de CNPJ</span>
-          <label class="check">
-            <input type="checkbox" id="opt-alfanumerico" /> Gerar alfanumérico
-          </label>
-          <label class="check" id="wrap-ambiguas" hidden>
-            <input type="checkbox" id="opt-ambiguas" /> Excluir ambíguas (I, O, U, Q, F)
-          </label>
         </div>
       </section>
 
@@ -188,17 +186,15 @@
     <footer class="rodape">
       <div class="seed">
         <label for="campo-seed">seed</label>
-        <input
-          id="campo-seed"
-          type="text"
-          spellcheck="false"
-          maxlength="16"
-          autocomplete="off"
-          aria-label="Seed determinística (hexadecimal)"
-        />
-        <button id="btn-nova-seed" class="icone" title="Nova seed aleatória" aria-label="Nova seed">🎲</button>
+        <input id="campo-seed" type="text" spellcheck="false" maxlength="16" autocomplete="off" aria-label="Seed determinística (hexadecimal)" />
+        <button id="btn-nova-seed" class="icone" title="Nova seed aleatória" aria-label="Nova seed">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" /></svg>
+        </button>
       </div>
-      <span class="selo" title="Nenhuma requisição de rede. Nenhuma coleta de dados.">🔒 100% local</span>
+      <span class="selo" title="Nenhuma requisição de rede. Nenhuma coleta de dados.">
+        <svg class="ic-selo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
+        100% local
+      </span>
     </footer>
 
     <script type="module" src="popup.js"></script>

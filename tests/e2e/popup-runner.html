@@ -72,7 +72,7 @@
           const v = $("#valor-gerado").textContent;
           if (!v) { todosGeram = false; falhou = tipo; }
         }
-        assert("P2 todos os 13 tipos geram valor", todosGeram, "falhou: " + falhou);
+        assert("P2 todos os tipos de documento geram valor", todosGeram, "falhou: " + falhou);
 
         // P3 — CPF e CNPJ gerados pelo popup são válidos
         $('.doc-btn[data-tipo="cpf"]').click(); await espera(15);

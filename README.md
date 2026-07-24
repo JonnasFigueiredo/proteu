@@ -21,15 +21,15 @@ permissões mínimas, sem dependências de terceiros em runtime.
    (React/Vue/Angular), **Shadow DOM aberto** e **iframes de mesma origem**, que
    é onde as concorrentes costumam falhar.
 
-## Estado atual (v0.3.0)
+## Estado atual (v0.5.0)
 
 - PRNG determinístico (`core/seed.js`).
-- **13 tipos de documento**: CPF; **CNPJ** com uma **única função para o formato
+- **11 tipos de documento**: CPF; **CNPJ** com uma **única função para o formato
   numérico e o alfanumérico** (padrão vigente desde jul/2026, incluindo o caso
-  oficial SERPRO `12.ABC.345/01DE-35`); RG (SSP-SP); CNH; PIS/PASEP; título de
-  eleitor; RENAVAM; Inscrição Estadual (SP); CEP coerente por UF; telefone
-  fixo/celular com DDD real; placa (Mercosul e antiga); chave Pix (4 formatos);
-  cartão de crédito (5 bandeiras, Luhn válido).
+  oficial SERPRO `12.ABC.345/01DE-35`; o toggle "CNPJ alfanumérico" fica na tela
+  principal); RG (SSP-SP); CNH; PIS/PASEP; título de eleitor; RENAVAM;
+  Inscrição Estadual (SP); CEP coerente por UF; telefone fixo/celular com DDD
+  real; placa (Mercosul e antiga).
 - **Detecção de campo → set de fronteira** (`core/field.js`): o campo focado
   vira chips clicáveis no popup (maxlength ±1, number min/max + `1e999`/`NaN`,
   datas de fronteira, e-mails traiçoeiros, strings Unicode).
@@ -44,6 +44,9 @@ permissões mínimas, sem dependências de terceiros em runtime.
   e overflow (uso defensivo — ver aviso abaixo). Expostos no popup na seção
   "Inválidos & payloads" — clique num chip insere direto no campo ativo (ou
   copia, se não houver campo focado).
+- **Tema** claro/escuro/automático (segue o sistema), com alternância no
+  cabeçalho e no painel de Configurações, persistido. Interface sem emojis
+  (ícones SVG).
 - Popup com todos os tipos, bloco de texto com as 4 contagens, seed no rodapé,
   cópia, histórico da sessão e opções persistidas.
 - Camada de inserção no content script com dois modos e disparo de eventos
