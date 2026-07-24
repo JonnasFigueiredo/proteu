@@ -1,0 +1,348 @@
+:root {
+  --azul: #0d47a1;
+  --azul-claro: #1565c0;
+  --fundo: #ffffff;
+  --superficie: #f5f7fa;
+  --borda: #dfe3e8;
+  --texto: #1a1a1a;
+  --texto-fraco: #5f6b7a;
+  --verde: #2e7d32;
+  --vermelho: #c62828;
+  --raio: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #1e1e1e;
+    --superficie: #2a2a2a;
+    --borda: #3a3a3a;
+    --texto: #eaeaea;
+    --texto-fraco: #a0a8b4;
+    --azul: #64b5f6;
+    --azul-claro: #90caf9;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  margin: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: var(--texto);
+  background: var(--fundo);
+}
+
+/* Cabeçalho */
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--borda);
+}
+
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--raio);
+  background: var(--azul);
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.cabecalho h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.subtitulo {
+  margin: 0;
+  font-size: 11px;
+  color: var(--texto-fraco);
+}
+
+.acoes-cabecalho {
+  display: flex;
+  gap: 4px;
+}
+
+.icone {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px;
+  border-radius: var(--raio);
+  line-height: 1;
+}
+
+.icone:hover {
+  background: var(--superficie);
+}
+
+/* Seções */
+.secao {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--borda);
+}
+
+.secao h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--texto-fraco);
+}
+
+.campo-detectado {
+  background: var(--superficie);
+}
+
+.campo-descricao {
+  margin: 0;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 12px;
+  color: var(--texto);
+}
+
+/* Opções */
+.opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.linha-config {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ajuda {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: var(--texto-fraco);
+  line-height: 1.4;
+}
+
+select {
+  padding: 5px 8px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 13px;
+}
+
+/* Botões de documento */
+.botoes-doc {
+  display: flex;
+  gap: 8px;
+}
+
+.gerar {
+  flex: 1;
+  padding: 9px 12px;
+  border: 1px solid var(--azul);
+  border-radius: var(--raio);
+  background: var(--azul);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gerar:hover {
+  background: var(--azul-claro);
+  border-color: var(--azul-claro);
+}
+
+/* Resultado */
+.resultado {
+  margin-top: 12px;
+  padding: 10px;
+  background: var(--superficie);
+  border-radius: var(--raio);
+}
+
+.valor {
+  display: block;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 16px;
+  font-weight: 600;
+  word-break: break-all;
+  margin-bottom: 8px;
+}
+
+.acoes-resultado {
+  display: flex;
+  gap: 8px;
+}
+
+.primario,
+.secundario {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: var(--raio);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primario {
+  border: 1px solid var(--azul);
+  background: var(--azul);
+  color: #fff;
+}
+
+.primario:hover {
+  background: var(--azul-claro);
+}
+
+.secundario {
+  border: 1px solid var(--borda);
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+.secundario:hover {
+  background: var(--borda);
+}
+
+.feedback {
+  margin: 8px 0 0;
+  font-size: 12px;
+  min-height: 15px;
+}
+
+.feedback.ok {
+  color: var(--verde);
+}
+
+.feedback.erro {
+  color: var(--vermelho);
+}
+
+/* Histórico */
+.cabecalho-historico {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cabecalho-historico h2 {
+  margin: 0;
+}
+
+.link {
+  border: none;
+  background: transparent;
+  color: var(--azul);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+}
+
+.lista-historico {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.lista-historico li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--borda);
+  font-size: 13px;
+}
+
+.item-tipo {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--texto-fraco);
+  min-width: 34px;
+}
+
+.item-valor {
+  flex: 1;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  word-break: break-all;
+}
+
+.item-copiar {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+}
+
+/* Rodapé */
+.rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--superficie);
+}
+
+.seed {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--texto-fraco);
+}
+
+#campo-seed {
+  width: 90px;
+  padding: 4px 6px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 12px;
+}
+
+#campo-seed.invalida {
+  border-color: var(--vermelho);
+}
+
+.selo {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--verde);
+  white-space: nowrap;
+}
