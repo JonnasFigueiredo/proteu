@@ -97,3 +97,39 @@ export function gerarCnpj(
   const cnpj = base.join("") + dv1 + dv2;
   return mascara ? mascararCnpj(cnpj) : cnpj;
 }
+
+/**
+ * Gera apenas a RAIZ do CNPJ (8 primeiras posições) — o que identifica a
+ * empresa. Matriz e filiais compartilham a mesma raiz.
+ */
+export function gerarRaizCnpj(rng, { alfanumerico = false, excluirAmbiguas = false } = {}) {
+  let alfabeto = "0123456789";
+  if (alfanumerico) {
+    alfabeto = excluirAmbiguas
+      ? [...ALFABETO_COMPLETO].filter((c) => !LETRAS_AMBIGUAS.has(c)).join("")
+      : ALFABETO_COMPLETO;
+  }
+  let raiz;
+  do {
+    raiz = Array.from({ length: 8 }, () => rng.escolher([...alfabeto])).join("");
+  } while ([...raiz].every((c) => c === raiz[0]));
+  return raiz;
+}
+
+/**
+ * Monta um CNPJ a partir de uma raiz (8) e uma ordem/filial (número). A ordem
+ * vira 4 dígitos: 1 → "0001" (matriz), 2 → "0002" (primeira filial), etc. Os
+ * DVs são recalculados. Assim é possível gerar vários CNPJs da mesma empresa.
+ */
+export function cnpjDeRaiz(raiz, ordem, { mascara = false } = {}) {
+  const raizStr = String(raiz).toUpperCase();
+  if (raizStr.length !== 8) throw new Error("Raiz deve ter 8 caracteres");
+  const ordemStr = String(ordem).padStart(4, "0");
+  if (ordemStr.length !== 4) throw new Error(`Ordem inválida: ${ordem}`);
+
+  const base = [...raizStr, ...ordemStr];
+  const dv1 = calcularDv(base, PESOS_DV1);
+  const dv2 = calcularDv([...base, String(dv1)], PESOS_DV2);
+  const cnpj = base.join("") + dv1 + dv2;
+  return mascara ? mascararCnpj(cnpj) : cnpj;
+}

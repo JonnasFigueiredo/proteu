@@ -7,50 +7,61 @@
 
 import { criarRng } from "./seed.js";
 import { gerarCpf } from "./documents/cpf.js";
-import { gerarCnpj } from "./documents/cnpj.js";
+import { gerarCnpj, gerarRaizCnpj, cnpjDeRaiz } from "./documents/cnpj.js";
 import { gerarRg } from "./documents/rg.js";
 import { gerarCnh } from "./documents/cnh.js";
-import { gerarPis } from "./documents/pis.js";
-import { gerarTitulo } from "./documents/titulo.js";
-import { gerarRenavam } from "./documents/renavam.js";
 import { gerarIe } from "./documents/ie.js";
 import { gerarCep } from "./documents/cep.js";
 import { gerarTelefone } from "./documents/telefone.js";
-import { gerarPlaca } from "./documents/placa.js";
+import { gerarNome } from "./documents/nome.js";
+import { gerarDataNascimento, gerarDataAdmissao } from "./documents/datas.js";
+import { gerarRazaoSocial } from "./documents/razao-social.js";
 
 // Registro de tipos disponíveis. Cada entrada recebe (rng, config) e retorna
-// a string gerada. `categoria` é só metadado de exibição (agrupa os botões no
-// popup). Adicionar um documento novo = adicionar uma linha aqui — popup e menu
-// de contexto se montam a partir deste objeto.
+// a string gerada.
+//   - `rotulo`: nome em pt (usado no menu de contexto e como fallback do popup);
+//   - `rotuloKey` (opcional): chave i18n para o popup traduzir o rótulo;
+//     documentos com nome próprio (CPF, CNPJ…) ficam só com `rotulo`.
+//   - `categoria`: metadado de exibição (agrupa os botões no popup).
+// Adicionar um documento = adicionar uma linha aqui; a UI acompanha sozinha.
 export const TIPOS = {
+  // --- Pessoa (inclui dados de contato) ---
+  nome: {
+    rotulo: "Nome", rotuloKey: "doc_nome", categoria: "Pessoa",
+    gerar: (rng) => gerarNome(rng),
+  },
+  dataNascimento: {
+    rotulo: "Data de nascimento", rotuloKey: "doc_nascimento", categoria: "Pessoa",
+    gerar: (rng) => gerarDataNascimento(rng),
+  },
+  dataAdmissao: {
+    rotulo: "Data de admissão", rotuloKey: "doc_admissao", categoria: "Pessoa",
+    gerar: (rng) => gerarDataAdmissao(rng),
+  },
   cpf: {
-    rotulo: "CPF",
-    categoria: "Pessoa",
+    rotulo: "CPF", categoria: "Pessoa",
     gerar: (rng, config) => gerarCpf(rng, { mascara: config.documentos.mascara }),
   },
   rg: {
-    rotulo: "RG",
-    categoria: "Pessoa",
+    rotulo: "RG", categoria: "Pessoa",
     gerar: (rng, config) => gerarRg(rng, { mascara: config.documentos.mascara }),
   },
   cnh: {
-    rotulo: "CNH",
-    categoria: "Pessoa",
+    rotulo: "CNH", categoria: "Pessoa",
     gerar: (rng) => gerarCnh(rng),
   },
-  pis: {
-    rotulo: "PIS/PASEP",
-    categoria: "Pessoa",
-    gerar: (rng, config) => gerarPis(rng, { mascara: config.documentos.mascara }),
+  cep: {
+    rotulo: "CEP", categoria: "Pessoa",
+    gerar: (rng, config) => gerarCep(rng, { mascara: config.documentos.mascara }),
   },
-  titulo: {
-    rotulo: "Título de eleitor",
-    categoria: "Pessoa",
-    gerar: (rng, config) => gerarTitulo(rng, { mascara: config.documentos.mascara }),
+  telefone: {
+    rotulo: "Telefone", rotuloKey: "doc_telefone", categoria: "Pessoa",
+    gerar: (rng, config) => gerarTelefone(rng, { mascara: config.documentos.mascara }),
   },
+
+  // --- Empresa ---
   cnpj: {
-    rotulo: "CNPJ",
-    categoria: "Empresa",
+    rotulo: "CNPJ", categoria: "Empresa",
     gerar: (rng, config) =>
       gerarCnpj(rng, {
         mascara: config.documentos.mascara,
@@ -58,35 +69,26 @@ export const TIPOS = {
         excluirAmbiguas: config.documentos.cnpjExcluirAmbiguas,
       }),
   },
-  ie: {
-    rotulo: "Inscrição Estadual (SP)",
-    categoria: "Empresa",
-    gerar: (rng, config) => gerarIe(rng, { mascara: config.documentos.mascara }),
-  },
-  renavam: {
-    rotulo: "RENAVAM",
-    categoria: "Veículo",
-    gerar: (rng) => gerarRenavam(rng),
-  },
-  placa: {
-    rotulo: "Placa",
-    categoria: "Veículo",
-    // Alterna entre os dois padrões pelo próprio rng (determinístico).
+  cnpjRaiz: {
+    rotulo: "CNPJ (mesma raiz)", rotuloKey: "doc_cnpj_raiz", categoria: "Empresa",
+    // Gera a matriz (ordem 0001); o popup usa a raiz para gerar filiais.
     gerar: (rng, config) =>
-      gerarPlaca(rng, {
-        padrao: rng.escolher(["mercosul", "antiga"]),
-        mascara: config.documentos.mascara,
-      }),
+      cnpjDeRaiz(
+        gerarRaizCnpj(rng, {
+          alfanumerico: config.documentos.cnpjAlfanumerico,
+          excluirAmbiguas: config.documentos.cnpjExcluirAmbiguas,
+        }),
+        1,
+        { mascara: config.documentos.mascara }
+      ),
   },
-  cep: {
-    rotulo: "CEP",
-    categoria: "Contato",
-    gerar: (rng, config) => gerarCep(rng, { mascara: config.documentos.mascara }),
+  razaoSocial: {
+    rotulo: "Razão social", rotuloKey: "doc_razao", categoria: "Empresa",
+    gerar: (rng) => gerarRazaoSocial(rng),
   },
-  telefone: {
-    rotulo: "Telefone",
-    categoria: "Contato",
-    gerar: (rng, config) => gerarTelefone(rng, { mascara: config.documentos.mascara }),
+  ie: {
+    rotulo: "Inscrição Estadual (SP)", categoria: "Empresa",
+    gerar: (rng, config) => gerarIe(rng, { mascara: config.documentos.mascara }),
   },
 };
 

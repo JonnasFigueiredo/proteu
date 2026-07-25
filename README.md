@@ -29,7 +29,8 @@ em runtime · apenas 4 permissões · Vanilla JS (sem build) · interface em
 
 | Área | O que gera |
 |------|------------|
-| **Documentos BR** (11) | CPF · **CNPJ numérico *e* alfanumérico na mesma função** (novo padrão jul/2026, incl. o caso oficial SERPRO `12.ABC.345/01DE-35`) · RG (SSP-SP) · CNH · PIS/PASEP · título de eleitor · RENAVAM · Inscrição Estadual (SP) · CEP coerente por UF · telefone fixo/celular com DDD real · placa (Mercosul e antiga). Com e sem máscara. |
+| **Pessoa** | Nome · data de nascimento (sempre maior de idade) · data de admissão · CPF · RG (SSP-SP) · CNH · CEP coerente por UF · telefone fixo/celular com DDD real. |
+| **Empresa** | **CNPJ numérico *e* alfanumérico na mesma função** (novo padrão jul/2026, incl. o caso oficial SERPRO `12.ABC.345/01DE-35`) · **CNPJ com a mesma raiz** (matriz 0001 + filiais 0002, 0003… compartilhando os 8 primeiros dígitos) · razão social · Inscrição Estadual (SP). Com e sem máscara. |
 | **Detecção → fronteira** | Chips clicáveis a partir do campo focado: `maxlength` ±1, `number` min/max + `1e999`/`NaN`, datas de fronteira, e-mails que passam na regex mas quebram no servidor, strings Unicode. |
 | **Texto** | 9 idiomas (pt, es, ar, tr, ru, zh, hi, ja, he — cada um cobrindo um problema real de i18n) · geração **por tamanho exata** nas 4 unidades de contagem · **pseudolocale** (`Save` → `Šávé`) com expansão, marcadores `⟦…⟧`, preservação de placeholders e modo `fakebidi`. |
 | **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. |
@@ -99,11 +100,12 @@ reproduzivel/
 ├── src/
 │   ├── core/                         # lógica PURA: sem DOM, sem chrome.* → 100% testável
 │   │   ├── seed.js                   # PRNG determinístico (xmur3 → sfc32)
-│   │   ├── config.js                 # defaults + normalização/validação (inclui tema)
+│   │   ├── config.js                 # defaults + normalização/validação (tema, idioma)
+│   │   ├── i18n.js                    # traduções da interface (pt / es / en)
 │   │   ├── gerador.js                # registro TIPOS: amarra seed + contador + documento
 │   │   ├── field.js                  # descritor do campo → set de fronteira
-│   │   ├── documents/                # cpf, cnpj, rg, cnh, pis, titulo, renavam,
-│   │   │                             #   ie, cep, telefone, placa
+│   │   ├── documents/                # nome, datas, cpf, cnpj (+raiz), rg, cnh, ie,
+│   │   │                             #   cep, telefone, razao-social
 │   │   ├── text/                     # contagem, idiomas, tamanho, pseudolocale
 │   │   └── invalid/                  # documentos-invalidos, unicode, payloads
 │   ├── storage.js                    # adaptador chrome.storage (ponte p/ core/config)
@@ -180,7 +182,7 @@ npm test           # roda toda a suíte unitária uma vez
 npm run test:watch
 ```
 
-- **Unitário (Vitest, Node):** cobre PRNG, os 11 documentos (incl. o caso oficial
+- **Unitário (Vitest, Node):** cobre PRNG, os geradores de Pessoa/Empresa (incl. o caso oficial
   `12.ABC.345/01DE-35`), detecção→fronteira, os módulos de texto, a massa
   inválida, a persistência de config e o **service worker** (menu de contexto,
   cadeia gerar → contador → histórico → inserir, atalho). **A extensão não

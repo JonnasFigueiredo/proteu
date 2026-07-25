@@ -21,6 +21,7 @@ import { gerarCpfInvalido, gerarCnpjInvalido } from "../core/invalid/documentos-
 import { FRONTEIRAS_UNICODE } from "../core/invalid/unicode.js";
 import { todosPayloads, gerarOverflow } from "../core/invalid/payloads.js";
 import { t, IDIOMAS_UI, LANG_ATTR, resolverIdioma } from "../core/i18n.js";
+import { cnpjDeRaiz } from "../core/documents/cnpj.js";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -49,6 +50,8 @@ let idiomaAtual = "pt";
 let ultimoValor = null;
 let ultimoTexto = null;
 let ultimoInvalido = null;
+// Grupo de CNPJs da mesma empresa: matriz (0001) e filiais (0002, 0003…).
+let grupoRaiz = null;
 
 // --- Inicialização ----------------------------------------------------------
 
@@ -136,8 +139,10 @@ function montarBotoesDocumento() {
       const btn = document.createElement("button");
       btn.className = "doc-btn";
       btn.dataset.tipo = tipo;
-      btn.textContent = def.rotulo; // nome do documento não é traduzido
-      btn.title = `${t(idiomaAtual, "gerar")} ${def.rotulo}`;
+      if (def.rotuloKey) btn.dataset.rotulokey = def.rotuloKey;
+      const rotulo = def.rotuloKey ? t(idiomaAtual, def.rotuloKey) : def.rotulo;
+      btn.textContent = rotulo;
+      btn.title = `${t(idiomaAtual, "gerar")} ${rotulo}`;
       grade.appendChild(btn);
     }
     grupo.append(rot, grade);
@@ -216,6 +221,13 @@ function aplicarIdioma(idioma) {
     el.textContent = t(idioma, `cat_${el.dataset.cat}`);
   });
 
+  // Botões de documento com rótulo traduzível (os demais mantêm o nome próprio).
+  document.querySelectorAll(".doc-btn[data-rotulokey]").forEach((btn) => {
+    const rotulo = t(idioma, btn.dataset.rotulokey);
+    btn.textContent = rotulo;
+    btn.title = `${t(idioma, "gerar")} ${rotulo}`;
+  });
+
   aplicarTema(config.tema); // re-traduz o title do botão de tema
 
   // Botão de bandeira no cabeçalho + estado ativo na lista.
@@ -261,11 +273,13 @@ function ligarEventos() {
   );
   $("#opt-alfanumerico").addEventListener("change", (e) => {
     $("#wrap-ambiguas").hidden = !e.target.checked;
+    grupoRaiz = null; // muda o formato da raiz → novo grupo
     atualizarConfig((c) => (c.documentos.cnpjAlfanumerico = e.target.checked));
   });
-  $("#opt-ambiguas").addEventListener("change", (e) =>
-    atualizarConfig((c) => (c.documentos.cnpjExcluirAmbiguas = e.target.checked))
-  );
+  $("#opt-ambiguas").addEventListener("change", (e) => {
+    grupoRaiz = null;
+    atualizarConfig((c) => (c.documentos.cnpjExcluirAmbiguas = e.target.checked));
+  });
   $("#modo-insercao").addEventListener("change", (e) =>
     atualizarConfig((c) => (c.insercao.modo = e.target.value))
   );
@@ -338,6 +352,8 @@ async function atualizarConfig(mutar) {
 async function aoGerar(tipo) {
   // Recarrega para pegar o contador mais recente (menu de contexto também avança).
   config = await carregarConfig();
+  if (tipo === "cnpjRaiz") return aoGerarCnpjRaiz();
+
   const r = gerar(tipo, config);
   ultimoValor = r.valor;
 
@@ -354,6 +370,41 @@ async function aoGerar(tipo) {
   $("#valor-gerado").textContent = r.valor;
   $("#resultado").hidden = false;
   limparFeedback();
+  if (!$("#secao-historico").hidden) await renderizarHistorico();
+}
+
+/** CNPJ mesma raiz: 1º clique = matriz (0001); seguintes = filiais (0002…). */
+async function aoGerarCnpjRaiz() {
+  let valor, ordem, chaveFb;
+  if (!grupoRaiz) {
+    // Matriz: gerada pelo rng (seed:contador), como qualquer documento.
+    const r = gerar("cnpjRaiz", config);
+    await persistirContador(r.proximoContador);
+    config.contador = r.proximoContador;
+    valor = r.valor;
+    const raiz = valor.replace(/[.\-/]/g, "").toUpperCase().slice(0, 8);
+    grupoRaiz = { raiz, ordem: 1 };
+    ordem = 1;
+    chaveFb = "fb_cnpj_matriz";
+  } else {
+    // Filial: mesma raiz, próxima ordem (não consome o contador da seed).
+    grupoRaiz.ordem += 1;
+    ordem = grupoRaiz.ordem;
+    valor = cnpjDeRaiz(grupoRaiz.raiz, ordem, { mascara: config.documentos.mascara });
+    chaveFb = "fb_cnpj_filial";
+  }
+  ultimoValor = valor;
+  $("#valor-gerado").textContent = valor;
+  $("#resultado").hidden = false;
+  mostrarFeedback(t(idiomaAtual, chaveFb, { ordem: String(ordem).padStart(4, "0") }), "ok");
+
+  await adicionarHistorico({
+    tipo: "cnpjRaiz",
+    valor,
+    seed: config.seed,
+    contador: config.contador,
+    em: Date.now(),
+  });
   if (!$("#secao-historico").hidden) await renderizarHistorico();
 }
 
@@ -647,6 +698,7 @@ async function aoMudarSeed(e) {
   }
   e.target.classList.remove("invalida");
   e.target.value = nova;
+  grupoRaiz = null; // nova seed = novo grupo de CNPJ
   // Trocar a seed reinicia o contador: a sequência recomeça do zero.
   await atualizarConfig((c) => {
     c.seed = nova;
@@ -658,6 +710,7 @@ async function aoNovaSeed() {
   const nova = gerarSeedAleatoria();
   $("#campo-seed").value = nova;
   $("#campo-seed").classList.remove("invalida");
+  grupoRaiz = null; // nova seed = novo grupo de CNPJ
   await atualizarConfig((c) => {
     c.seed = nova;
     c.contador = 0;

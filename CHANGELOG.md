@@ -8,6 +8,26 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ### Planejado
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.7.0] — 2026-07-24
+
+### Adicionado
+- **Pessoa**: geradores de **Nome**, **Data de nascimento** (sempre maior de
+  idade, com ano-base fixo para manter a reprodutibilidade) e **Data de
+  admissão**. A categoria Pessoa agora inclui os dados de contato (CEP,
+  telefone).
+- **Empresa**: **CNPJ com a mesma raiz** — um botão que avança: 1º clique gera a
+  matriz (0001) e os seguintes geram filiais (0002, 0003…) compartilhando os 8
+  primeiros dígitos; trocar a seed (ou o modo alfanumérico) começa um grupo novo.
+  Também **Razão social** (nome de empresa genérico).
+- `cnpj.js`: `gerarRaizCnpj()` e `cnpjDeRaiz(raiz, ordem)`.
+- Rótulos de documento traduzíveis via `rotuloKey` (Nome, Data de nascimento,
+  Telefone, Razão social, CNPJ mesma raiz) — os nomes próprios (CPF, CNPJ, RG…)
+  seguem sem tradução.
+
+### Removido
+- **Título de eleitor**, **PIS/PASEP**, **RENAVAM** e **Placa** (a pedido):
+  módulos e testes apagados. A categoria **Veículo** deixa de existir.
+
 ## [0.6.0] — 2026-07-24
 
 ### Adicionado
@@ -146,6 +166,7 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.7.0]: https://example.com/
 [0.6.0]: https://example.com/
 [0.5.0]: https://example.com/
 [0.4.1]: https://example.com/
