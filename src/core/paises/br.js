@@ -18,6 +18,7 @@ export const BR = {
   codigo: "br",
   rotulo: "Brasil",
   idioma: "pt",
+  opcoesCnpj: true, // mostra os toggles de CNPJ alfanumérico no popup
   tipos: {
     // --- Pessoa (inclui contato) ---
     nome: {

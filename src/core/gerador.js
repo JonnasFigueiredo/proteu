@@ -44,6 +44,11 @@ export function idiomaDoPais(pais) {
   return p ? p.idioma : "pt";
 }
 
+/** Se o país tem as opções de CNPJ alfanumérico (só o Brasil, por ora). */
+export function paisMostraOpcoesCnpj(pais) {
+  return !!(PAISES[pais] || {}).opcoesCnpj;
+}
+
 /**
  * Gera um valor de forma determinística a partir da config atual (país + seed +
  * contador). NÃO muta a config; devolve o próximo contador para persistir.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { gerar, tiposDoPais } from "../src/core/gerador.js";
+import { gerar, tiposDoPais, idiomaDoPais, paisMostraOpcoesCnpj } from "../src/core/gerador.js";
 
 const TIPOS = tiposDoPais("br");
 import { configPadrao } from "../src/core/config.js";
@@ -61,6 +61,16 @@ describe("gerar", () => {
   it("rejeita tipo desconhecido e config sem seed", () => {
     expect(() => gerar("inexistente", configCom())).toThrow();
     expect(() => gerar("cpf", { ...configPadrao(), seed: null })).toThrow();
+  });
+
+  it("país determina idioma e opções de CNPJ", () => {
+    expect(idiomaDoPais("br")).toBe("pt");
+    expect(idiomaDoPais("us")).toBe("en");
+    expect(idiomaDoPais("ar")).toBe("es");
+    // Só o Brasil tem as opções de CNPJ alfanumérico.
+    expect(paisMostraOpcoesCnpj("br")).toBe(true);
+    expect(paisMostraOpcoesCnpj("us")).toBe(false);
+    expect(paisMostraOpcoesCnpj("ar")).toBe(false);
   });
 
   it("todo tipo registrado tem rótulo e função", () => {

@@ -9,7 +9,7 @@ import {
   adicionarHistorico,
   limparHistorico,
 } from "../storage.js";
-import { gerar, tiposDoPais, idiomaDoPais, PAISES_DISPONIVEIS } from "../core/gerador.js";
+import { gerar, tiposDoPais, idiomaDoPais, paisMostraOpcoesCnpj, PAISES_DISPONIVEIS } from "../core/gerador.js";
 import { gerarSeedAleatoria } from "../core/config.js";
 import { normalizarSeed, criarRng } from "../core/seed.js";
 import { gerarSetFronteira } from "../core/field.js";
@@ -162,6 +162,7 @@ function refletirConfigNaUI() {
   $("#opt-alfanumerico").checked = config.documentos.cnpjAlfanumerico;
   $("#opt-ambiguas").checked = config.documentos.cnpjExcluirAmbiguas;
   $("#wrap-ambiguas").hidden = !config.documentos.cnpjAlfanumerico;
+  $("#opcoes-cnpj").hidden = !paisMostraOpcoesCnpj(config.pais); // só p/ países com CNPJ
   $("#modo-insercao").value = config.insercao.modo;
   $("#sel-tema").value = config.tema;
   $("#campo-seed").value = config.seed;
@@ -246,6 +247,7 @@ async function mudarPais(pais) {
   idiomaAtual = idiomaDoPais(pais);
   montarBotoesDocumento();
   ligarEventosDocBtns();
+  $("#opcoes-cnpj").hidden = !paisMostraOpcoesCnpj(pais);
   aplicarIdioma(idiomaAtual);
   atualizarBandeiraPais();
   fecharModalPais();

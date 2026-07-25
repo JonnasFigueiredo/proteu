@@ -173,6 +173,7 @@
         await trocarPais("us");
         assert("P14 EUA: interface em inglês", document.documentElement.lang === "en" && $("#btn-inserir").textContent === "Insert into field");
         assert("P14 EUA: categorias Person/Company", $(".grupo-doc__rot").textContent === "Person");
+        assert("P14 EUA: opções de CNPJ escondidas (só BR tem)", $("#opcoes-cnpj").hidden);
         assert("P14 EUA: SSN gerado é válido", validarSsn(await gerarNoPais("ssn")), $("#valor-gerado").textContent);
         assert("P14 EUA: país persistido", cfg().pais === "us");
 
