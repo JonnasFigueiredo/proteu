@@ -9,7 +9,7 @@ import {
   adicionarHistorico,
   limparHistorico,
 } from "../storage.js";
-import { gerar, TIPOS } from "../core/gerador.js";
+import { gerar, tiposDoPais, idiomaDoPais, PAISES_DISPONIVEIS } from "../core/gerador.js";
 import { gerarSeedAleatoria } from "../core/config.js";
 import { normalizarSeed, criarRng } from "../core/seed.js";
 import { gerarSetFronteira } from "../core/field.js";
@@ -20,18 +20,23 @@ import { pseudolocalizar } from "../core/text/pseudolocale.js";
 import { gerarCpfInvalido, gerarCnpjInvalido } from "../core/invalid/documentos-invalidos.js";
 import { FRONTEIRAS_UNICODE } from "../core/invalid/unicode.js";
 import { todosPayloads, gerarOverflow } from "../core/invalid/payloads.js";
-import { t, IDIOMAS_UI, LANG_ATTR, resolverIdioma } from "../core/i18n.js";
+import { t, LANG_ATTR } from "../core/i18n.js";
 import { cnpjDeRaiz } from "../core/documents/cnpj.js";
+
+const PAIS_PADRAO = "br";
 
 const $ = (sel) => document.querySelector(sel);
 
-// Bandeiras (SVG, sem emojis) do seletor de idioma da interface.
-const BANDEIRAS = {
-  pt: '<svg class="bandeira" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#009c3b"/><path d="M12 2 22 8 12 14 2 8Z" fill="#ffdf00"/><circle cx="12" cy="8" r="3.3" fill="#002776"/></svg>',
-  es: '<svg class="bandeira" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#c60b1e"/><rect y="4" width="24" height="8" fill="#ffc400"/></svg>',
-  en: '<svg class="bandeira" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#012169"/><path d="M0,0 L24,16 M24,0 L0,16" stroke="#fff" stroke-width="3.2"/><path d="M0,0 L24,16 M24,0 L0,16" stroke="#c8102e" stroke-width="1.6"/><rect x="9.5" width="5" height="16" fill="#fff"/><rect y="5.5" width="24" height="5" fill="#fff"/><rect x="10.5" width="3" height="16" fill="#c8102e"/><rect y="6.5" width="24" height="3" fill="#c8102e"/></svg>',
+// Bandeiras de país (SVG, sem emojis) — simplificadas mas reconhecíveis.
+const BANDEIRAS_PAIS = {
+  br: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#009c3b"/><path d="M12 2 22 8 12 14 2 8Z" fill="#ffdf00"/><circle cx="12" cy="8" r="3.3" fill="#002776"/></svg>',
+  us: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><g fill="#b22234"><rect width="24" height="1.23"/><rect y="2.46" width="24" height="1.23"/><rect y="4.92" width="24" height="1.23"/><rect y="7.38" width="24" height="1.23"/><rect y="9.85" width="24" height="1.23"/><rect y="12.31" width="24" height="1.23"/><rect y="14.77" width="24" height="1.23"/></g><rect width="10" height="8.6" fill="#3c3b6e"/><g fill="#fff"><circle cx="2" cy="2" r="0.5"/><circle cx="5" cy="2" r="0.5"/><circle cx="8" cy="2" r="0.5"/><circle cx="3.5" cy="4.3" r="0.5"/><circle cx="6.5" cy="4.3" r="0.5"/><circle cx="2" cy="6.6" r="0.5"/><circle cx="5" cy="6.6" r="0.5"/><circle cx="8" cy="6.6" r="0.5"/></g></svg>',
+  ar: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#74acdf"/><rect y="5.33" width="24" height="5.33" fill="#fff"/><circle cx="12" cy="8" r="1.5" fill="#f6b40e"/></svg>',
+  cl: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><rect y="8" width="24" height="8" fill="#d52b1e"/><rect width="8" height="8" fill="#0039a6"/><circle cx="4" cy="4" r="1.6" fill="#fff"/></svg>',
+  mx: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="8" height="16" fill="#006847"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ce1126"/><circle cx="12" cy="8" r="1.3" fill="#9b6b3a"/></svg>',
+  uy: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><g fill="#0038a8"><rect y="3.55" width="24" height="1.78"/><rect y="7.1" width="24" height="1.78"/><rect y="10.66" width="24" height="1.78"/><rect y="14.2" width="24" height="1.78"/></g><rect width="9" height="8.88" fill="#fff"/><circle cx="4.5" cy="4.4" r="1.5" fill="#f6b40e"/></svg>',
+  py: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#d52b1e"/><rect y="5.33" width="24" height="5.33" fill="#fff"/><rect y="10.66" width="24" height="5.34" fill="#0038a8"/><circle cx="12" cy="8" r="1.1" fill="#f6b40e"/></svg>',
 };
-const PROXIMO_IDIOMA = { pt: "es", es: "en", en: "pt" };
 
 // Ícones SVG (sem emojis). Herdam a cor via currentColor.
 const ICONE_COPIAR =
@@ -57,18 +62,19 @@ let grupoRaiz = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   config = await carregarConfig();
-  // Primeiro uso: detecta o idioma da interface pelo navegador e persiste.
-  if (!config.idiomaUI) {
-    config.idiomaUI = resolverIdioma(navigator.language);
+  // Primeiro uso: define o país (Brasil por ora) e persiste.
+  if (!config.pais) {
+    config.pais = PAIS_PADRAO;
     config = await salvarConfig(config);
   }
-  idiomaAtual = config.idiomaUI;
+  idiomaAtual = idiomaDoPais(config.pais);
   montarBotoesDocumento();
   montarIdiomas();
-  montarIdiomasLista();
+  montarModalPaises();
   montarChipsInvalidos();
   refletirConfigNaUI();
   aplicarIdioma(idiomaAtual);
+  atualizarBandeiraPais();
   ligarEventos();
   await detectarCampo();
 });
@@ -109,13 +115,14 @@ function montarIdiomas() {
 // Ordem em que as categorias aparecem no painel Documentos.
 const ORDEM_CATEGORIAS = ["Pessoa", "Empresa", "Veículo", "Contato", "Financeiro"];
 
-/** Botões de documento agrupados por categoria — a UI acompanha o core sozinha. */
+/** Botões de documento agrupados por categoria, para o país ativo. */
 function montarBotoesDocumento() {
   const container = $("#botoes-doc");
+  container.textContent = ""; // re-render ao trocar de país
 
-  // Agrupa os tipos por categoria (default "Outros" para novos sem categoria).
+  // Agrupa os tipos do país por categoria.
   const grupos = new Map();
-  for (const [tipo, def] of Object.entries(TIPOS)) {
+  for (const [tipo, def] of Object.entries(tiposDoPais(config.pais))) {
     const cat = def.categoria || "Outros";
     if (!grupos.has(cat)) grupos.set(cat, []);
     grupos.get(cat).push([tipo, def]);
@@ -186,22 +193,83 @@ async function aoMudarTema(e) {
   aplicarTema(tema);
 }
 
-// --- Idioma da interface (i18n) ---------------------------------------------
+// --- País dos dados + idioma (o idioma acompanha o país) --------------------
 
-/** Botões de bandeira no painel Configurações. */
-function montarIdiomasLista() {
-  const lista = $("#idiomas-lista");
-  for (const { code, rotulo } of IDIOMAS_UI) {
+/** Monta a lista de países no modal (implementados selecionáveis; resto "em breve"). */
+function montarModalPaises() {
+  const lista = $("#lista-paises");
+  lista.textContent = "";
+  for (const pais of PAISES_DISPONIVEIS) {
+    const li = document.createElement("li");
     const btn = document.createElement("button");
-    btn.className = "bandeira-btn";
-    btn.dataset.lang = code;
-    btn.innerHTML = `${BANDEIRAS[code]}<span>${rotulo}</span>`;
-    btn.addEventListener("click", () => aoEscolherIdioma(code));
-    lista.appendChild(btn);
+    btn.className = "pais-btn";
+    btn.dataset.pais = pais.codigo;
+    btn.disabled = !pais.implementado;
+
+    const bandeira = document.createElement("span");
+    bandeira.innerHTML = BANDEIRAS_PAIS[pais.codigo] || "";
+    const nome = document.createElement("span");
+    nome.className = "nome";
+    nome.dataset.paisNome = pais.codigo; // p/ re-traduzir
+    nome.textContent = t(idiomaAtual, `pais_${pais.codigo}`);
+    btn.append(bandeira, nome);
+
+    if (!pais.implementado) {
+      const tag = document.createElement("span");
+      tag.className = "em-breve";
+      tag.dataset.i18n = "modal_em_breve";
+      tag.textContent = t(idiomaAtual, "modal_em_breve");
+      btn.appendChild(tag);
+    } else {
+      btn.addEventListener("click", () => mudarPais(pais.codigo));
+    }
+    li.appendChild(btn);
+    lista.appendChild(li);
   }
 }
 
-/** Aplica o idioma: traduz elementos [data-i18n*], categorias, tema, bandeiras. */
+function abrirModalPais() {
+  $("#modal-pais").hidden = false;
+}
+
+function fecharModalPais() {
+  $("#modal-pais").hidden = true;
+}
+
+/** Troca o país dos dados: idioma acompanha, botões e menu se refazem. */
+async function mudarPais(pais) {
+  grupoRaiz = null; // novo país = novo grupo de CNPJ/tax id
+  await atualizarConfig((c) => {
+    c.pais = pais;
+    c.contador = 0; // reinicia a sequência determinística no novo país
+  });
+  idiomaAtual = idiomaDoPais(pais);
+  montarBotoesDocumento();
+  ligarEventosDocBtns();
+  aplicarIdioma(idiomaAtual);
+  atualizarBandeiraPais();
+  fecharModalPais();
+  // Esconde resultados do país anterior.
+  $("#resultado").hidden = true;
+  $("#resultado-invalido").hidden = true;
+}
+
+/** Atualiza a bandeira do cabeçalho e o item ativo no modal. */
+function atualizarBandeiraPais() {
+  $("#btn-pais").innerHTML = BANDEIRAS_PAIS[config.pais] || "";
+  document.querySelectorAll(".pais-btn").forEach((b) =>
+    b.classList.toggle("ativo", b.dataset.pais === config.pais)
+  );
+}
+
+/** (Re)liga os cliques dos botões de documento — chamado após re-render. */
+function ligarEventosDocBtns() {
+  document.querySelectorAll(".doc-btn[data-tipo]").forEach((b) => {
+    b.onclick = () => aoGerar(b.dataset.tipo);
+  });
+}
+
+/** Aplica o idioma: traduz elementos [data-i18n*], categorias, tema, países. */
 function aplicarIdioma(idioma) {
   idiomaAtual = idioma;
   document.documentElement.lang = LANG_ATTR[idioma] || "pt-BR";
@@ -228,29 +296,15 @@ function aplicarIdioma(idioma) {
     btn.title = `${t(idioma, "gerar")} ${rotulo}`;
   });
 
-  aplicarTema(config.tema); // re-traduz o title do botão de tema
+  // Nomes de país no modal (montados dinamicamente).
+  document.querySelectorAll("[data-pais-nome]").forEach((el) => {
+    el.textContent = t(idioma, `pais_${el.dataset.paisNome}`);
+  });
 
-  // Botão de bandeira no cabeçalho + estado ativo na lista.
-  $("#btn-idioma").innerHTML = BANDEIRAS[idioma];
-  document.querySelectorAll(".bandeira-btn").forEach((b) =>
-    b.classList.toggle("ativo", b.dataset.lang === idioma)
-  );
+  aplicarTema(config.tema); // re-traduz o title do botão de tema
 
   // Recontagem já exibida usa rótulos traduzidos.
   if (ultimoTexto !== null) renderContagens(ultimoTexto);
-}
-
-async function aoAlternarIdioma() {
-  await mudarIdioma(PROXIMO_IDIOMA[idiomaAtual] || "pt");
-}
-
-async function aoEscolherIdioma(idioma) {
-  await mudarIdioma(idioma);
-}
-
-async function mudarIdioma(idioma) {
-  await atualizarConfig((c) => (c.idiomaUI = idioma));
-  aplicarIdioma(idioma);
 }
 
 // --- Eventos ----------------------------------------------------------------
@@ -289,7 +343,11 @@ function ligarEventos() {
 
   $("#btn-tema").addEventListener("click", aoAlternarTema);
   $("#sel-tema").addEventListener("change", aoMudarTema);
-  $("#btn-idioma").addEventListener("click", aoAlternarIdioma);
+
+  $("#btn-pais").addEventListener("click", abrirModalPais);
+  document.querySelectorAll("#modal-pais [data-fechar]").forEach((el) =>
+    el.addEventListener("click", fecharModalPais)
+  );
 
   document.querySelectorAll(".doc-btn[data-invalido]").forEach((b) =>
     b.addEventListener("click", () => aoGerarInvalido(b.dataset.invalido))
@@ -352,7 +410,8 @@ async function atualizarConfig(mutar) {
 async function aoGerar(tipo) {
   // Recarrega para pegar o contador mais recente (menu de contexto também avança).
   config = await carregarConfig();
-  if (tipo === "cnpjRaiz") return aoGerarCnpjRaiz();
+  // Documentos "mesma raiz" (ex.: CNPJ matriz + filiais) têm fluxo próprio.
+  if (tiposDoPais(config.pais)[tipo]?.raiz) return aoGerarCnpjRaiz(tipo);
 
   const r = gerar(tipo, config);
   ultimoValor = r.valor;
@@ -373,12 +432,12 @@ async function aoGerar(tipo) {
   if (!$("#secao-historico").hidden) await renderizarHistorico();
 }
 
-/** CNPJ mesma raiz: 1º clique = matriz (0001); seguintes = filiais (0002…). */
-async function aoGerarCnpjRaiz() {
+/** Mesma raiz: 1º clique = matriz (0001); seguintes = filiais (0002…). */
+async function aoGerarCnpjRaiz(tipo) {
   let valor, ordem, chaveFb;
   if (!grupoRaiz) {
     // Matriz: gerada pelo rng (seed:contador), como qualquer documento.
-    const r = gerar("cnpjRaiz", config);
+    const r = gerar(tipo, config);
     await persistirContador(r.proximoContador);
     config.contador = r.proximoContador;
     valor = r.valor;
@@ -399,7 +458,7 @@ async function aoGerarCnpjRaiz() {
   mostrarFeedback(t(idiomaAtual, chaveFb, { ordem: String(ordem).padStart(4, "0") }), "ok");
 
   await adicionarHistorico({
-    tipo: "cnpjRaiz",
+    tipo,
     valor,
     seed: config.seed,
     contador: config.contador,

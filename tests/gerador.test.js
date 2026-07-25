@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { gerar, TIPOS } from "../src/core/gerador.js";
+import { gerar, tiposDoPais } from "../src/core/gerador.js";
+
+const TIPOS = tiposDoPais("br");
 import { configPadrao } from "../src/core/config.js";
 import { validarCpf } from "../src/core/documents/cpf.js";
 import { validarCnpj } from "../src/core/documents/cnpj.js";

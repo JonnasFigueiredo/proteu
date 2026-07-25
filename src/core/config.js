@@ -19,14 +19,15 @@ export function configPadrao() {
       modo: "valor", // "valor" | "colar"
     },
     tema: "auto", // "auto" (segue o sistema) | "claro" | "escuro"
-    idiomaUI: null, // "pt" | "es" | "en"; null = ainda não escolhido (detecta no 1º uso)
+    pais: null, // país dos dados; null = ainda não escolhido (resolve no 1º uso)
     contador: 0, // avança a cada geração; garante reprodutibilidade por índice
   };
 }
 
 // Valores aceitos.
 const TEMAS = ["auto", "claro", "escuro"];
-const IDIOMAS = ["pt", "es", "en"];
+// Países previstos (nem todos implementados ainda; o popup só oferece os prontos).
+const PAISES_VALIDOS = ["br", "us", "ar", "cl", "mx", "uy", "py"];
 
 /** Gera uma seed hex curta e aleatória (não faz parte da lógica determinística). */
 export function gerarSeedAleatoria() {
@@ -71,7 +72,7 @@ export function normalizarConfig(parcial) {
       modo: ins.modo === "colar" ? "colar" : base.insercao.modo,
     },
     tema: TEMAS.includes(p.tema) ? p.tema : base.tema,
-    idiomaUI: IDIOMAS.includes(p.idiomaUI) ? p.idiomaUI : base.idiomaUI,
+    pais: PAISES_VALIDOS.includes(p.pais) ? p.pais : base.pais,
     contador,
   };
 }

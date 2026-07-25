@@ -6,7 +6,28 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Planejado
+- Dados de EUA, Argentina, Chile, México, Uruguai e Paraguai (arquitetura já
+  pronta; cada país entra como um arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
+
+## [0.8.0] — 2026-07-24
+
+### Adicionado (arquitetura multi-país)
+- **Seleção de país dos dados** por um **modal** (bandeira no cabeçalho): os
+  documentos gerados passam a corresponder ao país escolhido. Nesta fase o
+  Brasil está pronto; EUA, Argentina, Chile, México, Uruguai e Paraguai
+  aparecem no modal como "em breve".
+- **O idioma da interface acompanha o país** (Brasil → pt; EUA → en;
+  hispano-americanos → es). O seletor de idioma separado foi removido.
+- `core/paises/br.js`: o registro de documentos do Brasil (antes embutido em
+  `gerador.js`). `gerador.js` vira o orquestrador multi-país (`PAISES`,
+  `PAISES_DISPONIVEIS`, `tiposDoPais`, `idiomaDoPais`); `gerar()` usa
+  `config.pais`.
+- `config.pais` (substitui `config.idiomaUI`), validado e persistido.
+- Service worker reconstrói o menu de contexto conforme o país ativo e ao trocar
+  de país (via `storage.onChanged`).
+- Documentos "mesma raiz" agora são genéricos (flag `raiz` no tipo), não mais
+  presos ao CNPJ.
 
 ## [0.7.0] — 2026-07-24
 
@@ -166,6 +187,7 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.8.0]: https://example.com/
 [0.7.0]: https://example.com/
 [0.6.0]: https://example.com/
 [0.5.0]: https://example.com/

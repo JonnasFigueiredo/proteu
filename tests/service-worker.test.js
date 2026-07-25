@@ -24,7 +24,7 @@ function instalarChromeFake() {
   globalThis.chrome = {
     runtime: { onInstalled: capturar("instalado") },
     contextMenus: {
-      removeAll: (cb) => cb && cb(),
+      async removeAll() { menusCriados.length = 0; },
       create: (def) => menusCriados.push(def),
       onClicked: capturar("menuClicado"),
     },
@@ -39,7 +39,11 @@ function instalarChromeFake() {
     scripting: {
       async executeScript() { return [{ frameId: 0 }]; },
     },
-    storage: { sync: armazenamento(sync), local: armazenamento(local) },
+    storage: {
+      sync: armazenamento(sync),
+      local: armazenamento(local),
+      onChanged: capturar("storageChanged"),
+    },
   };
   return { listeners, sync, local, enviadas, menusCriados };
 }
@@ -53,8 +57,9 @@ beforeAll(async () => {
 });
 
 describe("service worker — menu de contexto", () => {
-  it("onInstalled cria o menu raiz + um item por tipo", () => {
-    ctx.listeners.instalado();
+  it("onInstalled cria o menu raiz + um item por tipo (país ativo)", async () => {
+    await ctx.listeners.instalado();
+    await flush();
     const ids = ctx.menusCriados.map((m) => m.id);
     expect(ids).toContain("reproduzivel:raiz");
     expect(ids).toContain("reproduzivel:gerar:cpf");

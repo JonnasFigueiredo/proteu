@@ -35,7 +35,8 @@
 
     <script type="module">
       import { gerarSetFronteira } from "/src/core/field.js";
-      import { gerar, TIPOS } from "/src/core/gerador.js";
+      import { gerar, tiposDoPais } from "/src/core/gerador.js";
+      const TIPOS = tiposDoPais("br");
       import { configPadrao } from "/src/core/config.js";
 
       const resultados = [];

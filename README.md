@@ -7,8 +7,13 @@ mesma seed reproduz exatamente a mesma massa, então um bug encontrado com dados
 gerados deixa de ser "não reproduzível".
 
 **100% local** · sem requisições de rede · sem coleta de dados · sem dependências
-em runtime · apenas 4 permissões · Vanilla JS (sem build) · interface em
-**português, espanhol e inglês**.
+em runtime · apenas 4 permissões · Vanilla JS (sem build).
+
+**Multi-país:** um seletor de país (bandeira no cabeçalho) define de qual país os
+dados gerados são equivalentes, e a interface acompanha o idioma (Brasil → pt;
+EUA → en; hispano-americanos → es). **Brasil** está pronto; **Estados Unidos,
+Argentina, Chile, México, Uruguai e Paraguai** entram em seguida (a arquitetura
+já suporta — cada país é um arquivo em `src/core/paises/`).
 
 ---
 
@@ -102,7 +107,8 @@ reproduzivel/
 │   │   ├── seed.js                   # PRNG determinístico (xmur3 → sfc32)
 │   │   ├── config.js                 # defaults + normalização/validação (tema, idioma)
 │   │   ├── i18n.js                    # traduções da interface (pt / es / en)
-│   │   ├── gerador.js                # registro TIPOS: amarra seed + contador + documento
+│   │   ├── gerador.js                # orquestrador multi-país (PAISES, gerar())
+│   │   ├── paises/                   # um arquivo por país (br.js; us, ar… a seguir)
 │   │   ├── field.js                  # descritor do campo → set de fronteira
 │   │   ├── documents/                # nome, datas, cpf, cnpj (+raiz), rg, cnh, ie,
 │   │   │                             #   cep, telefone, razao-social

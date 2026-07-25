@@ -16,7 +16,7 @@
         </div>
       </div>
       <div class="acoes-cabecalho">
-        <button id="btn-idioma" class="icone" data-i18n-title="t_idioma" data-i18n-aria="t_idioma" title="Idioma da interface" aria-label="Idioma da interface"></button>
+        <button id="btn-pais" class="icone" data-i18n-title="t_pais" data-i18n-aria="t_pais" title="País dos dados" aria-label="País dos dados"></button>
         <button id="btn-tema" class="icone" title="Tema" aria-label="Alternar tema"></button>
         <button id="btn-historico" class="icone" data-i18n-title="t_historico" data-i18n-aria="t_historico" title="Histórico" aria-label="Histórico">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
@@ -148,11 +148,6 @@
       <!-- Configurações -->
       <section class="painel" data-view="config" role="tabpanel">
         <div class="campo-rotulado">
-          <span class="rot-mini" data-i18n="cfg_idioma">Idioma da interface</span>
-          <div id="idiomas-lista" class="idiomas-lista"></div>
-        </div>
-
-        <div class="campo-rotulado">
           <span class="rot-mini" data-i18n="cfg_tema">Tema</span>
           <select id="sel-tema">
             <option value="auto" data-i18n="tema_auto">Automático (segue o sistema)</option>
@@ -198,6 +193,20 @@
         <span data-i18n="selo_local">100% local</span>
       </span>
     </footer>
+
+    <!-- Modal: seleção do país dos dados -->
+    <div id="modal-pais" class="modal" hidden>
+      <div class="modal__fundo" data-fechar></div>
+      <div class="modal__caixa" role="dialog" aria-modal="true" aria-labelledby="modal-pais-titulo">
+        <div class="modal__cab">
+          <span id="modal-pais-titulo" class="modal__titulo" data-i18n="modal_titulo">Selecionar país dos dados</span>
+          <button id="modal-fechar" class="icone" data-fechar aria-label="Fechar">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <ul id="lista-paises" class="lista-paises"></ul>
+      </div>
+    </div>
 
     <script type="module" src="popup.js"></script>
   </body>

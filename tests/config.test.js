@@ -26,8 +26,8 @@ describe("configPadrao", () => {
     expect(configPadrao().tema).toBe("auto");
   });
 
-  it("idiomaUI começa null (detectado no primeiro uso)", () => {
-    expect(configPadrao().idiomaUI).toBeNull();
+  it("pais começa null (resolvido no primeiro uso)", () => {
+    expect(configPadrao().pais).toBeNull();
   });
 });
 
@@ -83,11 +83,11 @@ describe("normalizarConfig", () => {
     expect(normalizarConfig({ tema: "roxo" }).tema).toBe("auto");
   });
 
-  it("aceita idiomaUI válido e rejeita o resto (vira null)", () => {
-    expect(normalizarConfig({ idiomaUI: "es" }).idiomaUI).toBe("es");
-    expect(normalizarConfig({ idiomaUI: "en" }).idiomaUI).toBe("en");
-    expect(normalizarConfig({ idiomaUI: "pt" }).idiomaUI).toBe("pt");
-    expect(normalizarConfig({ idiomaUI: "fr" }).idiomaUI).toBeNull();
+  it("aceita país válido e rejeita o resto (vira null)", () => {
+    expect(normalizarConfig({ pais: "br" }).pais).toBe("br");
+    expect(normalizarConfig({ pais: "us" }).pais).toBe("us");
+    expect(normalizarConfig({ pais: "ar" }).pais).toBe("ar");
+    expect(normalizarConfig({ pais: "zz" }).pais).toBeNull();
   });
 
   it("ignora chaves desconhecidas", () => {
