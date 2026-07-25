@@ -119,20 +119,26 @@
 
         // P8 — texto por tamanho exato + 4 contagens exibidas
         $('.aba[data-view="texto"]').click();
+        $('#txt-tipo .seg[data-tipo="tamanho"]').click(); await espera(10);
         $("#tam-unidade").value = "bytes";
         $("#tam-alvo").value = "40";
-        $("#btn-tamanho").click(); await espera(30);
+        $("#btn-gerar-texto").click(); await espera(40);
         assert("P8 texto por tamanho: 40 bytes exatos", contarTudo($("#valor-texto").textContent).bytes === 40, $("#valor-texto").textContent);
         assert("P8 as 4 contagens são exibidas", document.querySelectorAll("#contagens .contagem").length === 4);
 
-        // P9 — pseudolocalização transforma e mantém marcadores
-        $("#btn-pseudo").click(); await espera(20);
+        // P9 — pseudolocalização aplicada na geração (marcadores ⟦…⟧)
+        $('#txt-tipo .seg[data-tipo="palavras"]').click(); await espera(10);
+        $("#txt-pseudo").checked = true; $("#txt-pseudo").dispatchEvent(new Event("change"));
+        $("#btn-gerar-texto").click(); await espera(30);
         const ps = $("#valor-texto").textContent;
         assert("P9 pseudo envolve em marcadores ⟦…⟧", ps.startsWith("⟦") && ps.endsWith("⟧"), ps.slice(0, 20));
+        $("#txt-pseudo").checked = false; $("#txt-pseudo").dispatchEvent(new Event("change"));
 
-        // P10 — idioma RTL marca direção
+        // P10 — frases + idioma RTL marca direção
+        $('#txt-tipo .seg[data-tipo="frases"]').click(); await espera(10);
         $("#idioma").value = "ar";
-        $("#btn-palavras").click(); await espera(30);
+        $("#txt-qtd").value = "2";
+        $("#btn-gerar-texto").click(); await espera(30);
         assert("P10 idioma árabe marca dir=rtl", $("#valor-texto").dir === "rtl", $("#valor-texto").dir);
 
         // P11 — documentos inválidos gerados pelo popup são realmente inválidos

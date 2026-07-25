@@ -10,6 +10,20 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   um arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.10.0] — 2026-07-25
+
+### Alterado (aba Texto)
+- Fluxo de geração unificado com um **controle segmentado de tipo**:
+  **Palavras · Frases · Por tamanho** (antes só palavras e tamanho, em blocos
+  separados).
+- **Quantidade ajustável** (antes fixo em 6 palavras); novo modo **Frases**
+  (`gerarFrases`).
+- **Pseudolocalizar** virou uma **opção aplicada na geração** (com **Fakebidi
+  (RTL)**), em vez de um botão pós-geração.
+- **Por tamanho** usa as palavras do idioma selecionado como *filler*, então a
+  divergência das 4 contagens fica real (ex.: 30 bytes de japonês = 10 grafemas).
+- Um único botão **Gerar**; resultado com as 4 contagens e ações mais limpas.
+
 ## [0.9.0] — 2026-07-24
 
 ### Adicionado (países)
@@ -202,6 +216,7 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.10.0]: https://example.com/
 [0.9.0]: https://example.com/
 [0.8.0]: https://example.com/
 [0.7.0]: https://example.com/

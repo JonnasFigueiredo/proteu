@@ -6,6 +6,7 @@ import {
   RTL,
   gerarPalavras,
   gerarFrase,
+  gerarFrases,
 } from "../../src/core/text/idiomas.js";
 
 describe("idiomas — estrutura", () => {
@@ -79,6 +80,16 @@ describe("geração determinística", () => {
     const f = gerarFrase(criarRng("f"), "pt");
     expect(IDIOMAS.pt.frases).toContain(f);
     expect(gerarFrase(criarRng("f"), "pt")).toBe(f);
+  });
+
+  it("gerarFrases: determinística e monta a partir das frases do idioma", () => {
+    expect(gerarFrases(criarRng("fs"), "es", 3)).toBe(gerarFrases(criarRng("fs"), "es", 3));
+    // Com n=1 deve ser exatamente uma das frases do idioma.
+    const uma = gerarFrases(criarRng("u"), "pt", 1);
+    expect(IDIOMAS.pt.frases).toContain(uma);
+    // n maior gera texto mais longo.
+    expect(gerarFrases(criarRng("g"), "pt", 5).length)
+      .toBeGreaterThan(gerarFrases(criarRng("g"), "pt", 1).length);
   });
 
   it("idioma desconhecido lança", () => {

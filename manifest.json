@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Reproduzível",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Massa de dados de teste com seed determinística. 100% local, sem rede, sem coleta de dados.",
   "permissions": ["contextMenus", "storage", "activeTab", "scripting"],
   "background": {

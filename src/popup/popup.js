@@ -13,7 +13,7 @@ import { gerar, tiposDoPais, idiomaDoPais, paisMostraOpcoesCnpj, PAISES_DISPONIV
 import { gerarSeedAleatoria } from "../core/config.js";
 import { normalizarSeed, criarRng } from "../core/seed.js";
 import { gerarSetFronteira } from "../core/field.js";
-import { IDIOMAS, CODIGOS_IDIOMA, RTL, gerarPalavras } from "../core/text/idiomas.js";
+import { IDIOMAS, CODIGOS_IDIOMA, RTL, gerarPalavras, gerarFrases } from "../core/text/idiomas.js";
 import { gerarPorTamanho } from "../core/text/tamanho.js";
 import { contarTudo } from "../core/text/contagem.js";
 import { pseudolocalizar } from "../core/text/pseudolocale.js";
@@ -55,6 +55,7 @@ let idiomaAtual = "pt";
 let ultimoValor = null;
 let ultimoTexto = null;
 let ultimoInvalido = null;
+let tipoTexto = "palavras"; // "palavras" | "frases" | "tamanho"
 // Grupo de CNPJs da mesma empresa: matriz (0001) e filiais (0002, 0003…).
 let grupoRaiz = null;
 
@@ -358,9 +359,13 @@ function ligarEventos() {
   $("#btn-copiar-invalido").addEventListener("click", () => copiar(ultimoInvalido, "#feedback-invalido"));
   $("#btn-inserir-invalido").addEventListener("click", aoInserirInvalido);
 
-  $("#btn-palavras").addEventListener("click", aoGerarPalavras);
-  $("#btn-tamanho").addEventListener("click", aoGerarTamanho);
-  $("#btn-pseudo").addEventListener("click", aoPseudo);
+  document.querySelectorAll("#txt-tipo .seg").forEach((b) =>
+    b.addEventListener("click", () => selecionarTipoTexto(b.dataset.tipo))
+  );
+  $("#txt-pseudo").addEventListener("change", (e) => {
+    $("#wrap-bidi").hidden = !e.target.checked;
+  });
+  $("#btn-gerar-texto").addEventListener("click", aoGerarTexto);
   $("#btn-copiar-texto").addEventListener("click", () => copiar(ultimoTexto, "#feedback-texto"));
   $("#btn-inserir-texto").addEventListener("click", aoInserirTexto);
 
@@ -481,45 +486,61 @@ async function proximoRng() {
   return { rng, usado };
 }
 
-async function aoGerarPalavras() {
+/** Alterna o tipo de texto (palavras/frases/tamanho) e os controles visíveis. */
+function selecionarTipoTexto(tipo) {
+  tipoTexto = tipo;
+  document.querySelectorAll("#txt-tipo .seg").forEach((b) =>
+    b.classList.toggle("seg--ativo", b.dataset.tipo === tipo)
+  );
+  $("#ctrl-qtd").hidden = tipo === "tamanho";
+  $("#ctrl-tamanho").hidden = tipo !== "tamanho";
+}
+
+/** Geração de texto unificada: palavras / frases / por tamanho (+ pseudo). */
+async function aoGerarTexto() {
   const idioma = $("#idioma").value;
+  const pseudo = $("#txt-pseudo").checked;
+  const fakebidi = pseudo && $("#txt-bidi").checked;
+
+  let texto, rotuloHist;
   const { rng, usado } = await proximoRng();
-  const texto = gerarPalavras(rng, idioma, 6);
-  mostrarTexto(texto, idioma);
+
+  if (tipoTexto === "tamanho") {
+    const unidade = $("#tam-unidade").value;
+    const alvo = parseInt($("#tam-alvo").value, 10);
+    if (!Number.isInteger(alvo) || alvo < 0) {
+      mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro", "#feedback-texto");
+      return;
+    }
+    // Usa as palavras do idioma como filler → a divergência de bytes fica real.
+    const filler = IDIOMAS[idioma].palavras.join(" ");
+    texto = gerarPorTamanho(rng, { unidade, alvo, filler }).texto;
+    rotuloHist = `texto:${unidade}=${alvo}`;
+  } else {
+    const qtd = Math.max(1, parseInt($("#txt-qtd").value, 10) || 1);
+    texto = tipoTexto === "frases"
+      ? gerarFrases(rng, idioma, qtd)
+      : gerarPalavras(rng, idioma, qtd);
+    rotuloHist = `texto:${tipoTexto}:${idioma}`;
+  }
+
+  // Direção RTL só faz sentido no texto "cru" do idioma (não no pseudo latino).
+  let dirIdioma = idioma;
+  if (pseudo) {
+    texto = pseudolocalizar(texto, { fakebidi });
+    dirIdioma = null;
+    rotuloHist += ":pseudo";
+  }
+
+  mostrarTexto(texto, dirIdioma);
   await adicionarHistorico({
-    tipo: `texto:${idioma}`,
+    tipo: rotuloHist,
     valor: texto,
     seed: config.seed,
     contador: usado,
     em: Date.now(),
   });
   if (!$("#secao-historico").hidden) await renderizarHistorico();
-}
-
-async function aoGerarTamanho() {
-  const unidade = $("#tam-unidade").value;
-  const alvo = parseInt($("#tam-alvo").value, 10);
-  if (!Number.isInteger(alvo) || alvo < 0) {
-    mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro", "#feedback-texto");
-    return;
-  }
-  const { rng, usado } = await proximoRng();
-  const r = gerarPorTamanho(rng, { unidade, alvo });
-  mostrarTexto(r.texto, null);
-  await adicionarHistorico({
-    tipo: `texto:${unidade}=${alvo}`,
-    valor: r.texto,
-    seed: config.seed,
-    contador: usado,
-    em: Date.now(),
-  });
-  if (!$("#secao-historico").hidden) await renderizarHistorico();
-}
-
-function aoPseudo() {
-  if (!ultimoTexto) return;
-  const transformado = pseudolocalizar(ultimoTexto);
-  mostrarTexto(transformado, null);
 }
 
 /** Mostra o texto, marca a direção (RTL) e exibe as 4 contagens. */

@@ -517,6 +517,70 @@ button {
   white-space: nowrap;
 }
 
+/* ---------- Controle segmentado (tipo de texto) ---------- */
+.segmentado {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+}
+
+.seg {
+  flex: 1;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--raio-sm);
+  background: transparent;
+  color: var(--texto-fraco);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.seg:hover {
+  color: var(--texto);
+}
+
+.seg--ativo {
+  background: var(--fundo);
+  color: var(--azul);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* Duas colunas (tamanho + unidade) */
+.linha-dupla {
+  display: flex;
+  gap: 8px;
+}
+
+.linha-dupla .col {
+  flex: 1;
+  min-width: 0;
+}
+
+.linha-dupla select,
+.linha-dupla input {
+  width: 100%;
+}
+
+.opcoes-pseudo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.btn-largo {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+}
+
+#txt-qtd {
+  width: 100%;
+}
+
 /* ---------- Linhas com select/input + botão ---------- */
 .linha-texto {
   display: flex;

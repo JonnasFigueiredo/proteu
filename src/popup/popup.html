@@ -76,33 +76,60 @@
       <!-- Texto -->
       <section class="painel" data-view="texto" role="tabpanel">
         <div class="campo-rotulado">
-          <span class="rot-mini" data-i18n="idioma_9">Idioma (9)</span>
-          <div class="linha-texto">
-            <select id="idioma" aria-label="Idioma"></select>
-            <button id="btn-palavras" class="secundario" data-i18n="gerar">Gerar</button>
+          <span class="rot-mini" data-i18n="txt_tipo">Tipo</span>
+          <div id="txt-tipo" class="segmentado" role="tablist">
+            <button class="seg seg--ativo" data-tipo="palavras" data-i18n="txt_palavras">Palavras</button>
+            <button class="seg" data-tipo="frases" data-i18n="txt_frases">Frases</button>
+            <button class="seg" data-tipo="tamanho" data-i18n="por_tamanho">Por tamanho</button>
           </div>
         </div>
 
         <div class="campo-rotulado">
-          <span class="rot-mini" data-i18n="por_tamanho">Por tamanho</span>
-          <div class="linha-texto">
-            <input id="tam-alvo" type="number" min="0" max="100000" value="100" aria-label="Tamanho alvo" />
-            <select id="tam-unidade" aria-label="Unidade de contagem">
-              <option value="grafemas" data-i18n="un_grafemas">grafemas</option>
-              <option value="codePoints" data-i18n="un_codepoints">code points</option>
-              <option value="codeUnits" data-i18n="un_codeunits">code units</option>
-              <option value="bytes" data-i18n="un_bytes">bytes UTF-8</option>
-            </select>
-            <button id="btn-tamanho" class="secundario" data-i18n="gerar">Gerar</button>
+          <span class="rot-mini" data-i18n="txt_idioma">Idioma</span>
+          <select id="idioma" aria-label="Idioma"></select>
+        </div>
+
+        <!-- Palavras/Frases: quantidade -->
+        <div class="campo-rotulado" id="ctrl-qtd">
+          <span class="rot-mini" data-i18n="txt_quantidade">Quantidade</span>
+          <input id="txt-qtd" type="number" min="1" max="500" value="6" aria-label="Quantidade" />
+        </div>
+
+        <!-- Por tamanho: alvo + unidade -->
+        <div class="campo-rotulado" id="ctrl-tamanho" hidden>
+          <div class="linha-dupla">
+            <div class="col">
+              <span class="rot-mini" data-i18n="txt_alvo">Tamanho</span>
+              <input id="tam-alvo" type="number" min="0" max="100000" value="100" aria-label="Tamanho alvo" />
+            </div>
+            <div class="col">
+              <span class="rot-mini" data-i18n="txt_unidade">Unidade</span>
+              <select id="tam-unidade" aria-label="Unidade de contagem">
+                <option value="grafemas" data-i18n="un_grafemas">grafemas</option>
+                <option value="codePoints" data-i18n="un_codepoints">code points</option>
+                <option value="codeUnits" data-i18n="un_codeunits">code units</option>
+                <option value="bytes" data-i18n="un_bytes">bytes UTF-8</option>
+              </select>
+            </div>
           </div>
         </div>
+
+        <div class="campo-rotulado opcoes-pseudo">
+          <label class="check">
+            <input type="checkbox" id="txt-pseudo" /> <span data-i18n="txt_pseudo">Pseudolocalizar</span>
+          </label>
+          <label class="check" id="wrap-bidi" hidden>
+            <input type="checkbox" id="txt-bidi" /> <span data-i18n="txt_fakebidi">Fakebidi (RTL)</span>
+          </label>
+        </div>
+
+        <button id="btn-gerar-texto" class="primario btn-largo" data-i18n="gerar">Gerar</button>
 
         <div id="resultado-texto" class="resultado" hidden>
           <output id="valor-texto" class="valor valor-texto"></output>
           <div id="contagens" class="contagens"></div>
           <div class="acoes-resultado">
             <button id="btn-copiar-texto" class="secundario" data-i18n="copiar">Copiar</button>
-            <button id="btn-pseudo" class="secundario" title="Pseudolocalizar">Pseudo</button>
             <button id="btn-inserir-texto" class="primario" data-i18n="inserir">Inserir</button>
           </div>
           <p id="feedback-texto" class="feedback" role="status" aria-live="polite"></p>

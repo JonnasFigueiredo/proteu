@@ -95,3 +95,12 @@ export function gerarFrase(rng, codigo) {
   const idioma = idiomaValido(codigo);
   return rng.escolher(idioma.frases);
 }
+
+/** Gera N frases do idioma, separadas por espaço, de forma determinística. */
+export function gerarFrases(rng, codigo, quantidade = 3) {
+  const idioma = idiomaValido(codigo);
+  const n = Math.max(1, quantidade);
+  const saida = [];
+  for (let i = 0; i < n; i++) saida.push(rng.escolher(idioma.frases));
+  return saida.join(" ");
+}
