@@ -35,6 +35,8 @@
     <script type="module">
       import { validarCpf } from "/src/core/documents/cpf.js";
       import { validarCnpj } from "/src/core/documents/cnpj.js";
+      import { validarSsn } from "/src/core/documents/us.js";
+      import { validarCuit } from "/src/core/documents/ar.js";
       import { tiposDoPais } from "/src/core/gerador.js";
       const TIPOS = tiposDoPais("br");
       import { contarTudo } from "/src/core/text/contagem.js";
@@ -150,12 +152,36 @@
         const paises = [...document.querySelectorAll(".pais-btn")];
         assert("P13 lista os 7 países", paises.length === 7, paises.length);
         const br = $('.pais-btn[data-pais="br"]');
-        const us = $('.pais-btn[data-pais="us"]');
+        const cl = $('.pais-btn[data-pais="cl"]');
         assert("P13 Brasil ativo e habilitado", br.classList.contains("ativo") && !br.disabled);
-        assert("P13 EUA aparece como 'em breve' (desabilitado)", us.disabled);
+        assert("P13 EUA e Argentina habilitados", !$('.pais-btn[data-pais="us"]').disabled && !$('.pais-btn[data-pais="ar"]').disabled);
+        assert("P13 Chile ainda 'em breve' (desabilitado)", cl.disabled);
         assert("P13 país persistido é 'br' e interface em pt", cfg().pais === "br" && document.documentElement.lang === "pt-BR", cfg().pais);
         $("#modal-fechar").click(); await espera(20);
         assert("P13 modal fecha", $("#modal-pais").hidden);
+
+        // P14 — trocar de país troca idioma, botões e dados (EUA → Argentina)
+        const trocarPais = async (codigo) => {
+          $("#btn-pais").click(); await espera(20);
+          $(`.pais-btn[data-pais="${codigo}"]`).click(); await espera(40);
+        };
+        const gerarNoPais = async (tipo) => {
+          $(`.doc-btn[data-tipo="${tipo}"]`).click(); await espera(20);
+          return $("#valor-gerado").textContent;
+        };
+
+        await trocarPais("us");
+        assert("P14 EUA: interface em inglês", document.documentElement.lang === "en" && $("#btn-inserir").textContent === "Insert into field");
+        assert("P14 EUA: categorias Person/Company", $(".grupo-doc__rot").textContent === "Person");
+        assert("P14 EUA: SSN gerado é válido", validarSsn(await gerarNoPais("ssn")), $("#valor-gerado").textContent);
+        assert("P14 EUA: país persistido", cfg().pais === "us");
+
+        await trocarPais("ar");
+        assert("P14 Argentina: interface em espanhol", document.documentElement.lang === "es" && $("#btn-inserir").textContent === "Insertar en el campo");
+        assert("P14 Argentina: CUIT gerado é válido", validarCuit(await gerarNoPais("cuit")), $("#valor-gerado").textContent);
+
+        await trocarPais("br"); // volta ao Brasil para não afetar outros checks
+        assert("P14 volta ao Brasil (pt)", cfg().pais === "br" && document.documentElement.lang === "pt-BR");
 
         // placar
         const passou = resultados.filter((r) => r.ok).length;

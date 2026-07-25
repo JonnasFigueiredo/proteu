@@ -9,10 +9,14 @@
 
 import { criarRng } from "./seed.js";
 import { BR } from "./paises/br.js";
+import { US } from "./paises/us.js";
+import { AR } from "./paises/ar.js";
 
 // Países implementados (com geradores prontos).
 export const PAISES = {
   br: BR,
+  us: US,
+  ar: AR,
 };
 
 export const PAIS_PADRAO = "br";
@@ -21,8 +25,8 @@ export const PAIS_PADRAO = "br";
 // A ordem é a de exibição no modal.
 export const PAISES_DISPONIVEIS = [
   { codigo: "br", rotulo: "Brasil", idioma: "pt", implementado: true },
-  { codigo: "us", rotulo: "Estados Unidos", idioma: "en", implementado: false },
-  { codigo: "ar", rotulo: "Argentina", idioma: "es", implementado: false },
+  { codigo: "us", rotulo: "Estados Unidos", idioma: "en", implementado: true },
+  { codigo: "ar", rotulo: "Argentina", idioma: "es", implementado: true },
   { codigo: "cl", rotulo: "Chile", idioma: "es", implementado: false },
   { codigo: "mx", rotulo: "México", idioma: "es", implementado: false },
   { codigo: "uy", rotulo: "Uruguai", idioma: "es", implementado: false },

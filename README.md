@@ -11,9 +11,9 @@ em runtime · apenas 4 permissões · Vanilla JS (sem build).
 
 **Multi-país:** um seletor de país (bandeira no cabeçalho) define de qual país os
 dados gerados são equivalentes, e a interface acompanha o idioma (Brasil → pt;
-EUA → en; hispano-americanos → es). **Brasil** está pronto; **Estados Unidos,
-Argentina, Chile, México, Uruguai e Paraguai** entram em seguida (a arquitetura
-já suporta — cada país é um arquivo em `src/core/paises/`).
+EUA → en; hispano-americanos → es). Prontos: **Brasil, Estados Unidos e
+Argentina**. **Chile, México, Uruguai e Paraguai** entram em seguida (a
+arquitetura já suporta — cada país é um arquivo em `src/core/paises/`).
 
 ---
 

@@ -6,9 +6,24 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Planejado
-- Dados de EUA, Argentina, Chile, México, Uruguai e Paraguai (arquitetura já
-  pronta; cada país entra como um arquivo em `core/paises/`).
+- Dados de Chile, México, Uruguai e Paraguai (arquitetura pronta; cada país é
+  um arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
+
+## [0.9.0] — 2026-07-24
+
+### Adicionado (países)
+- **Estados Unidos** (interface em inglês): Name, Date of birth, Hire date
+  (MM/DD/AAAA), **SSN** (regras de área/grupo/série), ZIP code (+4 com máscara),
+  Phone (NANP); **EIN** (prefixo de campus válido), Company name.
+- **Argentina** (interface em espanhol): Nombre, Fecha de nacimiento/ingreso,
+  **DNI**, **CUIL** (pessoa) e **CUIT** (empresa) com dígito verificador módulo
+  11, Código postal **CPA** (LXXXXLLL), Teléfono, Razón social.
+- `core/documents/us.js` e `core/documents/ar.js` (geradores + validadores) com
+  testes; `core/paises/us.js` e `core/paises/ar.js` (registros).
+- `datas.js` aceita formato de data por país (`br` DD/MM/AAAA, `us` MM/DD/AAAA).
+- Cenário e2e P14: trocar de país troca idioma e dados (EUA → SSN válido em
+  inglês; Argentina → CUIT válido em espanhol).
 
 ## [0.8.0] — 2026-07-24
 
@@ -187,6 +202,7 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.9.0]: https://example.com/
 [0.8.0]: https://example.com/
 [0.7.0]: https://example.com/
 [0.6.0]: https://example.com/

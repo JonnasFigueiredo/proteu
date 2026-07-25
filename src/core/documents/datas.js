@@ -20,20 +20,27 @@ function diasNoMes(mes, ano) {
 
 const p2 = (n) => String(n).padStart(2, "0");
 
-/** Gera uma data válida DD/MM/AAAA com o ano no intervalo dado. */
-function gerarData(rng, anoMin, anoMax) {
+/** Formata dia/mês/ano conforme a convenção do país. */
+function formatar(dia, mes, ano, formato) {
+  if (formato === "us") return `${p2(mes)}/${p2(dia)}/${ano}`; // MM/DD/AAAA
+  if (formato === "iso") return `${ano}-${p2(mes)}-${p2(dia)}`; // AAAA-MM-DD
+  return `${p2(dia)}/${p2(mes)}/${ano}`; // DD/MM/AAAA (br, padrão)
+}
+
+/** Gera uma data válida no formato pedido, com o ano no intervalo dado. */
+function gerarData(rng, anoMin, anoMax, formato) {
   const ano = rng.inteiro(anoMin, anoMax);
   const mes = rng.inteiro(1, 12);
   const dia = rng.inteiro(1, diasNoMes(mes, ano));
-  return `${p2(dia)}/${p2(mes)}/${ano}`;
+  return formatar(dia, mes, ano, formato);
 }
 
 /** Data de nascimento — sempre de maior de idade (18 a 75 anos). */
-export function gerarDataNascimento(rng) {
-  return gerarData(rng, ANO_BASE - IDADE_MAX, ANO_BASE - IDADE_MIN);
+export function gerarDataNascimento(rng, { formato = "br" } = {}) {
+  return gerarData(rng, ANO_BASE - IDADE_MAX, ANO_BASE - IDADE_MIN, formato);
 }
 
 /** Data de admissão — dentro dos últimos ~25 anos. */
-export function gerarDataAdmissao(rng) {
-  return gerarData(rng, ANO_BASE - ANOS_ADMISSAO, ANO_BASE);
+export function gerarDataAdmissao(rng, { formato = "br" } = {}) {
+  return gerarData(rng, ANO_BASE - ANOS_ADMISSAO, ANO_BASE, formato);
 }
