@@ -1,10 +1,11 @@
-# Reproduzível
+# Proteu QA
 
 Extensão de navegador (Chrome/Chromium, **Manifest V3**) para profissionais de
-QA gerarem **massa de dados de teste** direto no navegador — com a diferença que
-dá nome ao projeto: **toda geração usa uma seed determinística e visível**. A
-mesma seed reproduz exatamente a mesma massa, então um bug encontrado com dados
-gerados deixa de ser "não reproduzível".
+QA gerarem **massa de dados de teste** direto no navegador. Como Proteu, o deus
+que muda de forma, gera dados equivalentes a **vários países e formatos** — e com
+um diferencial: **toda geração usa uma seed determinística e visível**. A mesma
+seed reproduz exatamente a mesma massa, então um bug encontrado com dados gerados
+deixa de ser "não reproduzível".
 
 **100% local** · sem requisições de rede · sem coleta de dados · sem dependências
 em runtime · apenas 4 permissões · Vanilla JS (sem build).
@@ -74,9 +75,9 @@ atalho de teclado.
 
 ### Menu de contexto e atalhos
 
-- Clique com o **botão direito** num campo editável → *Reproduzível* → *Gerar …*.
+- Clique com o **botão direito** num campo editável → *Proteu QA* → *Gerar …*.
 - Atalhos (ajustáveis em `chrome://extensions/shortcuts`):
-  - `Ctrl+Shift+9` — abrir o Reproduzível.
+  - `Ctrl+Shift+9` — abrir o Proteu QA.
   - `Ctrl+Shift+8` — inserir a última geração no campo focado.
 
 ### Prévia sem instalar

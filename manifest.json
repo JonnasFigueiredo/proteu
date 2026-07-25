@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Reproduzível",
-  "version": "0.10.0",
+  "name": "Proteu QA",
+  "version": "0.11.0",
   "description": "Massa de dados de teste com seed determinística. 100% local, sem rede, sem coleta de dados.",
   "permissions": ["contextMenus", "storage", "activeTab", "scripting"],
   "background": {
@@ -10,12 +10,12 @@
   },
   "action": {
     "default_popup": "src/popup/popup.html",
-    "default_title": "Reproduzível — massa de dados de teste"
+    "default_title": "Proteu QA — massa de dados de teste"
   },
   "commands": {
     "_execute_action": {
       "suggested_key": { "default": "Ctrl+Shift+9" },
-      "description": "Abrir o Reproduzível"
+      "description": "Abrir o Proteu QA"
     },
     "repetir-ultima-geracao": {
       "suggested_key": { "default": "Ctrl+Shift+8" },

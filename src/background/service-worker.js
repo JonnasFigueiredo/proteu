@@ -16,7 +16,7 @@ async function reconstruirMenu() {
   await chrome.contextMenus.removeAll();
   chrome.contextMenus.create({
     id: "reproduzivel:raiz",
-    title: "Reproduzível",
+    title: "Proteu QA",
     contexts: ["editable"],
   });
   for (const [tipo, def] of Object.entries(tipos)) {
@@ -87,7 +87,7 @@ async function inserirNoCampo(tabId, frameId, valor, modo) {
     });
   } catch (e) {
     // Páginas privilegiadas (chrome://, web store) bloqueiam injeção.
-    console.warn("Reproduzível: não foi possível injetar na página:", e.message);
+    console.warn("Proteu QA: não foi possível injetar na página:", e.message);
     return;
   }
 
@@ -96,6 +96,6 @@ async function inserirNoCampo(tabId, frameId, valor, modo) {
   try {
     await chrome.tabs.sendMessage(tabId, msg, opcoes);
   } catch (e) {
-    console.warn("Reproduzível: falha ao inserir:", e.message);
+    console.warn("Proteu QA: falha ao inserir:", e.message);
   }
 }

@@ -10,6 +10,14 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   um arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.11.0] — 2026-07-25
+
+### Alterado
+- **Renome da extensão** de "Reproduzível" para **Proteu QA** (nome, título,
+  cabeçalho do popup — logo "P" — e menu de contexto). Os identificadores
+  internos (protocolo de mensagens `reproduzivel`, IDs de menu, chave de storage
+  e a pasta do projeto) permanecem inalterados para não quebrar a integração.
+
 ## [0.10.0] — 2026-07-25
 
 ### Alterado (aba Texto)
