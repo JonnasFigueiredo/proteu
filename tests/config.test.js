@@ -25,6 +25,10 @@ describe("configPadrao", () => {
   it("tema começa em 'auto' (segue o sistema)", () => {
     expect(configPadrao().tema).toBe("auto");
   });
+
+  it("idiomaUI começa null (detectado no primeiro uso)", () => {
+    expect(configPadrao().idiomaUI).toBeNull();
+  });
 });
 
 describe("normalizarConfig", () => {
@@ -77,6 +81,13 @@ describe("normalizarConfig", () => {
     expect(normalizarConfig({ tema: "escuro" }).tema).toBe("escuro");
     expect(normalizarConfig({ tema: "auto" }).tema).toBe("auto");
     expect(normalizarConfig({ tema: "roxo" }).tema).toBe("auto");
+  });
+
+  it("aceita idiomaUI válido e rejeita o resto (vira null)", () => {
+    expect(normalizarConfig({ idiomaUI: "es" }).idiomaUI).toBe("es");
+    expect(normalizarConfig({ idiomaUI: "en" }).idiomaUI).toBe("en");
+    expect(normalizarConfig({ idiomaUI: "pt" }).idiomaUI).toBe("pt");
+    expect(normalizarConfig({ idiomaUI: "fr" }).idiomaUI).toBeNull();
   });
 
   it("ignora chaves desconhecidas", () => {

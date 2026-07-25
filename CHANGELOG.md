@@ -8,6 +8,22 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ### Planejado
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.6.0] — 2026-07-24
+
+### Adicionado
+- **Interface multilíngue (pt / es / en)** com seletor de bandeira (SVG, sem
+  emojis) no cabeçalho e em Configurações. O idioma é detectado do navegador no
+  primeiro uso (`navigator.language`) e persistido em `config.idiomaUI`.
+- `src/core/i18n.js` (dicionário puro e testável, `t()` com interpolação,
+  `resolverIdioma()`) + `tests/i18n.test.js` (paridade de chaves entre os 3
+  idiomas, interpolação, fallback).
+- Cenário e2e P13 no `popup-runner.html`: troca de idioma traduz rótulos,
+  categorias e marca `<html lang>`, e persiste a escolha.
+
+### Notas
+- Os **nomes dos documentos brasileiros** (CPF, CNPJ, RG…) não são traduzidos,
+  por serem nomes próprios. A moldura da UI é totalmente localizada.
+
 ## [0.5.0] — 2026-07-24
 
 ### Removido
@@ -130,6 +146,7 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.6.0]: https://example.com/
 [0.5.0]: https://example.com/
 [0.4.1]: https://example.com/
 [0.4.0]: https://example.com/

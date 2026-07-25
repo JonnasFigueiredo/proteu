@@ -12,31 +12,30 @@
         <span class="logo">R</span>
         <div>
           <h1>Reproduzível</h1>
-          <p class="subtitulo">massa de dados de teste</p>
+          <p class="subtitulo" data-i18n="subtitulo">massa de dados de teste</p>
         </div>
       </div>
       <div class="acoes-cabecalho">
+        <button id="btn-idioma" class="icone" data-i18n-title="t_idioma" data-i18n-aria="t_idioma" title="Idioma da interface" aria-label="Idioma da interface"></button>
         <button id="btn-tema" class="icone" title="Tema" aria-label="Alternar tema"></button>
-        <button id="btn-historico" class="icone" title="Histórico" aria-label="Histórico">
+        <button id="btn-historico" class="icone" data-i18n-title="t_historico" data-i18n-aria="t_historico" title="Histórico" aria-label="Histórico">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
         </button>
-        <button id="btn-config" class="icone" title="Configurações" aria-label="Configurações">
+        <button id="btn-config" class="icone" data-i18n-title="t_config" data-i18n-aria="t_config" title="Configurações" aria-label="Configurações">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
         </button>
       </div>
     </header>
 
-    <!-- Abas principais -->
     <nav class="abas" role="tablist">
-      <button class="aba aba--ativa" data-view="documentos" role="tab">Documentos</button>
-      <button class="aba" data-view="texto" role="tab">Texto</button>
-      <button class="aba" data-view="invalidos" role="tab">Inválidos</button>
+      <button class="aba aba--ativa" data-view="documentos" role="tab" data-i18n="tab_docs">Documentos</button>
+      <button class="aba" data-view="texto" role="tab" data-i18n="tab_texto">Texto</button>
+      <button class="aba" data-view="invalidos" role="tab" data-i18n="tab_invalidos">Inválidos</button>
     </nav>
 
-    <!-- Campo detectado: banner contextual, acima dos painéis -->
     <section id="secao-campo" class="banner-campo" hidden>
       <div class="banner-campo__cab">
-        <span class="banner-campo__rot">Campo detectado</span>
+        <span class="banner-campo__rot" data-i18n="campo_detectado">Campo detectado</span>
         <code id="campo-descricao"></code>
       </div>
       <div id="chips-fronteira" class="chips"></div>
@@ -50,24 +49,23 @@
           <label class="switch">
             <input type="checkbox" id="opt-mascara" />
             <span class="switch__trilho"></span>
-            <span class="switch__rot">Com máscara</span>
+            <span class="switch__rot" data-i18n="com_mascara">Com máscara</span>
           </label>
           <label class="check">
-            <input type="checkbox" id="opt-alfanumerico" /> CNPJ alfanumérico (novo padrão)
+            <input type="checkbox" id="opt-alfanumerico" /> <span data-i18n="cnpj_alfa">CNPJ alfanumérico (novo padrão)</span>
           </label>
           <label class="check" id="wrap-ambiguas" hidden>
-            <input type="checkbox" id="opt-ambiguas" /> Excluir ambíguas (I, O, U, Q, F)
+            <input type="checkbox" id="opt-ambiguas" /> <span data-i18n="excluir_ambiguas">Excluir ambíguas (I, O, U, Q, F)</span>
           </label>
         </div>
 
-        <!-- Grupos por categoria, montados de TIPOS (core/gerador.js) -->
         <div id="botoes-doc" class="grupos-doc"></div>
 
         <div id="resultado" class="resultado" hidden>
           <output id="valor-gerado" class="valor"></output>
           <div class="acoes-resultado">
-            <button id="btn-copiar" class="secundario">Copiar</button>
-            <button id="btn-inserir" class="primario">Inserir no campo</button>
+            <button id="btn-copiar" class="secundario" data-i18n="copiar">Copiar</button>
+            <button id="btn-inserir" class="primario" data-i18n="inserir_campo">Inserir no campo</button>
           </div>
           <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
         </div>
@@ -76,24 +74,24 @@
       <!-- Texto -->
       <section class="painel" data-view="texto" role="tabpanel">
         <div class="campo-rotulado">
-          <span class="rot-mini">Idioma (9)</span>
+          <span class="rot-mini" data-i18n="idioma_9">Idioma (9)</span>
           <div class="linha-texto">
             <select id="idioma" aria-label="Idioma"></select>
-            <button id="btn-palavras" class="secundario">Gerar</button>
+            <button id="btn-palavras" class="secundario" data-i18n="gerar">Gerar</button>
           </div>
         </div>
 
         <div class="campo-rotulado">
-          <span class="rot-mini">Por tamanho</span>
+          <span class="rot-mini" data-i18n="por_tamanho">Por tamanho</span>
           <div class="linha-texto">
             <input id="tam-alvo" type="number" min="0" max="100000" value="100" aria-label="Tamanho alvo" />
             <select id="tam-unidade" aria-label="Unidade de contagem">
-              <option value="grafemas">grafemas</option>
-              <option value="codePoints">code points</option>
-              <option value="codeUnits">code units</option>
-              <option value="bytes">bytes UTF-8</option>
+              <option value="grafemas" data-i18n="un_grafemas">grafemas</option>
+              <option value="codePoints" data-i18n="un_codepoints">code points</option>
+              <option value="codeUnits" data-i18n="un_codeunits">code units</option>
+              <option value="bytes" data-i18n="un_bytes">bytes UTF-8</option>
             </select>
-            <button id="btn-tamanho" class="secundario">Gerar</button>
+            <button id="btn-tamanho" class="secundario" data-i18n="gerar">Gerar</button>
           </div>
         </div>
 
@@ -101,9 +99,9 @@
           <output id="valor-texto" class="valor valor-texto"></output>
           <div id="contagens" class="contagens"></div>
           <div class="acoes-resultado">
-            <button id="btn-copiar-texto" class="secundario">Copiar</button>
+            <button id="btn-copiar-texto" class="secundario" data-i18n="copiar">Copiar</button>
             <button id="btn-pseudo" class="secundario" title="Pseudolocalizar">Pseudo</button>
-            <button id="btn-inserir-texto" class="primario">Inserir</button>
+            <button id="btn-inserir-texto" class="primario" data-i18n="inserir">Inserir</button>
           </div>
           <p id="feedback-texto" class="feedback" role="status" aria-live="polite"></p>
         </div>
@@ -112,35 +110,35 @@
       <!-- Inválidos & payloads -->
       <section class="painel" data-view="invalidos" role="tabpanel">
         <div class="grupo-doc">
-          <span class="grupo-doc__rot">Documentos com DV errado</span>
+          <span class="grupo-doc__rot" data-i18n="docs_dv_errado">Documentos com DV errado</span>
           <div class="grade-doc">
-            <button class="doc-btn perigo-btn" data-invalido="cpf">CPF inválido</button>
-            <button class="doc-btn perigo-btn" data-invalido="cnpj">CNPJ inválido</button>
+            <button class="doc-btn perigo-btn" data-invalido="cpf" data-i18n="cpf_invalido">CPF inválido</button>
+            <button class="doc-btn perigo-btn" data-invalido="cnpj" data-i18n="cnpj_invalido">CNPJ inválido</button>
           </div>
           <div id="resultado-invalido" class="resultado" hidden>
             <output id="valor-invalido" class="valor"></output>
             <div class="acoes-resultado">
-              <button id="btn-copiar-invalido" class="secundario">Copiar</button>
-              <button id="btn-inserir-invalido" class="primario">Inserir no campo</button>
+              <button id="btn-copiar-invalido" class="secundario" data-i18n="copiar">Copiar</button>
+              <button id="btn-inserir-invalido" class="primario" data-i18n="inserir_campo">Inserir no campo</button>
             </div>
           </div>
         </div>
 
         <div class="campo-rotulado">
-          <span class="rot-mini">Fronteiras Unicode</span>
+          <span class="rot-mini" data-i18n="fronteiras_unicode">Fronteiras Unicode</span>
           <div id="chips-unicode" class="chips"></div>
         </div>
 
         <div class="campo-rotulado">
-          <span class="rot-mini">Payloads — uso defensivo</span>
+          <span class="rot-mini" data-i18n="payloads_defensivo">Payloads — uso defensivo</span>
           <div id="chips-payloads" class="chips"></div>
         </div>
 
         <div class="campo-rotulado">
-          <span class="rot-mini">Overflow de tamanho</span>
+          <span class="rot-mini" data-i18n="overflow_tamanho">Overflow de tamanho</span>
           <div class="linha-texto">
-            <input id="overflow-tam" type="number" min="1" max="1000000" value="10000" aria-label="Tamanho do overflow" />
-            <button id="btn-overflow" class="secundario">Gerar overflow</button>
+            <input id="overflow-tam" type="number" min="1" max="1000000" value="10000" aria-label="Overflow" />
+            <button id="btn-overflow" class="secundario" data-i18n="gerar_overflow">Gerar overflow</button>
           </div>
         </div>
 
@@ -150,21 +148,26 @@
       <!-- Configurações -->
       <section class="painel" data-view="config" role="tabpanel">
         <div class="campo-rotulado">
-          <span class="rot-mini">Tema</span>
+          <span class="rot-mini" data-i18n="cfg_idioma">Idioma da interface</span>
+          <div id="idiomas-lista" class="idiomas-lista"></div>
+        </div>
+
+        <div class="campo-rotulado">
+          <span class="rot-mini" data-i18n="cfg_tema">Tema</span>
           <select id="sel-tema">
-            <option value="auto">Automático (segue o sistema)</option>
-            <option value="claro">Claro</option>
-            <option value="escuro">Escuro</option>
+            <option value="auto" data-i18n="tema_auto">Automático (segue o sistema)</option>
+            <option value="claro" data-i18n="tema_claro">Claro</option>
+            <option value="escuro" data-i18n="tema_escuro">Escuro</option>
           </select>
         </div>
 
         <div class="campo-rotulado">
-          <span class="rot-mini">Modo de inserção</span>
+          <span class="rot-mini" data-i18n="cfg_insercao">Modo de inserção</span>
           <select id="modo-insercao">
-            <option value="valor">Injetar valor (React/Vue)</option>
-            <option value="colar">Simular colagem (cursor)</option>
+            <option value="valor" data-i18n="ins_valor">Injetar valor (React/Vue)</option>
+            <option value="colar" data-i18n="ins_colar">Simular colagem (cursor)</option>
           </select>
-          <p class="ajuda">
+          <p class="ajuda" data-i18n="ins_ajuda">
             "Injetar valor" substitui o conteúdo do campo; "simular colagem"
             insere na posição do cursor.
           </p>
@@ -174,26 +177,25 @@
       <!-- Histórico -->
       <section class="painel" data-view="historico" role="tabpanel">
         <div class="cabecalho-historico">
-          <span class="rot-mini">Histórico da sessão</span>
-          <button id="btn-limpar-hist" class="link">Limpar</button>
+          <span class="rot-mini" data-i18n="hist_titulo">Histórico da sessão</span>
+          <button id="btn-limpar-hist" class="link" data-i18n="limpar">Limpar</button>
         </div>
         <ul id="lista-historico" class="lista-historico"></ul>
-        <p id="historico-vazio" class="ajuda">Nada gerado ainda.</p>
+        <p id="historico-vazio" class="ajuda" data-i18n="hist_vazio">Nada gerado ainda.</p>
       </section>
     </main>
 
-    <!-- Rodapé: seed + selo 100% local -->
     <footer class="rodape">
       <div class="seed">
         <label for="campo-seed">seed</label>
-        <input id="campo-seed" type="text" spellcheck="false" maxlength="16" autocomplete="off" aria-label="Seed determinística (hexadecimal)" />
-        <button id="btn-nova-seed" class="icone" title="Nova seed aleatória" aria-label="Nova seed">
+        <input id="campo-seed" type="text" spellcheck="false" maxlength="16" autocomplete="off" aria-label="Seed" />
+        <button id="btn-nova-seed" class="icone" data-i18n-title="t_nova_seed" data-i18n-aria="t_nova_seed" title="Nova seed aleatória" aria-label="Nova seed">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" /></svg>
         </button>
       </div>
       <span class="selo" title="Nenhuma requisição de rede. Nenhuma coleta de dados.">
         <svg class="ic-selo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
-        100% local
+        <span data-i18n="selo_local">100% local</span>
       </span>
     </footer>
 

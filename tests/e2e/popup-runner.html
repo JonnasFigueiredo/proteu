@@ -143,6 +143,23 @@
         const textoInativo = !$('.painel[data-view="texto"]').classList.contains("painel--ativo");
         assert("P12 abas alternam o painel ativo (um por vez)", docAtivo && textoInativo);
 
+        // P13 — troca de idioma da interface (pt / es / en)
+        $('.bandeira-btn[data-lang="es"]').click(); await espera(30);
+        const esOk = $('.aba[data-view="documentos"]').textContent === "Documentos"
+          && $("#btn-inserir").textContent === "Insertar en el campo"
+          && document.documentElement.lang === "es";
+        assert("P13 idioma espanhol traduz rótulos e marca lang", esOk, $("#btn-inserir").textContent);
+
+        $('.bandeira-btn[data-lang="en"]').click(); await espera(30);
+        const enOk = $('.aba[data-view="documentos"]').textContent === "Documents"
+          && $("#btn-inserir").textContent === "Insert into field"
+          && $(".grupo-doc__rot").textContent === "Person"
+          && document.documentElement.lang === "en";
+        assert("P13 idioma inglês traduz rótulos e categorias", enOk, $("#btn-inserir").textContent);
+
+        const idiomaPersistido = cfg().idiomaUI;
+        assert("P13 idioma escolhido é persistido", idiomaPersistido === "en", idiomaPersistido);
+
         // placar
         const passou = resultados.filter((r) => r.ok).length;
         const total = resultados.length;

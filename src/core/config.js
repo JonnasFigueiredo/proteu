@@ -19,12 +19,14 @@ export function configPadrao() {
       modo: "valor", // "valor" | "colar"
     },
     tema: "auto", // "auto" (segue o sistema) | "claro" | "escuro"
+    idiomaUI: null, // "pt" | "es" | "en"; null = ainda não escolhido (detecta no 1º uso)
     contador: 0, // avança a cada geração; garante reprodutibilidade por índice
   };
 }
 
-// Valores aceitos para o tema.
+// Valores aceitos.
 const TEMAS = ["auto", "claro", "escuro"];
+const IDIOMAS = ["pt", "es", "en"];
 
 /** Gera uma seed hex curta e aleatória (não faz parte da lógica determinística). */
 export function gerarSeedAleatoria() {
@@ -69,6 +71,7 @@ export function normalizarConfig(parcial) {
       modo: ins.modo === "colar" ? "colar" : base.insercao.modo,
     },
     tema: TEMAS.includes(p.tema) ? p.tema : base.tema,
+    idiomaUI: IDIOMAS.includes(p.idiomaUI) ? p.idiomaUI : base.idiomaUI,
     contador,
   };
 }

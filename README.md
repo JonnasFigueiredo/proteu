@@ -7,7 +7,8 @@ mesma seed reproduz exatamente a mesma massa, então um bug encontrado com dados
 gerados deixa de ser "não reproduzível".
 
 **100% local** · sem requisições de rede · sem coleta de dados · sem dependências
-em runtime · apenas 4 permissões · Vanilla JS (sem build).
+em runtime · apenas 4 permissões · Vanilla JS (sem build) · interface em
+**português, espanhol e inglês**.
 
 ---
 
@@ -34,8 +35,15 @@ em runtime · apenas 4 permissões · Vanilla JS (sem build).
 | **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. |
 | **Massa inválida & payloads** | CPF/CNPJ com DV errado e sequências uniformes · fronteiras Unicode canônicas · payloads XSS/SQLi/formato e overflow (**uso defensivo** — ver aviso). |
 
-Mais: **histórico** da sessão, cópia com um clique, **tema** claro/escuro/automático,
-menu de contexto (um item por tipo de documento) e atalho de teclado.
+Mais: **interface em pt/es/en** (seletor de bandeira, detectado do navegador no
+1º uso), **histórico** da sessão, cópia com um clique, **tema**
+claro/escuro/automático, menu de contexto (um item por tipo de documento) e
+atalho de teclado.
+
+> Os **nomes dos documentos brasileiros** (CPF, CNPJ, RG…) não são traduzidos —
+> são os nomes próprios dos documentos; um QA de fora testando um sistema BR
+> precisa deles com esse nome. A "moldura" da UI (abas, rótulos, botões,
+> categorias, mensagens) é totalmente localizada.
 
 ## Como usar
 

@@ -151,6 +151,50 @@ button {
   margin-right: 3px;
 }
 
+/* Bandeiras (SVG) do seletor de idioma */
+.bandeira {
+  width: 20px;
+  height: 14px;
+  display: block;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12) inset;
+}
+
+#btn-idioma {
+  display: grid;
+  place-items: center;
+}
+
+.idiomas-lista {
+  display: flex;
+  gap: 6px;
+}
+
+.bandeira-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  padding: 7px 9px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  background: var(--fundo);
+  color: var(--texto);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bandeira-btn:hover {
+  border-color: var(--azul);
+}
+
+.bandeira-btn.ativo {
+  border-color: var(--azul);
+  background: var(--azul-suave);
+  color: var(--azul-forte);
+}
+
 /* ---------- Abas ---------- */
 .abas {
   display: flex;

@@ -20,8 +20,17 @@ import { pseudolocalizar } from "../core/text/pseudolocale.js";
 import { gerarCpfInvalido, gerarCnpjInvalido } from "../core/invalid/documentos-invalidos.js";
 import { FRONTEIRAS_UNICODE } from "../core/invalid/unicode.js";
 import { todosPayloads, gerarOverflow } from "../core/invalid/payloads.js";
+import { t, IDIOMAS_UI, LANG_ATTR, resolverIdioma } from "../core/i18n.js";
 
 const $ = (sel) => document.querySelector(sel);
+
+// Bandeiras (SVG, sem emojis) do seletor de idioma da interface.
+const BANDEIRAS = {
+  pt: '<svg class="bandeira" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#009c3b"/><path d="M12 2 22 8 12 14 2 8Z" fill="#ffdf00"/><circle cx="12" cy="8" r="3.3" fill="#002776"/></svg>',
+  es: '<svg class="bandeira" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#c60b1e"/><rect y="4" width="24" height="8" fill="#ffc400"/></svg>',
+  en: '<svg class="bandeira" viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#012169"/><path d="M0,0 L24,16 M24,0 L0,16" stroke="#fff" stroke-width="3.2"/><path d="M0,0 L24,16 M24,0 L0,16" stroke="#c8102e" stroke-width="1.6"/><rect x="9.5" width="5" height="16" fill="#fff"/><rect y="5.5" width="24" height="5" fill="#fff"/><rect x="10.5" width="3" height="16" fill="#c8102e"/><rect y="6.5" width="24" height="3" fill="#c8102e"/></svg>',
+};
+const PROXIMO_IDIOMA = { pt: "es", es: "en", en: "pt" };
 
 // Ícones SVG (sem emojis). Herdam a cor via currentColor.
 const ICONE_COPIAR =
@@ -31,11 +40,12 @@ const ICONES_TEMA = {
   claro: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
   escuro: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>',
 };
-const ROTULO_TEMA = { auto: "Tema: automático", claro: "Tema: claro", escuro: "Tema: escuro" };
 const PROXIMO_TEMA = { auto: "claro", claro: "escuro", escuro: "auto" };
+const CHAVE_TEMA = { auto: "tema_auto", claro: "tema_claro", escuro: "tema_escuro" };
 
 // Estado local do popup; a fonte da verdade é o chrome.storage.
 let config = null;
+let idiomaAtual = "pt";
 let ultimoValor = null;
 let ultimoTexto = null;
 let ultimoInvalido = null;
@@ -44,10 +54,18 @@ let ultimoInvalido = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   config = await carregarConfig();
+  // Primeiro uso: detecta o idioma da interface pelo navegador e persiste.
+  if (!config.idiomaUI) {
+    config.idiomaUI = resolverIdioma(navigator.language);
+    config = await salvarConfig(config);
+  }
+  idiomaAtual = config.idiomaUI;
   montarBotoesDocumento();
   montarIdiomas();
+  montarIdiomasLista();
   montarChipsInvalidos();
   refletirConfigNaUI();
+  aplicarIdioma(idiomaAtual);
   ligarEventos();
   await detectarCampo();
 });
@@ -109,7 +127,8 @@ function montarBotoesDocumento() {
     grupo.className = "grupo-doc";
     const rot = document.createElement("span");
     rot.className = "grupo-doc__rot";
-    rot.textContent = cat;
+    rot.dataset.cat = cat; // permite re-traduzir ao trocar de idioma
+    rot.textContent = t(idiomaAtual, `cat_${cat}`);
     const grade = document.createElement("div");
     grade.className = "grade-doc";
 
@@ -117,8 +136,8 @@ function montarBotoesDocumento() {
       const btn = document.createElement("button");
       btn.className = "doc-btn";
       btn.dataset.tipo = tipo;
-      btn.textContent = def.rotulo;
-      btn.title = `Gerar ${def.rotulo}`;
+      btn.textContent = def.rotulo; // nome do documento não é traduzido
+      btn.title = `${t(idiomaAtual, "gerar")} ${def.rotulo}`;
       grade.appendChild(btn);
     }
     grupo.append(rot, grade);
@@ -146,7 +165,7 @@ function aplicarTema(tema) {
   else root.removeAttribute("data-theme");
   const btn = $("#btn-tema");
   btn.innerHTML = ICONES_TEMA[tema] || ICONES_TEMA.auto;
-  btn.title = ROTULO_TEMA[tema] || "Tema";
+  btn.title = `${t(idiomaAtual, "t_tema")}: ${t(idiomaAtual, CHAVE_TEMA[tema])}`;
 }
 
 async function aoAlternarTema() {
@@ -160,6 +179,66 @@ async function aoMudarTema(e) {
   const tema = e.target.value;
   await atualizarConfig((c) => (c.tema = tema));
   aplicarTema(tema);
+}
+
+// --- Idioma da interface (i18n) ---------------------------------------------
+
+/** Botões de bandeira no painel Configurações. */
+function montarIdiomasLista() {
+  const lista = $("#idiomas-lista");
+  for (const { code, rotulo } of IDIOMAS_UI) {
+    const btn = document.createElement("button");
+    btn.className = "bandeira-btn";
+    btn.dataset.lang = code;
+    btn.innerHTML = `${BANDEIRAS[code]}<span>${rotulo}</span>`;
+    btn.addEventListener("click", () => aoEscolherIdioma(code));
+    lista.appendChild(btn);
+  }
+}
+
+/** Aplica o idioma: traduz elementos [data-i18n*], categorias, tema, bandeiras. */
+function aplicarIdioma(idioma) {
+  idiomaAtual = idioma;
+  document.documentElement.lang = LANG_ATTR[idioma] || "pt-BR";
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(idioma, el.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    el.title = t(idioma, el.dataset.i18nTitle);
+  });
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+    el.setAttribute("aria-label", t(idioma, el.dataset.i18nAria));
+  });
+
+  // Rótulos de categoria (montados dinamicamente).
+  document.querySelectorAll(".grupo-doc__rot[data-cat]").forEach((el) => {
+    el.textContent = t(idioma, `cat_${el.dataset.cat}`);
+  });
+
+  aplicarTema(config.tema); // re-traduz o title do botão de tema
+
+  // Botão de bandeira no cabeçalho + estado ativo na lista.
+  $("#btn-idioma").innerHTML = BANDEIRAS[idioma];
+  document.querySelectorAll(".bandeira-btn").forEach((b) =>
+    b.classList.toggle("ativo", b.dataset.lang === idioma)
+  );
+
+  // Recontagem já exibida usa rótulos traduzidos.
+  if (ultimoTexto !== null) renderContagens(ultimoTexto);
+}
+
+async function aoAlternarIdioma() {
+  await mudarIdioma(PROXIMO_IDIOMA[idiomaAtual] || "pt");
+}
+
+async function aoEscolherIdioma(idioma) {
+  await mudarIdioma(idioma);
+}
+
+async function mudarIdioma(idioma) {
+  await atualizarConfig((c) => (c.idiomaUI = idioma));
+  aplicarIdioma(idioma);
 }
 
 // --- Eventos ----------------------------------------------------------------
@@ -196,6 +275,7 @@ function ligarEventos() {
 
   $("#btn-tema").addEventListener("click", aoAlternarTema);
   $("#sel-tema").addEventListener("change", aoMudarTema);
+  $("#btn-idioma").addEventListener("click", aoAlternarIdioma);
 
   document.querySelectorAll(".doc-btn[data-invalido]").forEach((b) =>
     b.addEventListener("click", () => aoGerarInvalido(b.dataset.invalido))
@@ -308,7 +388,7 @@ async function aoGerarTamanho() {
   const unidade = $("#tam-unidade").value;
   const alvo = parseInt($("#tam-alvo").value, 10);
   if (!Number.isInteger(alvo) || alvo < 0) {
-    mostrarFeedback("Informe um tamanho válido", "erro", "#feedback-texto");
+    mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro", "#feedback-texto");
     return;
   }
   const { rng, usado } = await proximoRng();
@@ -344,10 +424,10 @@ function mostrarTexto(texto, idioma) {
 function renderContagens(texto) {
   const c = contarTudo(texto);
   const tiles = [
-    ["grafemas", c.grafemas],
-    ["code points", c.codePoints],
-    ["code units", c.codeUnits],
-    ["bytes", c.bytes],
+    [t(idiomaAtual, "c_grafemas"), c.grafemas],
+    [t(idiomaAtual, "c_codepoints"), c.codePoints],
+    [t(idiomaAtual, "c_codeunits"), c.codeUnits],
+    [t(idiomaAtual, "c_bytes"), c.bytes],
   ];
   const cont = $("#contagens");
   cont.textContent = "";
@@ -365,15 +445,21 @@ function renderContagens(texto) {
   }
 }
 
+/** Traduz o resultado de inserirNoCampoAtivo em (texto, tipo) de feedback. */
+function feedbackInsercao(r) {
+  if (r.ok) return { texto: t(idiomaAtual, "fb_inserido"), tipo: "ok" };
+  const chave =
+    r.motivo === "sem-campo" ? "fb_sem_campo"
+    : r.motivo === "pagina-bloqueada" ? "fb_pagina_bloqueada"
+    : "fb_nao_inseriu";
+  return { texto: t(idiomaAtual, chave), tipo: "erro" };
+}
+
 async function aoInserirTexto() {
   if (!ultimoTexto) return;
   const r = await inserirNoCampoAtivo(ultimoTexto, config.insercao.modo);
-  mostrarFeedback(
-    r.ok ? "Inserido no campo" : r.motivo === "sem-campo"
-      ? "Clique num campo da página primeiro" : "Não foi possível inserir",
-    r.ok ? "ok" : "erro",
-    "#feedback-texto"
-  );
+  const f = feedbackInsercao(r);
+  mostrarFeedback(f.texto, f.tipo, "#feedback-texto");
 }
 
 // --- Massa inválida e payloads ----------------------------------------------
@@ -388,7 +474,8 @@ async function aoGerarInvalido(tipo) {
 
   $("#valor-invalido").textContent = r.valor;
   $("#resultado-invalido").hidden = false;
-  mostrarFeedback(`Inválido (${r.motivo}) — pronto para copiar/inserir`, "ok", "#feedback-invalido");
+  const motivo = t(idiomaAtual, r.motivo === "dv-errado" ? "motivo_dv_errado" : "motivo_uniforme");
+  mostrarFeedback(t(idiomaAtual, "fb_invalido_pronto", { motivo }), "ok", "#feedback-invalido");
 
   await adicionarHistorico({
     tipo: `inválido:${tipo}`,
@@ -403,36 +490,32 @@ async function aoGerarInvalido(tipo) {
 async function aoGerarOverflow() {
   const tam = parseInt($("#overflow-tam").value, 10);
   if (!Number.isInteger(tam) || tam < 1) {
-    mostrarFeedback("Informe um tamanho válido", "erro", "#feedback-invalido");
+    mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro", "#feedback-invalido");
     return;
   }
   const texto = gerarOverflow(tam);
   mostrarTexto(texto, null); // mostra as 4 contagens do overflow
   mostrarView("texto"); // leva o usuário ao painel onde o resultado aparece
-  mostrarFeedback(`Overflow de ${tam} chars gerado`, "ok", "#feedback-texto");
+  mostrarFeedback(t(idiomaAtual, "fb_overflow", { n: tam }), "ok", "#feedback-texto");
 }
 
 async function aoInserirInvalido() {
   if (!ultimoInvalido) return;
   const r = await inserirNoCampoAtivo(ultimoInvalido, config.insercao.modo);
-  mostrarFeedback(
-    r.ok ? "Inserido no campo" : r.motivo === "sem-campo"
-      ? "Clique num campo da página primeiro" : "Não foi possível inserir",
-    r.ok ? "ok" : "erro",
-    "#feedback-invalido"
-  );
+  const f = feedbackInsercao(r);
+  mostrarFeedback(f.texto, f.tipo, "#feedback-invalido");
 }
 
 /** Insere um valor avulso (chip Unicode/payload) no campo ativo, ou copia. */
 async function usarValorAvulso(valor, rotulo) {
   const r = await inserirNoCampoAtivo(valor, config.insercao.modo);
   if (r.ok) {
-    mostrarFeedback(`"${rotulo}" inserido`, "ok", "#feedback-invalido");
+    mostrarFeedback(t(idiomaAtual, "fb_chip_inserido", { rotulo }), "ok", "#feedback-invalido");
   } else if (r.motivo === "sem-campo") {
     // Sem campo focado: cai para a área de transferência.
     await copiar(valor, "#feedback-invalido");
   } else {
-    mostrarFeedback("Não foi possível inserir", "erro", "#feedback-invalido");
+    mostrarFeedback(t(idiomaAtual, "fb_nao_inseriu"), "erro", "#feedback-invalido");
   }
 }
 
@@ -442,9 +525,9 @@ async function copiar(valor, sel = "#feedback") {
   if (!valor) return;
   try {
     await navigator.clipboard.writeText(valor);
-    mostrarFeedback("Copiado", "ok", sel);
+    mostrarFeedback(t(idiomaAtual, "fb_copiado"), "ok", sel);
   } catch {
-    mostrarFeedback("Não foi possível copiar", "erro", sel);
+    mostrarFeedback(t(idiomaAtual, "fb_copiar_erro"), "erro", sel);
   }
 }
 
@@ -453,15 +536,8 @@ async function copiar(valor, sel = "#feedback") {
 async function aoInserir() {
   if (!ultimoValor) return;
   const r = await inserirNoCampoAtivo(ultimoValor, config.insercao.modo);
-  if (r.ok) {
-    mostrarFeedback("Inserido no campo", "ok");
-  } else if (r.motivo === "sem-campo") {
-    mostrarFeedback("Clique num campo da página primeiro", "erro");
-  } else if (r.motivo === "pagina-bloqueada") {
-    mostrarFeedback("Esta página não permite inserção", "erro");
-  } else {
-    mostrarFeedback("Não foi possível inserir", "erro");
-  }
+  const f = feedbackInsercao(r);
+  mostrarFeedback(f.texto, f.tipo);
 }
 
 async function inserirNoCampoAtivo(valor, modo) {
@@ -546,11 +622,11 @@ function mostrarCampoDetectado(d) {
     const chip = document.createElement("button");
     chip.className = "chip";
     chip.textContent = item.rotulo;
-    chip.title = item.valor === "" ? "(string vazia)" : item.valor;
+    chip.title = item.valor === "" ? t(idiomaAtual, "str_vazia") : item.valor;
     chip.addEventListener("click", async () => {
       const r = await inserirNoCampoAtivo(item.valor, config.insercao.modo);
       mostrarFeedback(
-        r.ok ? `"${item.rotulo}" inserido` : "Não foi possível inserir",
+        r.ok ? t(idiomaAtual, "fb_chip_inserido", { rotulo: item.rotulo }) : t(idiomaAtual, "fb_nao_inseriu"),
         r.ok ? "ok" : "erro",
         "#feedback-campo"
       );
