@@ -34,19 +34,19 @@ export const BR = {
       gerar: (rng) => gerarDataAdmissao(rng),
     },
     cpf: {
-      rotulo: "CPF", categoria: "Pessoa",
+      rotulo: "CPF", rotuloKey: "doc_cpf", categoria: "Pessoa",
       gerar: (rng, config) => gerarCpf(rng, { mascara: config.documentos.mascara }),
     },
     rg: {
-      rotulo: "RG", categoria: "Pessoa",
+      rotulo: "RG", rotuloKey: "doc_rg", categoria: "Pessoa",
       gerar: (rng, config) => gerarRg(rng, { mascara: config.documentos.mascara }),
     },
     cnh: {
-      rotulo: "CNH", categoria: "Pessoa",
+      rotulo: "CNH", rotuloKey: "doc_cnh", categoria: "Pessoa",
       gerar: (rng) => gerarCnh(rng),
     },
     cep: {
-      rotulo: "CEP", categoria: "Pessoa",
+      rotulo: "CEP", rotuloKey: "doc_cep", categoria: "Pessoa",
       gerar: (rng, config) => gerarCep(rng, { mascara: config.documentos.mascara }),
     },
     telefone: {
@@ -56,7 +56,7 @@ export const BR = {
 
     // --- Empresa ---
     cnpj: {
-      rotulo: "CNPJ", categoria: "Empresa",
+      rotulo: "CNPJ", rotuloKey: "doc_cnpj", categoria: "Empresa",
       gerar: (rng, config) =>
         gerarCnpj(rng, {
           mascara: config.documentos.mascara,
@@ -82,7 +82,7 @@ export const BR = {
       gerar: (rng) => gerarRazaoSocial(rng),
     },
     ie: {
-      rotulo: "Inscrição Estadual (SP)", categoria: "Empresa",
+      rotulo: "Inscrição Estadual (SP)", rotuloKey: "doc_ie", categoria: "Empresa",
       gerar: (rng, config) => gerarIe(rng, { mascara: config.documentos.mascara }),
     },
   },

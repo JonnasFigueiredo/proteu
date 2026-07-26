@@ -1,8 +1,14 @@
 // Internacionalização da interface (pt / es / en / zh).
 //
 // Lógica pura e testável: sem DOM, sem chrome. O popup consome `t()` e as
-// bandeiras (SVG) ficam na camada de UI. Os NOMES dos documentos brasileiros
-// (CPF, CNPJ, RG…) não são traduzidos — são nomes próprios dos documentos.
+// bandeiras (SVG) ficam na camada de UI.
+//
+// Rótulos de documento: cada tipo tem uma `rotuloKey` (ex.: doc_idcard) que
+// traduz o rótulo para o idioma da interface — assim um QA que fixa "Português"
+// entende os campos mesmo gerando dados da China. A tradução no idioma do
+// próprio país preserva o nome nativo (ex.: doc_idcard em zh = "身份证号"), de
+// modo que o modo "Automático (segue o país)" fica idêntico ao rótulo original.
+// Nomes próprios internacionais (CPF, SSN, CUIT…) mantêm a sigla + um descritor.
 
 export const IDIOMAS_UI = [
   { code: "pt", rotulo: "Português" },
@@ -63,6 +69,7 @@ const MENSAGENS = {
     overflow_tamanho: "Overflow de tamanho",
     gerar_overflow: "Gerar overflow",
     cfg_idioma: "Idioma da interface",
+    cfg_idioma_auto: "Automático (segue o país)",
     cfg_tema: "Tema",
     tema_auto: "Automático (segue o sistema)",
     tema_claro: "Claro",
@@ -89,6 +96,24 @@ const MENSAGENS = {
     doc_telefone: "Telefone",
     doc_razao: "Razão social",
     doc_cnpj_raiz: "CNPJ (mesma raiz)",
+    doc_postal: "Código postal",
+    doc_cpf: "CPF",
+    doc_rg: "RG",
+    doc_cnh: "CNH",
+    doc_cep: "CEP",
+    doc_cnpj: "CNPJ",
+    doc_ie: "Inscrição Estadual (SP)",
+    doc_ssn: "SSN (previdência)",
+    doc_zip: "Código postal (ZIP)",
+    doc_ein: "EIN (registro de empresa)",
+    doc_dni: "DNI (identidade)",
+    doc_cuil: "CUIL (trabalhador)",
+    doc_cpa: "Código postal (CPA)",
+    doc_cuit: "CUIT (empresa)",
+    doc_sin: "SIN (previdência)",
+    doc_bn: "Business Number (empresa)",
+    doc_idcard: "Nº de identidade",
+    doc_uscc: "Registro de empresa (USCC)",
     fb_cnpj_matriz: "CNPJ matriz ({ordem})",
     fb_cnpj_filial: "CNPJ filial ({ordem}) — mesma raiz",
     c_grafemas: "grafemas",
@@ -157,6 +182,7 @@ const MENSAGENS = {
     overflow_tamanho: "Overflow de tamaño",
     gerar_overflow: "Generar overflow",
     cfg_idioma: "Idioma de la interfaz",
+    cfg_idioma_auto: "Automático (según el país)",
     cfg_tema: "Tema",
     tema_auto: "Automático (sigue el sistema)",
     tema_claro: "Claro",
@@ -179,10 +205,28 @@ const MENSAGENS = {
     cat_Empresa: "Empresa",
     doc_nome: "Nombre",
     doc_nascimento: "Fecha de nacimiento",
-    doc_admissao: "Fecha de admisión",
+    doc_admissao: "Fecha de ingreso",
     doc_telefone: "Teléfono",
     doc_razao: "Razón social",
     doc_cnpj_raiz: "CNPJ (misma raíz)",
+    doc_postal: "Código postal",
+    doc_cpf: "CPF",
+    doc_rg: "RG",
+    doc_cnh: "CNH",
+    doc_cep: "CEP",
+    doc_cnpj: "CNPJ",
+    doc_ie: "Inscripción Estatal (SP)",
+    doc_ssn: "SSN (seguridad social)",
+    doc_zip: "Código postal (ZIP)",
+    doc_ein: "EIN (registro de empresa)",
+    doc_dni: "DNI",
+    doc_cuil: "CUIL",
+    doc_cpa: "Código postal (CPA)",
+    doc_cuit: "CUIT",
+    doc_sin: "SIN (seguridad social)",
+    doc_bn: "Business Number (empresa)",
+    doc_idcard: "Documento de identidad",
+    doc_uscc: "Registro de empresa (USCC)",
     fb_cnpj_matriz: "CNPJ matriz ({ordem})",
     fb_cnpj_filial: "CNPJ sucursal ({ordem}) — misma raíz",
     c_grafemas: "grafemas",
@@ -251,6 +295,7 @@ const MENSAGENS = {
     overflow_tamanho: "Size overflow",
     gerar_overflow: "Generate overflow",
     cfg_idioma: "Interface language",
+    cfg_idioma_auto: "Automatic (follows country)",
     cfg_tema: "Theme",
     tema_auto: "Automatic (follows system)",
     tema_claro: "Light",
@@ -272,11 +317,29 @@ const MENSAGENS = {
     cat_Pessoa: "Person",
     cat_Empresa: "Company",
     doc_nome: "Name",
-    doc_nascimento: "Birth date",
+    doc_nascimento: "Date of birth",
     doc_admissao: "Hire date",
     doc_telefone: "Phone",
     doc_razao: "Company name",
     doc_cnpj_raiz: "CNPJ (same root)",
+    doc_postal: "Postal code",
+    doc_cpf: "CPF (individual tax ID)",
+    doc_rg: "RG (national ID)",
+    doc_cnh: "CNH (driver license)",
+    doc_cep: "Postal code (CEP)",
+    doc_cnpj: "CNPJ (company tax ID)",
+    doc_ie: "State registration (SP)",
+    doc_ssn: "SSN",
+    doc_zip: "ZIP code",
+    doc_ein: "EIN",
+    doc_dni: "DNI (national ID)",
+    doc_cuil: "CUIL (worker tax ID)",
+    doc_cpa: "Postal code (CPA)",
+    doc_cuit: "CUIT (company tax ID)",
+    doc_sin: "SIN",
+    doc_bn: "Business Number",
+    doc_idcard: "National ID",
+    doc_uscc: "Company reg. (USCC)",
     fb_cnpj_matriz: "Head-office CNPJ ({ordem})",
     fb_cnpj_filial: "Branch CNPJ ({ordem}) — same root",
     c_grafemas: "graphemes",
@@ -346,6 +409,7 @@ const MENSAGENS = {
     overflow_tamanho: "长度溢出",
     gerar_overflow: "生成溢出",
     cfg_idioma: "界面语言",
+    cfg_idioma_auto: "自动（跟随国家）",
     cfg_tema: "主题",
     tema_auto: "自动（跟随系统）",
     tema_claro: "浅色",
@@ -368,9 +432,27 @@ const MENSAGENS = {
     doc_nome: "姓名",
     doc_nascimento: "出生日期",
     doc_admissao: "入职日期",
-    doc_telefone: "电话",
+    doc_telefone: "手机号码",
     doc_razao: "公司名称",
     doc_cnpj_raiz: "CNPJ（相同根号）",
+    doc_postal: "邮政编码",
+    doc_cpf: "CPF（个人税号）",
+    doc_rg: "RG（身份证）",
+    doc_cnh: "CNH（驾照）",
+    doc_cep: "邮政编码（CEP）",
+    doc_cnpj: "CNPJ（企业税号）",
+    doc_ie: "州登记号（SP）",
+    doc_ssn: "SSN（社保号）",
+    doc_zip: "邮政编码（ZIP）",
+    doc_ein: "EIN（企业税号）",
+    doc_dni: "DNI（身份证）",
+    doc_cuil: "CUIL（个人税号）",
+    doc_cpa: "邮政编码（CPA）",
+    doc_cuit: "CUIT（企业税号）",
+    doc_sin: "SIN（社保号）",
+    doc_bn: "营业执照号（BN）",
+    doc_idcard: "身份证号",
+    doc_uscc: "统一社会信用代码",
     fb_cnpj_matriz: "CNPJ 总部 ({ordem})",
     fb_cnpj_filial: "CNPJ 分支 ({ordem}) — 相同根号",
     c_grafemas: "字素",
@@ -402,11 +484,20 @@ export function t(idioma, chave, params = {}) {
   return texto.replace(/\{(\w+)\}/g, (m, k) => (k in params ? String(params[k]) : m));
 }
 
+/**
+ * Rótulo de um tipo de documento no idioma da interface. Usa a `rotuloKey`
+ * (traduzível) quando existe; senão cai no `rotulo` literal do registro.
+ */
+export function rotuloDoTipo(def, idioma) {
+  return def.rotuloKey ? t(idioma, def.rotuloKey) : def.rotulo;
+}
+
 /** Mapeia o idioma do navegador para um dos suportados (default pt). */
 export function resolverIdioma(idiomaNavegador) {
   const l = String(idiomaNavegador || "").toLowerCase();
   if (l.startsWith("es")) return "es";
   if (l.startsWith("en")) return "en";
+  if (l.startsWith("zh")) return "zh";
   return "pt";
 }
 

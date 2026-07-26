@@ -12,37 +12,37 @@ export const CA = {
   tipos: {
     // --- Person ---
     name: {
-      rotulo: "Name", categoria: "Pessoa",
+      rotulo: "Name", rotuloKey: "doc_nome", categoria: "Pessoa",
       gerar: (rng) => gerarNomeCA(rng),
     },
     dob: {
-      rotulo: "Date of birth", categoria: "Pessoa",
+      rotulo: "Date of birth", rotuloKey: "doc_nascimento", categoria: "Pessoa",
       gerar: (rng) => gerarDataNascimento(rng, { formato: "iso" }),
     },
     hireDate: {
-      rotulo: "Hire date", categoria: "Pessoa",
+      rotulo: "Hire date", rotuloKey: "doc_admissao", categoria: "Pessoa",
       gerar: (rng) => gerarDataAdmissao(rng, { formato: "iso" }),
     },
     sin: {
-      rotulo: "SIN", categoria: "Pessoa",
+      rotulo: "SIN", rotuloKey: "doc_sin", categoria: "Pessoa",
       gerar: (rng, config) => gerarSin(rng, { mascara: config.documentos.mascara }),
     },
     postal: {
-      rotulo: "Postal code", categoria: "Pessoa",
+      rotulo: "Postal code", rotuloKey: "doc_postal", categoria: "Pessoa",
       gerar: (rng) => gerarPostalCA(rng),
     },
     phone: {
-      rotulo: "Phone", categoria: "Pessoa",
+      rotulo: "Phone", rotuloKey: "doc_telefone", categoria: "Pessoa",
       gerar: (rng, config) => gerarTelefoneUS(rng, { mascara: config.documentos.mascara }),
     },
 
     // --- Company ---
     bn: {
-      rotulo: "Business Number", categoria: "Empresa",
+      rotulo: "Business Number", rotuloKey: "doc_bn", categoria: "Empresa",
       gerar: (rng, config) => gerarBn(rng, { mascara: config.documentos.mascara }),
     },
     companyName: {
-      rotulo: "Company name", categoria: "Empresa",
+      rotulo: "Company name", rotuloKey: "doc_razao", categoria: "Empresa",
       gerar: (rng) => gerarCompanyNameCA(rng),
     },
   },

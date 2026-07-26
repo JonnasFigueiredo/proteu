@@ -11,37 +11,37 @@ export const US = {
   tipos: {
     // --- Person (inclui contato) ---
     name: {
-      rotulo: "Name", categoria: "Pessoa",
+      rotulo: "Name", rotuloKey: "doc_nome", categoria: "Pessoa",
       gerar: (rng) => gerarNomeUS(rng),
     },
     dob: {
-      rotulo: "Date of birth", categoria: "Pessoa",
+      rotulo: "Date of birth", rotuloKey: "doc_nascimento", categoria: "Pessoa",
       gerar: (rng) => gerarDataNascimento(rng, { formato: "us" }),
     },
     hireDate: {
-      rotulo: "Hire date", categoria: "Pessoa",
+      rotulo: "Hire date", rotuloKey: "doc_admissao", categoria: "Pessoa",
       gerar: (rng) => gerarDataAdmissao(rng, { formato: "us" }),
     },
     ssn: {
-      rotulo: "SSN", categoria: "Pessoa",
+      rotulo: "SSN", rotuloKey: "doc_ssn", categoria: "Pessoa",
       gerar: (rng, config) => gerarSsn(rng, { mascara: config.documentos.mascara }),
     },
     zip: {
-      rotulo: "ZIP code", categoria: "Pessoa",
+      rotulo: "ZIP code", rotuloKey: "doc_zip", categoria: "Pessoa",
       gerar: (rng, config) => gerarZip(rng, { mascara: config.documentos.mascara }),
     },
     phone: {
-      rotulo: "Phone", categoria: "Pessoa",
+      rotulo: "Phone", rotuloKey: "doc_telefone", categoria: "Pessoa",
       gerar: (rng, config) => gerarTelefoneUS(rng, { mascara: config.documentos.mascara }),
     },
 
     // --- Company ---
     ein: {
-      rotulo: "EIN", categoria: "Empresa",
+      rotulo: "EIN", rotuloKey: "doc_ein", categoria: "Empresa",
       gerar: (rng, config) => gerarEin(rng, { mascara: config.documentos.mascara }),
     },
     companyName: {
-      rotulo: "Company name", categoria: "Empresa",
+      rotulo: "Company name", rotuloKey: "doc_razao", categoria: "Empresa",
       gerar: (rng) => gerarCompanyName(rng),
     },
   },

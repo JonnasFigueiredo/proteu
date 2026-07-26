@@ -202,6 +202,31 @@
         await trocarPais("br"); // volta ao Brasil para não afetar outros checks
         assert("P14 volta ao Brasil (pt)", cfg().pais === "br" && document.documentElement.lang === "pt-BR");
 
+        // P15 — idioma da interface FIXO desacoplado do país (QA pt testando China)
+        $('.aba[data-view="config"]').click(); await espera(20);
+        const selIdioma = $("#sel-idioma");
+        assert("P15 seletor de idioma existe e começa em automático", selIdioma && selIdioma.value === "auto");
+        // Fixa português.
+        selIdioma.value = "pt"; selIdioma.dispatchEvent(new Event("change")); await espera(30);
+        assert("P15 idiomaFixo persistido = pt", cfg().idiomaFixo === "pt");
+
+        // Vai para a China: dados chineses, mas interface e rótulos em português.
+        await trocarPais("cn");
+        assert("P15 China + pt fixo: interface fica em português", document.documentElement.lang === "pt-BR" && $("#btn-inserir").textContent === "Inserir no campo");
+        const rotIdCard = $('.doc-btn[data-tipo="idCard"]').textContent;
+        assert("P15 rótulo do ID card em português", rotIdCard === "Nº de identidade", rotIdCard);
+        const rotUscc = $('.doc-btn[data-tipo="uscc"]').textContent;
+        assert("P15 rótulo do USCC em português", rotUscc === "Registro de empresa (USCC)", rotUscc);
+        // Mas o DADO gerado continua sendo chinês (ID card válido MOD 11-2).
+        assert("P15 dado do ID card continua chinês e válido", validarIdCardCN(await gerarNoPais("idCard")), $("#valor-gerado").textContent);
+
+        // Volta para automático e Brasil (não afeta outros checks / re-runs).
+        $('.aba[data-view="config"]').click(); await espera(20);
+        $("#sel-idioma").value = "auto"; $("#sel-idioma").dispatchEvent(new Event("change")); await espera(30);
+        assert("P15 volta a automático (idiomaFixo null)", cfg().idiomaFixo === null || cfg().idiomaFixo === undefined);
+        await trocarPais("br");
+        assert("P15 automático + Brasil volta ao pt", document.documentElement.lang === "pt-BR");
+
         // placar
         const passou = resultados.filter((r) => r.ok).length;
         const total = resultados.length;

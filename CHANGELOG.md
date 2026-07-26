@@ -10,6 +10,24 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   um arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.14.0] — 2026-07-26
+
+### Adicionado
+- **Idioma da interface fixo** (aba Config): o QA pode desacoplar o idioma da
+  tela do país dos dados. Ex.: fixar **Português** e gerar dados da **China** —
+  os rótulos dos campos aparecem em português ("Nome", "Nº de identidade",
+  "Código postal") enquanto os **dados continuam chineses**. Resolve o caso de um
+  QA que testa em pt e não lê mandarim. O padrão é **Automático (segue o país)**,
+  idêntico ao comportamento anterior.
+- Rótulos de documento **traduzíveis** em todos os países (via `rotuloKey`): cada
+  tipo resolve o rótulo no idioma da interface, preservando o nome nativo no
+  idioma do próprio país (ex.: `doc_idcard` em zh = "身份证号"). Nomes próprios
+  internacionais (CPF, SSN, CUIT…) mantêm a sigla + um descritor.
+- Detecção de `zh` em `resolverIdioma` (primeiro uso a partir do navegador).
+
+### Alterado
+- O **menu de contexto** também respeita o idioma da interface fixado.
+
 ## [0.13.0] — 2026-07-26
 
 ### Adicionado

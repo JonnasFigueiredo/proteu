@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     config.pais = PAIS_PADRAO;
     config = await salvarConfig(config);
   }
-  idiomaAtual = idiomaDoPais(config.pais);
+  idiomaAtual = idiomaEfetivo();
   montarBotoesDocumento();
   montarIdiomas();
   montarModalPaises();
@@ -168,6 +168,7 @@ function refletirConfigNaUI() {
   $("#opcoes-cnpj").hidden = !paisMostraOpcoesCnpj(config.pais); // só p/ países com CNPJ
   $("#modo-insercao").value = config.insercao.modo;
   $("#sel-tema").value = config.tema;
+  $("#sel-idioma").value = config.idiomaFixo || "auto";
   $("#campo-seed").value = config.seed;
   aplicarTema(config.tema);
 }
@@ -240,6 +241,25 @@ function fecharModalPais() {
   $("#modal-pais").hidden = true;
 }
 
+/**
+ * Idioma da interface em vigor: o fixado pelo QA (config.idiomaFixo) ou, se
+ * for "automático" (null), o idioma do país dos dados.
+ */
+function idiomaEfetivo() {
+  return config.idiomaFixo || idiomaDoPais(config.pais);
+}
+
+/**
+ * Troca o idioma da interface (seletor da aba Config). "auto" volta a seguir o
+ * país. Não mexe nos dados — só nos rótulos e textos da tela.
+ */
+async function aoMudarIdioma(e) {
+  const valor = e.target.value; // "auto" | "pt" | "es" | "en" | "zh"
+  await atualizarConfig((c) => (c.idiomaFixo = valor === "auto" ? null : valor));
+  idiomaAtual = idiomaEfetivo();
+  aplicarIdioma(idiomaAtual);
+}
+
 /** Troca o país dos dados: idioma acompanha, botões e menu se refazem. */
 async function mudarPais(pais) {
   grupoRaiz = null; // novo país = novo grupo de CNPJ/tax id
@@ -247,7 +267,7 @@ async function mudarPais(pais) {
     c.pais = pais;
     c.contador = 0; // reinicia a sequência determinística no novo país
   });
-  idiomaAtual = idiomaDoPais(pais);
+  idiomaAtual = idiomaEfetivo();
   montarBotoesDocumento();
   ligarEventosDocBtns();
   $("#opcoes-cnpj").hidden = !paisMostraOpcoesCnpj(pais);
@@ -294,7 +314,7 @@ function aplicarIdioma(idioma) {
     el.textContent = t(idioma, `cat_${el.dataset.cat}`);
   });
 
-  // Botões de documento com rótulo traduzível (os demais mantêm o nome próprio).
+  // Botões de documento: rótulo no idioma da interface (via rotuloKey).
   document.querySelectorAll(".doc-btn[data-rotulokey]").forEach((btn) => {
     const rotulo = t(idioma, btn.dataset.rotulokey);
     btn.textContent = rotulo;
@@ -348,6 +368,7 @@ function ligarEventos() {
 
   $("#btn-tema").addEventListener("click", aoAlternarTema);
   $("#sel-tema").addEventListener("change", aoMudarTema);
+  $("#sel-idioma").addEventListener("change", aoMudarIdioma);
 
   $("#btn-pais").addEventListener("click", abrirModalPais);
   document.querySelectorAll("#modal-pais [data-fechar]").forEach((el) =>

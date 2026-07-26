@@ -20,6 +20,7 @@ export function configPadrao() {
     },
     tema: "auto", // "auto" (segue o sistema) | "claro" | "escuro"
     pais: null, // país dos dados; null = ainda não escolhido (resolve no 1º uso)
+    idiomaFixo: null, // idioma da interface fixado pelo QA; null = segue o país
     contador: 0, // avança a cada geração; garante reprodutibilidade por índice
   };
 }
@@ -28,6 +29,8 @@ export function configPadrao() {
 const TEMAS = ["auto", "claro", "escuro"];
 // Países previstos (nem todos implementados ainda; o popup só oferece os prontos).
 const PAISES_VALIDOS = ["br", "us", "ca", "ar", "cl", "mx", "uy", "py", "cn"];
+// Idiomas de interface que o QA pode fixar (null = automático, segue o país).
+const IDIOMAS_FIXOS = ["pt", "es", "en", "zh"];
 
 /** Gera uma seed hex curta e aleatória (não faz parte da lógica determinística). */
 export function gerarSeedAleatoria() {
@@ -73,6 +76,7 @@ export function normalizarConfig(parcial) {
     },
     tema: TEMAS.includes(p.tema) ? p.tema : base.tema,
     pais: PAISES_VALIDOS.includes(p.pais) ? p.pais : base.pais,
+    idiomaFixo: IDIOMAS_FIXOS.includes(p.idiomaFixo) ? p.idiomaFixo : base.idiomaFixo,
     contador,
   };
 }

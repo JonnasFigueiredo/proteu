@@ -43,9 +43,11 @@ em `src/core/paises/`).
 | **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. |
 | **Massa inválida & payloads** | CPF/CNPJ com DV errado e sequências uniformes · fronteiras Unicode canônicas · payloads XSS/SQLi/formato e overflow (**uso defensivo** — ver aviso). |
 
-Mais: **interface em pt/es/en/zh** (seletor de bandeira, detectado do navegador no
-1º uso), **histórico** da sessão, cópia com um clique, **tema**
-claro/escuro/automático, menu de contexto (um item por tipo de documento) e
+Mais: **interface em pt/es/en/zh** (segue o país por padrão, mas o QA pode
+**fixar um idioma** na aba Config — assim dá para gerar dados da China e ler os
+rótulos dos campos em português, sem precisar de mandarim), **histórico** da
+sessão, cópia com um clique, **tema** claro/escuro/automático, menu de contexto
+(um item por tipo de documento) e
 atalho de teclado.
 
 > Os **nomes dos documentos brasileiros** (CPF, CNPJ, RG…) não são traduzidos —

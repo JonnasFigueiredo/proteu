@@ -3,7 +3,8 @@
 // manifest). Nenhuma requisição de rede acontece aqui nem em lugar nenhum.
 
 import { carregarConfig, persistirContador, adicionarHistorico, carregarHistorico } from "../storage.js";
-import { gerar, tiposDoPais, PAIS_PADRAO } from "../core/gerador.js";
+import { gerar, tiposDoPais, idiomaDoPais, PAIS_PADRAO } from "../core/gerador.js";
+import { t, rotuloDoTipo } from "../core/i18n.js";
 
 const PREFIXO_MENU = "proteu:gerar:";
 
@@ -12,7 +13,10 @@ const PREFIXO_MENU = "proteu:gerar:";
 /** (Re)constrói o menu de contexto conforme o país ativo na config. */
 async function reconstruirMenu() {
   const config = await carregarConfig();
-  const tipos = tiposDoPais(config.pais || PAIS_PADRAO);
+  const pais = config.pais || PAIS_PADRAO;
+  const tipos = tiposDoPais(pais);
+  // Idioma da interface: fixado pelo QA ou, se automático, o do país.
+  const idioma = config.idiomaFixo || idiomaDoPais(pais);
   await chrome.contextMenus.removeAll();
   chrome.contextMenus.create({
     id: "proteu:raiz",
@@ -23,7 +27,7 @@ async function reconstruirMenu() {
     chrome.contextMenus.create({
       id: PREFIXO_MENU + tipo,
       parentId: "proteu:raiz",
-      title: `Gerar ${def.rotulo}`,
+      title: `${t(idioma, "gerar")} ${rotuloDoTipo(def, idioma)}`,
       contexts: ["editable"],
     });
   }
@@ -34,9 +38,12 @@ chrome.runtime.onInstalled.addListener(reconstruirMenu);
 // Troca de país (ou primeira definição) → refaz o menu.
 chrome.storage.onChanged.addListener((mudancas, area) => {
   if (area === "sync" && mudancas.config) {
-    const antes = mudancas.config.oldValue?.pais;
-    const depois = mudancas.config.newValue?.pais;
-    if (antes !== depois) reconstruirMenu();
+    const antes = mudancas.config.oldValue;
+    const depois = mudancas.config.newValue;
+    // País ou idioma da interface mudou → refaz os rótulos do menu.
+    if (antes?.pais !== depois?.pais || antes?.idiomaFixo !== depois?.idiomaFixo) {
+      reconstruirMenu();
+    }
   }
 });
 

@@ -90,6 +90,18 @@ describe("normalizarConfig", () => {
     expect(normalizarConfig({ pais: "zz" }).pais).toBeNull();
   });
 
+  it("idiomaFixo começa null (automático, segue o país)", () => {
+    expect(configPadrao().idiomaFixo).toBeNull();
+  });
+
+  it("aceita idiomaFixo válido e rejeita o resto (vira null = automático)", () => {
+    expect(normalizarConfig({ idiomaFixo: "pt" }).idiomaFixo).toBe("pt");
+    expect(normalizarConfig({ idiomaFixo: "zh" }).idiomaFixo).toBe("zh");
+    expect(normalizarConfig({ idiomaFixo: "en" }).idiomaFixo).toBe("en");
+    expect(normalizarConfig({ idiomaFixo: "xx" }).idiomaFixo).toBeNull();
+    expect(normalizarConfig({ idiomaFixo: "auto" }).idiomaFixo).toBeNull();
+  });
+
   it("ignora chaves desconhecidas", () => {
     const c = normalizarConfig({ hacker: true, documentos: { x: 1 } });
     expect(c.hacker).toBeUndefined();
