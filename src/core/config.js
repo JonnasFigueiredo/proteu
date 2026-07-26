@@ -27,7 +27,7 @@ export function configPadrao() {
 // Valores aceitos.
 const TEMAS = ["auto", "claro", "escuro"];
 // Países previstos (nem todos implementados ainda; o popup só oferece os prontos).
-const PAISES_VALIDOS = ["br", "us", "ar", "cl", "mx", "uy", "py"];
+const PAISES_VALIDOS = ["br", "us", "ca", "ar", "cl", "mx", "uy", "py", "cn"];
 
 /** Gera uma seed hex curta e aleatória (não faz parte da lógica determinística). */
 export function gerarSeedAleatoria() {

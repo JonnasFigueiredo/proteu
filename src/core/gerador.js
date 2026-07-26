@@ -11,12 +11,16 @@ import { criarRng } from "./seed.js";
 import { BR } from "./paises/br.js";
 import { US } from "./paises/us.js";
 import { AR } from "./paises/ar.js";
+import { CA } from "./paises/ca.js";
+import { CN } from "./paises/cn.js";
 
 // Países implementados (com geradores prontos).
 export const PAISES = {
   br: BR,
   us: US,
+  ca: CA,
   ar: AR,
+  cn: CN,
 };
 
 export const PAIS_PADRAO = "br";
@@ -26,11 +30,13 @@ export const PAIS_PADRAO = "br";
 export const PAISES_DISPONIVEIS = [
   { codigo: "br", rotulo: "Brasil", idioma: "pt", implementado: true },
   { codigo: "us", rotulo: "Estados Unidos", idioma: "en", implementado: true },
+  { codigo: "ca", rotulo: "Canadá", idioma: "en", implementado: true },
   { codigo: "ar", rotulo: "Argentina", idioma: "es", implementado: true },
   { codigo: "cl", rotulo: "Chile", idioma: "es", implementado: false },
   { codigo: "mx", rotulo: "México", idioma: "es", implementado: false },
   { codigo: "uy", rotulo: "Uruguai", idioma: "es", implementado: false },
   { codigo: "py", rotulo: "Paraguai", idioma: "es", implementado: false },
+  { codigo: "cn", rotulo: "China", idioma: "zh", implementado: true },
 ];
 
 /** Devolve o registro de tipos do país (cai no padrão se desconhecido). */

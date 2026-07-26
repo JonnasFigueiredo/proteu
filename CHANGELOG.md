@@ -10,6 +10,24 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   um arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.13.0] — 2026-07-26
+
+### Adicionado
+- **China** 🇨🇳 (interface em chinês simplificado): nome (姓名), datas, número de
+  identidade — 居民身份证 com DV **ISO 7064 MOD 11-2** —, código postal,
+  telefone celular, **USCC** (统一社会信用代码, 18 caracteres, DV
+  **ISO 7064 MOD 31-3**) e razão social.
+- **Canadá** 🇨🇦 (interface em inglês): name, datas, **SIN** e **Business
+  Number** (ambos com dígito verificador **Luhn**), postal code (`A1A 1A1`),
+  telefone (NANP) e company name.
+- **4º idioma de interface**: chinês simplificado (`zh`), com dicionário completo
+  em `core/i18n.js` (paridade de chaves garantida por teste).
+- Bandeiras de China e Canadá no modal de seleção de país (SVG inline).
+
+### Alterado
+- Modal de país agora lista **9 países** (Brasil, EUA, Canadá, Argentina e China
+  prontos; Chile, México, Uruguai e Paraguai "em breve").
+
 ## [0.12.0] — 2026-07-25
 
 ### Adicionado

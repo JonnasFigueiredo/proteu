@@ -12,9 +12,10 @@ em runtime · apenas 4 permissões · Vanilla JS (sem build).
 
 **Multi-país:** um seletor de país (bandeira no cabeçalho) define de qual país os
 dados gerados são equivalentes, e a interface acompanha o idioma (Brasil → pt;
-EUA → en; hispano-americanos → es). Prontos: **Brasil, Estados Unidos e
-Argentina**. **Chile, México, Uruguai e Paraguai** entram em seguida (a
-arquitetura já suporta — cada país é um arquivo em `src/core/paises/`).
+EUA e Canadá → en; hispano-americanos → es; China → zh). Prontos: **Brasil,
+Estados Unidos, Canadá, Argentina e China**. **Chile, México, Uruguai e
+Paraguai** entram em seguida (a arquitetura já suporta — cada país é um arquivo
+em `src/core/paises/`).
 
 ---
 
@@ -42,7 +43,7 @@ arquitetura já suporta — cada país é um arquivo em `src/core/paises/`).
 | **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. |
 | **Massa inválida & payloads** | CPF/CNPJ com DV errado e sequências uniformes · fronteiras Unicode canônicas · payloads XSS/SQLi/formato e overflow (**uso defensivo** — ver aviso). |
 
-Mais: **interface em pt/es/en** (seletor de bandeira, detectado do navegador no
+Mais: **interface em pt/es/en/zh** (seletor de bandeira, detectado do navegador no
 1º uso), **histórico** da sessão, cópia com um clique, **tema**
 claro/escuro/automático, menu de contexto (um item por tipo de documento) e
 atalho de teclado.
@@ -107,9 +108,9 @@ reproduzivel/
 │   ├── core/                         # lógica PURA: sem DOM, sem chrome.* → 100% testável
 │   │   ├── seed.js                   # PRNG determinístico (xmur3 → sfc32)
 │   │   ├── config.js                 # defaults + normalização/validação (tema, idioma)
-│   │   ├── i18n.js                    # traduções da interface (pt / es / en)
+│   │   ├── i18n.js                    # traduções da interface (pt / es / en / zh)
 │   │   ├── gerador.js                # orquestrador multi-país (PAISES, gerar())
-│   │   ├── paises/                   # um arquivo por país (br.js; us, ar… a seguir)
+│   │   ├── paises/                   # um arquivo por país (br, us, ca, ar, cn)
 │   │   ├── field.js                  # descritor do campo → set de fronteira
 │   │   ├── documents/                # nome, datas, cpf, cnpj (+raiz), rg, cnh, ie,
 │   │   │                             #   cep, telefone, razao-social
