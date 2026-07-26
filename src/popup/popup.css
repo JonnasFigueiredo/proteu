@@ -87,15 +87,10 @@ button {
 }
 
 .logo {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 30px;
   height: 30px;
   border-radius: var(--raio);
-  background: linear-gradient(135deg, var(--azul), var(--azul-forte));
-  color: #fff;
-  font-weight: 700;
-  font-size: 17px;
 }
 
 .cabecalho h1 {
