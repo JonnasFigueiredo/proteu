@@ -32,11 +32,11 @@ export const PAISES_DISPONIVEIS = [
   { codigo: "us", rotulo: "Estados Unidos", idioma: "en", implementado: true },
   { codigo: "ca", rotulo: "Canadá", idioma: "en", implementado: true },
   { codigo: "ar", rotulo: "Argentina", idioma: "es", implementado: true },
+  { codigo: "cn", rotulo: "China", idioma: "zh", implementado: true },
   { codigo: "cl", rotulo: "Chile", idioma: "es", implementado: false },
   { codigo: "mx", rotulo: "México", idioma: "es", implementado: false },
   { codigo: "uy", rotulo: "Uruguai", idioma: "es", implementado: false },
   { codigo: "py", rotulo: "Paraguai", idioma: "es", implementado: false },
-  { codigo: "cn", rotulo: "China", idioma: "zh", implementado: true },
 ];
 
 /** Devolve o registro de tipos do país (cai no padrão se desconhecido). */
