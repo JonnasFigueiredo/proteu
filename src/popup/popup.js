@@ -693,7 +693,7 @@ async function inserirNoCampoAtivo(valor, modo) {
     try {
       const resp = await chrome.tabs.sendMessage(
         tab.id,
-        { app: "reproduzivel", tipo: "INSERIR", valor, modo },
+        { app: "proteu", tipo: "INSERIR", valor, modo },
         { frameId: frame.frameId }
       );
       if (resp && resp.ok) inseriu = true;
@@ -725,7 +725,7 @@ async function detectarCampo() {
     try {
       const resp = await chrome.tabs.sendMessage(
         tab.id,
-        { app: "reproduzivel", tipo: "DETECTAR" },
+        { app: "proteu", tipo: "DETECTAR" },
         { frameId: frame.frameId }
       );
       if (resp && resp.ok && resp.descritor) {

@@ -5,7 +5,7 @@
 import { carregarConfig, persistirContador, adicionarHistorico, carregarHistorico } from "../storage.js";
 import { gerar, tiposDoPais, PAIS_PADRAO } from "../core/gerador.js";
 
-const PREFIXO_MENU = "reproduzivel:gerar:";
+const PREFIXO_MENU = "proteu:gerar:";
 
 // --- Menu de contexto (um item por documento do país ativo) ----------------
 
@@ -15,14 +15,14 @@ async function reconstruirMenu() {
   const tipos = tiposDoPais(config.pais || PAIS_PADRAO);
   await chrome.contextMenus.removeAll();
   chrome.contextMenus.create({
-    id: "reproduzivel:raiz",
+    id: "proteu:raiz",
     title: "Proteu QA",
     contexts: ["editable"],
   });
   for (const [tipo, def] of Object.entries(tipos)) {
     chrome.contextMenus.create({
       id: PREFIXO_MENU + tipo,
-      parentId: "reproduzivel:raiz",
+      parentId: "proteu:raiz",
       title: `Gerar ${def.rotulo}`,
       contexts: ["editable"],
     });
@@ -91,7 +91,7 @@ async function inserirNoCampo(tabId, frameId, valor, modo) {
     return;
   }
 
-  const msg = { app: "reproduzivel", tipo: "INSERIR", valor, modo };
+  const msg = { app: "proteu", tipo: "INSERIR", valor, modo };
   const opcoes = frameId !== undefined ? { frameId } : undefined;
   try {
     await chrome.tabs.sendMessage(tabId, msg, opcoes);

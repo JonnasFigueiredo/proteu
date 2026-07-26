@@ -61,9 +61,9 @@ describe("service worker — menu de contexto", () => {
     await ctx.listeners.instalado();
     await flush();
     const ids = ctx.menusCriados.map((m) => m.id);
-    expect(ids).toContain("reproduzivel:raiz");
-    expect(ids).toContain("reproduzivel:gerar:cpf");
-    expect(ids).toContain("reproduzivel:gerar:cnpj");
+    expect(ids).toContain("proteu:raiz");
+    expect(ids).toContain("proteu:gerar:cpf");
+    expect(ids).toContain("proteu:gerar:cnpj");
     // Todos os itens de gerar aparecem só em campo editável.
     for (const m of ctx.menusCriados) {
       expect(m.contexts).toContain("editable");
@@ -72,7 +72,7 @@ describe("service worker — menu de contexto", () => {
 
   it("clicar em 'Gerar CPF' gera, avança contador, registra histórico e manda inserir", async () => {
     await ctx.listeners.menuClicado(
-      { menuItemId: "reproduzivel:gerar:cpf", frameId: 0 },
+      { menuItemId: "proteu:gerar:cpf", frameId: 0 },
       { id: 42 }
     );
     await flush();
@@ -91,7 +91,7 @@ describe("service worker — menu de contexto", () => {
     expect(ultima.tabId).toBe(42);
     expect(ultima.opcoes).toEqual({ frameId: 0 });
     expect(ultima.msg).toMatchObject({
-      app: "reproduzivel",
+      app: "proteu",
       tipo: "INSERIR",
       valor: item.valor,
     });
@@ -99,7 +99,7 @@ describe("service worker — menu de contexto", () => {
 
   it("clicar em 'Gerar CNPJ' continua avançando o contador e gera CNPJ válido", async () => {
     await ctx.listeners.menuClicado(
-      { menuItemId: "reproduzivel:gerar:cnpj", frameId: 0 },
+      { menuItemId: "proteu:gerar:cnpj", frameId: 0 },
       { id: 42 }
     );
     await flush();

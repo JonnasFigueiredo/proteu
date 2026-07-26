@@ -15,8 +15,8 @@
 
 (() => {
   // Evita reexecução se o script for injetado mais de uma vez no mesmo frame.
-  if (window.__reproduzivelInjetado) return;
-  window.__reproduzivelInjetado = true;
+  if (window.__proteuInjetado) return;
+  window.__proteuInjetado = true;
 
   /** Último elemento editável que recebeu foco/clique neste frame. */
   let alvoAtual = null;
@@ -142,7 +142,7 @@
 
   // Roteia mensagens vindas do popup/service worker.
   chrome.runtime.onMessage.addListener((msg, _sender, responder) => {
-    if (!msg || msg.app !== "reproduzivel") return false;
+    if (!msg || msg.app !== "proteu") return false;
 
     switch (msg.tipo) {
       case "PING":
