@@ -10,13 +10,24 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   um arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.12.0] — 2026-07-25
+
+### Adicionado
+- **Ícone da extensão**: uma **joaninha** (o "bug" clássico do QA) sobre o
+  quadrado arredondado azul da marca, nos 4 tamanhos (16/32/48/128). Gerado por
+  `icons/gerar-icones.ps1` (System.Drawing), regenerável.
+
+### Alterado
+- **Identificadores internos** renomeados de `reproduzivel` para `proteu`:
+  protocolo de mensagens (`app: "proteu"`), IDs do menu de contexto, flag de
+  injeção (`window.__proteuInjetado`) e referências nos testes e2e.
+
 ## [0.11.0] — 2026-07-25
 
 ### Alterado
 - **Renome da extensão** de "Reproduzível" para **Proteu QA** (nome, título,
   cabeçalho do popup — logo "P" — e menu de contexto). Os identificadores
-  internos (protocolo de mensagens `reproduzivel`, IDs de menu, chave de storage
-  e a pasta do projeto) permanecem inalterados para não quebrar a integração.
+  internos permaneciam inalterados nesta versão (renomeados na 0.12.0).
 
 ## [0.10.0] — 2026-07-25
 
@@ -224,6 +235,8 @@ Primeira rodada. Base da extensão e dos documentos centrais.
 - Testes (Vitest) para seed, CPF, CNPJ, config, storage e gerador.
 
 [Não lançado]: https://example.com/
+[0.12.0]: https://example.com/
+[0.11.0]: https://example.com/
 [0.10.0]: https://example.com/
 [0.9.0]: https://example.com/
 [0.8.0]: https://example.com/
