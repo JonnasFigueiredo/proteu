@@ -10,6 +10,14 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.19.0] — 2026-07-27
+
+### Adicionado
+- **Busca de país** (lupa) no modal de seleção: com 8 países prontos + os "em
+  breve", a lista ficou longa. O filtro é **acento-insensível** e casa pelo nome
+  no idioma atual, pelo nome canônico (pt) ou pelo **código** do país (ex.:
+  "mexico", "méxico" ou "mx" acham o México). Ao abrir, o campo já vem focado.
+
 ## [0.18.0] — 2026-07-27
 
 ### Adicionado

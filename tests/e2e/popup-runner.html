@@ -183,6 +183,14 @@
         assert("P13 EUA, Canadá, Argentina, China, Arábia Saudita e México habilitados", !$('.pais-btn[data-pais="us"]').disabled && !$('.pais-btn[data-pais="ca"]').disabled && !$('.pais-btn[data-pais="ar"]').disabled && !$('.pais-btn[data-pais="cn"]').disabled && !$('.pais-btn[data-pais="sa"]').disabled && !$('.pais-btn[data-pais="mx"]').disabled && !$('.pais-btn[data-pais="in"]').disabled);
         assert("P13 Chile ainda 'em breve' (desabilitado)", cl.disabled);
         assert("P13 país persistido é 'br' e interface em pt", cfg().pais === "br" && document.documentElement.lang === "pt-BR", cfg().pais);
+        // Busca de país: acento-insensível e por código.
+        const visiveisPais = () => [...document.querySelectorAll("#lista-paises li")].filter((li) => !li.hidden);
+        $("#busca-pais").value = "mexico"; $("#busca-pais").dispatchEvent(new Event("input")); await espera(15);
+        assert("P13 busca 'mexico' (sem acento) acha só o México", visiveisPais().length === 1 && visiveisPais()[0].querySelector(".pais-btn").dataset.pais === "mx");
+        $("#busca-pais").value = "zzz"; $("#busca-pais").dispatchEvent(new Event("input")); await espera(15);
+        assert("P13 busca sem resultado exibe aviso", $("#modal-sem-pais").hidden === false);
+        $("#busca-pais").value = ""; $("#busca-pais").dispatchEvent(new Event("input")); await espera(15);
+        assert("P13 limpar busca mostra os 11 de novo", visiveisPais().length === 11);
         $("#modal-fechar").click(); await espera(20);
         assert("P13 modal fecha", $("#modal-pais").hidden);
 

@@ -233,7 +233,12 @@
             <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
           </button>
         </div>
+        <div class="modal__busca-wrap">
+          <svg class="modal__busca-ic ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+          <input id="busca-pais" class="modal__busca" type="search" data-i18n-ph="modal_buscar_pais" placeholder="Buscar país…" aria-label="Buscar país" autocomplete="off" />
+        </div>
         <ul id="lista-paises" class="lista-paises"></ul>
+        <p id="modal-sem-pais" class="modal__sem" data-i18n="modal_sem_pais" hidden>Nenhum país encontrado.</p>
       </div>
     </div>
 

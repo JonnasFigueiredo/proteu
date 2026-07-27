@@ -335,6 +335,9 @@ function montarModalPaises() {
   lista.textContent = "";
   for (const pais of PAISES_DISPONIVEIS) {
     const li = document.createElement("li");
+    // Busca "fixa" (independe do idioma): nome canônico PT + código do país.
+    // Combinada com o nome traduzido (lido ao vivo) no filtro.
+    li.dataset.buscaFixa = normalizarBusca(`${pais.rotulo} ${pais.codigo}`);
     const btn = document.createElement("button");
     btn.className = "pais-btn";
     btn.dataset.pais = pais.codigo;
@@ -362,8 +365,30 @@ function montarModalPaises() {
   }
 }
 
+/** Normaliza p/ busca: minúsculas, sem acentos, aparado. */
+function normalizarBusca(s) {
+  return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+}
+
+/** Filtra os países do modal pelo termo (nome traduzido, nome PT ou código). */
+function filtrarPaises(termo) {
+  const q = normalizarBusca(termo);
+  let visiveis = 0;
+  for (const li of document.querySelectorAll("#lista-paises li")) {
+    const nome = li.querySelector(".nome")?.textContent || "";
+    const bate = !q || li.dataset.buscaFixa.includes(q) || normalizarBusca(nome).includes(q);
+    li.hidden = !bate;
+    if (bate) visiveis++;
+  }
+  $("#modal-sem-pais").hidden = visiveis > 0;
+}
+
 function abrirModalPais() {
   $("#modal-pais").hidden = false;
+  const busca = $("#busca-pais");
+  busca.value = "";
+  filtrarPaises(""); // mostra todos
+  busca.focus();
 }
 
 function fecharModalPais() {
@@ -504,6 +529,7 @@ function ligarEventos() {
   $("#sel-idioma").addEventListener("change", aoMudarIdioma);
 
   $("#btn-pais").addEventListener("click", abrirModalPais);
+  $("#busca-pais").addEventListener("input", (e) => filtrarPaises(e.target.value));
   document.querySelectorAll("#modal-pais [data-fechar]").forEach((el) =>
     el.addEventListener("click", fecharModalPais)
   );
