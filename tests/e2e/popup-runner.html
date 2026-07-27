@@ -41,6 +41,7 @@
       import { validarSin, validarBn } from "/src/core/documents/ca.js";
       import { validarNationalIdSA, validarVatSA } from "/src/core/documents/sa.js";
       import { validarCurpMX, validarRfcMX, validarNssMX } from "/src/core/documents/mx.js";
+      import { validarAadhaar, validarGstin, validarPan } from "/src/core/documents/in.js";
       import { tiposDoPais } from "/src/core/gerador.js";
       const TIPOS = tiposDoPais("br");
       import { contarTudo } from "/src/core/text/contagem.js";
@@ -175,11 +176,11 @@
         $("#btn-pais").click(); await espera(20);
         assert("P13 modal de país abre", !$("#modal-pais").hidden);
         const paises = [...document.querySelectorAll(".pais-btn")];
-        assert("P13 lista os 10 países", paises.length === 10, paises.length);
+        assert("P13 lista os 11 países", paises.length === 11, paises.length);
         const br = $('.pais-btn[data-pais="br"]');
         const cl = $('.pais-btn[data-pais="cl"]');
         assert("P13 Brasil ativo e habilitado", br.classList.contains("ativo") && !br.disabled);
-        assert("P13 EUA, Canadá, Argentina, China, Arábia Saudita e México habilitados", !$('.pais-btn[data-pais="us"]').disabled && !$('.pais-btn[data-pais="ca"]').disabled && !$('.pais-btn[data-pais="ar"]').disabled && !$('.pais-btn[data-pais="cn"]').disabled && !$('.pais-btn[data-pais="sa"]').disabled && !$('.pais-btn[data-pais="mx"]').disabled);
+        assert("P13 EUA, Canadá, Argentina, China, Arábia Saudita e México habilitados", !$('.pais-btn[data-pais="us"]').disabled && !$('.pais-btn[data-pais="ca"]').disabled && !$('.pais-btn[data-pais="ar"]').disabled && !$('.pais-btn[data-pais="cn"]').disabled && !$('.pais-btn[data-pais="sa"]').disabled && !$('.pais-btn[data-pais="mx"]').disabled && !$('.pais-btn[data-pais="in"]').disabled);
         assert("P13 Chile ainda 'em breve' (desabilitado)", cl.disabled);
         assert("P13 país persistido é 'br' e interface em pt", cfg().pais === "br" && document.documentElement.lang === "pt-BR", cfg().pais);
         $("#modal-fechar").click(); await espera(20);
@@ -221,6 +222,12 @@
         assert("P14 China: interface em chinês", document.documentElement.lang === "zh-CN" && $("#btn-inserir").textContent === "插入到字段");
         assert("P14 China: ID card gerado é válido (MOD 11-2)", validarIdCardCN(await gerarNoPais("idCard")), $("#valor-gerado").textContent);
         assert("P14 China: USCC gerado é válido (MOD 31-3)", validarUscc(await gerarNoPais("uscc")), $("#valor-gerado").textContent);
+
+        await trocarPais("in");
+        assert("P14 Índia: interface em híndi", document.documentElement.lang === "hi" && $("#btn-inserir").textContent === "फ़ील्ड में डालें");
+        assert("P14 Índia: Aadhaar gerado é válido (Verhoeff)", validarAadhaar(await gerarNoPais("aadhaar")), $("#valor-gerado").textContent);
+        assert("P14 Índia: GSTIN gerado é válido (base-36)", validarGstin(await gerarNoPais("gstin")), $("#valor-gerado").textContent);
+        assert("P14 Índia: PAN gerado tem formato válido", validarPan(await gerarNoPais("pan")), $("#valor-gerado").textContent);
 
         await trocarPais("br"); // volta ao Brasil para não afetar outros checks
         assert("P14 volta ao Brasil (pt)", cfg().pais === "br" && document.documentElement.lang === "pt-BR");

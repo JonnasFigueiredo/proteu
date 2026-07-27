@@ -10,6 +10,19 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.18.0] — 2026-07-27
+
+### Adicionado
+- **Índia** 🇮🇳 (interface em **híndi**, Devanágari): **Aadhaar** (12 dígitos,
+  dígito verificador de **Verhoeff** — grupo diédrico D5, a primeira classe de
+  checksum não-modular do projeto), **PAN** (formato AAAAA9999A), **GSTIN**
+  (15 caracteres, verificador base-36/mod 36), PIN code, celular e razão social.
+  Nomes e empresas romanizados (como os sistemas reais armazenam); só os rótulos
+  são em híndi. Funciona com o idioma fixável (QA lê os rótulos em pt).
+- **6º idioma de interface**: híndi (`hi`, LTR). Dicionário completo em
+  `core/i18n.js`, paridade garantida por teste.
+- Bandeira da Índia no modal; detecção de `hi` no primeiro uso.
+
 ## [0.17.0] — 2026-07-27
 
 ### Adicionado
