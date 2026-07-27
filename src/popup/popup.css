@@ -862,10 +862,178 @@ input:focus-visible {
   color: var(--verde);
 }
 
+/* --- Casos-limite --------------------------------------------------------- */
+.lim-intro {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--texto-fraco);
+}
+
+.lim-busca-wrap {
+  margin-bottom: 10px;
+}
+.lim-busca {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--texto);
+  background: var(--fundo);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+}
+.lim-busca:focus {
+  outline: none;
+  border-color: var(--azul);
+  box-shadow: 0 0 0 2px var(--azul-suave);
+}
+
+.lim-familia {
+  margin-bottom: 14px;
+}
+.lim-familia__cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.lim-familia__tit {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--texto-fraco);
+}
+.lim-copiar-todos {
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--azul);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--raio-sm);
+  cursor: pointer;
+}
+.lim-copiar-todos:hover {
+  background: var(--azul-suave);
+}
+
+.lim-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lim-caso {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  overflow: hidden;
+}
+.lim-caso:hover {
+  border-color: var(--azul);
+}
+.lim-caso--perigo {
+  border-inline-start: 3px solid var(--vermelho);
+}
+
+.lim-caso__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 7px 9px;
+  text-align: start;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+}
+.lim-caso__main:hover {
+  background: var(--superficie-2);
+}
+.lim-caso__main:focus-visible {
+  outline: 2px solid var(--azul);
+  outline-offset: -2px;
+}
+
+.lim-caso__l1 {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lim-caso__valor {
+  max-width: 100%;
+  padding: 1px 5px;
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--texto);
+  background: var(--superficie-2);
+  border-radius: var(--raio-sm);
+  unicode-bidi: plaintext;
+}
+.lim-caso__valor--vazio {
+  font-style: italic;
+  color: var(--texto-fraco);
+  font-family: inherit;
+}
+.lim-caso__rot {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--texto);
+}
+.lim-caso__pq {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--texto-fraco);
+}
+.lim-caso__cont {
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 10.5px;
+  color: var(--texto-fraco);
+}
+
+.lim-caso__copiar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  color: var(--texto-fraco);
+  background: transparent;
+  border: 0;
+  border-inline-start: 1px solid var(--borda);
+  cursor: pointer;
+}
+.lim-caso__copiar:hover {
+  color: var(--azul);
+  background: var(--superficie-2);
+}
+.lim-caso__copiar .ic {
+  width: 15px;
+  height: 15px;
+}
+
+.lim-sem-resultado {
+  margin: 4px 0 14px;
+  font-size: 12px;
+  text-align: center;
+  color: var(--texto-fraco);
+}
+
 /* --- RTL (árabe) ---------------------------------------------------------
-   O dir="rtl" no <html> já espelha o fluxo (flex, alinhamento de texto).
-   Aqui corrigimos as poucas regras com lado fixo (left/right explícitos). */
+   O dir="rtl" no <html> já espelha o fluxo (flex, alinhamento de texto e as
+   propriedades lógicas inline acima). Aqui só o que usa lado físico fixo. */
 [dir="rtl"] .pais-btn { text-align: right; }
 [dir="rtl"] .ic-selo { margin-right: 0; margin-left: 3px; }
 [dir="rtl"] .switch__trilho::after { left: auto; right: 2px; }
 [dir="rtl"] .switch input:checked + .switch__trilho::after { transform: translateX(-14px); }
+/* Valores de caso são sempre LTR (dir="ltr" no elemento), mas ficam à direita
+   no fluxo RTL — o unicode-bidi: plaintext preserva a leitura correta. */

@@ -41,7 +41,7 @@ arquitetura já suporta — cada país é um arquivo em `src/core/paises/`).
 | **Detecção → fronteira** | Chips clicáveis a partir do campo focado: `maxlength` ±1, `number` min/max + `1e999`/`NaN`, datas de fronteira, e-mails que passam na regex mas quebram no servidor, strings Unicode. |
 | **Texto** | 9 idiomas (pt, es, ar, tr, ru, zh, hi, ja, he — cada um cobrindo um problema real de i18n) · geração **por tamanho exata** nas 4 unidades de contagem · **pseudolocale** (`Save` → `Šávé`) com expansão, marcadores `⟦…⟧`, preservação de placeholders e modo `fakebidi`. |
 | **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. |
-| **Massa inválida & payloads** | CPF/CNPJ com DV errado e sequências uniformes · fronteiras Unicode canônicas · payloads XSS/SQLi/formato e overflow (**uso defensivo** — ver aviso). |
+| **Casos-limite** | Arsenal de entradas que quebram sistemas, cada uma com o **porquê**: fronteiras Unicode (contagens inline), payloads XSS/SQLi/formato (**uso defensivo**), números & datas de borda, espaços/controle invisíveis, formatos inválidos e overflow. Busca + "copiar todos"; 1 clique insere no campo. |
 
 Mais: **interface em pt/es/en/zh** (segue o país por padrão, mas o QA pode
 **fixar um idioma** na aba Config — assim dá para gerar dados da China e ler os
@@ -67,7 +67,7 @@ atalho de teclado.
 
 ### O popup
 
-- **Abas** — *Documentos*, *Texto* e *Inválidos*; os ícones do cabeçalho abrem
+- **Abas** — *Documentos*, *Texto* e *Casos-limite*; os ícones do cabeçalho abrem
   *Histórico* e *Configurações*. Só um bloco aparece por vez.
 - **Documentos** — opção "Com máscara" e o toggle "CNPJ alfanumérico (novo
   padrão)" ficam no topo; os botões são agrupados por categoria (Pessoa,
@@ -117,7 +117,7 @@ reproduzivel/
 │   │   ├── documents/                # nome, datas, cpf, cnpj (+raiz), rg, cnh, ie,
 │   │   │                             #   cep, telefone, razao-social
 │   │   ├── text/                     # contagem, idiomas, tamanho, pseudolocale
-│   │   └── invalid/                  # documentos-invalidos, unicode, payloads
+│   │   └── invalid/                  # casos-limite, unicode, payloads, valores-limite
 │   ├── storage.js                    # adaptador chrome.storage (ponte p/ core/config)
 │   ├── content/content.js            # detecção do campo + inserção robusta (injetado sob demanda)
 │   ├── background/service-worker.js  # menu de contexto, atalhos, roteamento da inserção
@@ -211,7 +211,7 @@ npm run test:watch
 
 ## Aviso sobre os payloads (uso defensivo)
 
-A seção **"Inválidos & payloads"** inclui strings de ataque (XSS básico, SQL
+A aba **"Casos-limite"** inclui strings de ataque (XSS básico, SQL
 injection, overflow de tamanho) voltadas a **teste exploratório defensivo**. Elas
 existem para você exercitar a validação e o escaping **de sistemas próprios, em
 ambientes de teste sob sua responsabilidade**. **Não** as use contra sistemas de

@@ -10,6 +10,29 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   um arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.16.0] — 2026-07-27
+
+### Alterado
+- Aba **"Inválidos" reformulada em "Casos-limite"**: agora é um **arsenal de
+  entradas que quebram sistemas**, com valor de QA. Cada caso mostra o **valor**,
+  o **porquê** (o bug que expõe) e — no Unicode — as **4 contagens** inline
+  (grafema · code point · code unit · byte). Um clique **insere no campo focado**
+  (ou copia). Tem **busca** que filtra por rótulo/porquê/tags, **"copiar todos"**
+  por família e marcadores visuais para caracteres invisíveis (NBSP, NUL, BOM,
+  zero-width, RTL override, tab/newline). UX nova, com tema claro/escuro e RTL.
+
+### Adicionado
+- Famílias de casos-limite: **Unicode & i18n**, **Segurança (payloads)**,
+  **Números & datas** (0, −1, estouro de int32, float traiçoeiro, 29/02 não
+  bissexto, 31/04, ano 0000…), **Espaços & controle** (vazio, só espaços, NBSP,
+  NUL, tab/newline) e **Formatos inválidos** (e-mail/URL/telefone malformados).
+- Módulos `core/invalid/valores-limite.js` e `core/invalid/casos-limite.js`.
+
+### Removido
+- Geradores de **CPF/CNPJ inválidos** e a subseção "Documentos com DV errado"
+  (eram só do Brasil e não cabiam na aba multi-país). Arquivo
+  `core/invalid/documentos-invalidos.js` removido.
+
 ## [0.15.0] — 2026-07-26
 
 ### Adicionado

@@ -138,33 +138,20 @@
 
       <!-- Inválidos & payloads -->
       <section class="painel" data-view="invalidos" role="tabpanel">
-        <div class="grupo-doc">
-          <span class="grupo-doc__rot" data-i18n="docs_dv_errado">Documentos com DV errado</span>
-          <div class="grade-doc">
-            <button class="doc-btn perigo-btn" data-invalido="cpf" data-i18n="cpf_invalido">CPF inválido</button>
-            <button class="doc-btn perigo-btn" data-invalido="cnpj" data-i18n="cnpj_invalido">CNPJ inválido</button>
+        <p class="lim-intro" data-i18n="lim_intro">Entradas que costumam quebrar sistemas. Clique para inserir no campo focado (ou copiar).</p>
+
+        <div class="lim-busca-wrap">
+          <input id="lim-busca" class="lim-busca" type="search" data-i18n-ph="lim_buscar" placeholder="Buscar caso…" aria-label="Buscar caso" autocomplete="off" />
+        </div>
+
+        <div id="lim-familias"></div>
+
+        <p id="lim-sem-resultado" class="lim-sem-resultado" data-i18n="lim_sem_resultado" hidden>Nenhum caso encontrado.</p>
+
+        <div class="lim-familia" data-fam="tamanho">
+          <div class="lim-familia__cab">
+            <span class="lim-familia__tit" data-i18n="lim_fam_tamanho">Tamanho / overflow</span>
           </div>
-          <div id="resultado-invalido" class="resultado" hidden>
-            <output id="valor-invalido" class="valor"></output>
-            <div class="acoes-resultado">
-              <button id="btn-copiar-invalido" class="secundario" data-i18n="copiar">Copiar</button>
-              <button id="btn-inserir-invalido" class="primario" data-i18n="inserir_campo">Inserir no campo</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="campo-rotulado">
-          <span class="rot-mini" data-i18n="fronteiras_unicode">Fronteiras Unicode</span>
-          <div id="chips-unicode" class="chips"></div>
-        </div>
-
-        <div class="campo-rotulado">
-          <span class="rot-mini" data-i18n="payloads_defensivo">Payloads — uso defensivo</span>
-          <div id="chips-payloads" class="chips"></div>
-        </div>
-
-        <div class="campo-rotulado">
-          <span class="rot-mini" data-i18n="overflow_tamanho">Overflow de tamanho</span>
           <div class="linha-texto">
             <input id="overflow-tam" type="number" min="1" max="1000000" value="10000" aria-label="Overflow" />
             <button id="btn-overflow" class="secundario" data-i18n="gerar_overflow">Gerar overflow</button>

@@ -144,10 +144,25 @@
         $("#btn-gerar-texto").click(); await espera(30);
         assert("P10 idioma árabe marca dir=rtl", $("#valor-texto").dir === "rtl", $("#valor-texto").dir);
 
-        // P11 — documentos inválidos gerados pelo popup são realmente inválidos
-        $('.aba[data-view="invalidos"]').click();
-        $('.doc-btn[data-invalido="cpf"]').click(); await espera(15);
-        assert("P11 CPF inválido gerado é rejeitado", validarCpf($("#valor-invalido").textContent) === false, $("#valor-invalido").textContent);
+        // P11 — aba Casos-limite: famílias, busca e copiar-todos
+        $('.aba[data-view="invalidos"]').click(); await espera(15);
+        const familias = [...document.querySelectorAll("#lim-familias .lim-familia")];
+        assert("P11 renderiza as 5 famílias de casos-limite", familias.length === 5, familias.length);
+        const totalCasos = document.querySelectorAll("#lim-familias .lim-caso").length;
+        assert("P11 há vários casos no total", totalCasos > 20, totalCasos);
+        // Busca filtra: "sql" deve mostrar só casos de SQLi.
+        $("#lim-busca").value = "sql"; $("#lim-busca").dispatchEvent(new Event("input")); await espera(15);
+        const visiveis = [...document.querySelectorAll("#lim-familias .lim-caso")].filter((c) => !c.hidden);
+        assert("P11 busca 'sql' filtra para poucos casos", visiveis.length > 0 && visiveis.length < 8, visiveis.length);
+        assert("P11 famílias sem match ficam escondidas", document.querySelector('.lim-familia[data-fam="numeros"]').hidden === true);
+        // Busca sem resultado mostra aviso.
+        $("#lim-busca").value = "zzzznada"; $("#lim-busca").dispatchEvent(new Event("input")); await espera(15);
+        assert("P11 busca sem resultado exibe aviso", $("#lim-sem-resultado").hidden === false);
+        // Limpa a busca.
+        $("#lim-busca").value = ""; $("#lim-busca").dispatchEvent(new Event("input")); await espera(15);
+        assert("P11 limpar busca some com o aviso", $("#lim-sem-resultado").hidden === true);
+        // Unicode mostra contagens; a família Unicode é a que tem .lim-caso__cont.
+        assert("P11 casos Unicode exibem as contagens inline", document.querySelector('.lim-familia[data-fam="unicode"] .lim-caso__cont') !== null);
 
         // P12 — navegação por abas troca o painel ativo
         $('.aba[data-view="documentos"]').click();

@@ -17,9 +17,8 @@ import { IDIOMAS, CODIGOS_IDIOMA, RTL, gerarPalavras, gerarFrases } from "../cor
 import { gerarPorTamanho } from "../core/text/tamanho.js";
 import { contarTudo } from "../core/text/contagem.js";
 import { pseudolocalizar } from "../core/text/pseudolocale.js";
-import { gerarCpfInvalido, gerarCnpjInvalido } from "../core/invalid/documentos-invalidos.js";
-import { FRONTEIRAS_UNICODE } from "../core/invalid/unicode.js";
-import { todosPayloads, gerarOverflow } from "../core/invalid/payloads.js";
+import { gerarOverflow } from "../core/invalid/payloads.js";
+import { FAMILIAS_LIMITE } from "../core/invalid/casos-limite.js";
 import { t, LANG_ATTR, DIR_ATTR } from "../core/i18n.js";
 import { cnpjDeRaiz } from "../core/documents/cnpj.js";
 
@@ -57,7 +56,6 @@ let config = null;
 let idiomaAtual = "pt";
 let ultimoValor = null;
 let ultimoTexto = null;
-let ultimoInvalido = null;
 let tipoTexto = "palavras"; // "palavras" | "frases" | "tamanho"
 // Grupo de CNPJs da mesma empresa: matriz (0001) e filiais (0002, 0003…).
 let grupoRaiz = null;
@@ -75,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   montarBotoesDocumento();
   montarIdiomas();
   montarModalPaises();
-  montarChipsInvalidos();
+  montarCasosLimite();
   refletirConfigNaUI();
   aplicarIdioma(idiomaAtual);
   atualizarBandeiraPais();
@@ -83,26 +81,155 @@ document.addEventListener("DOMContentLoaded", async () => {
   await detectarCampo();
 });
 
-/** Chips estáticos de Unicode e payloads (clique insere no campo / copia). */
-function montarChipsInvalidos() {
-  const uni = $("#chips-unicode");
-  for (const item of FRONTEIRAS_UNICODE) {
-    uni.appendChild(criarChipValor(item.rotulo, item.valor, item.nota, false));
+// Marcadores visuais para caracteres invisíveis (só na exibição; o valor
+// inserido/copiado permanece cru). Ajuda o QA a "ver" o que está no campo.
+const MARCADORES = {
+  " ": "\u00b7", // espaço comum (só quando marcarEspacos)
+  "\t": "\u21e5",
+  "\n": "\u21b5",
+  "\r": "\u240d",
+  "\u00A0": "\u235d", // NBSP
+  "\u0000": "\u2400", // NUL
+  "\u200B": "\u2205", // zero-width space
+  "\uFEFF": "\u2205", // BOM
+  "\u202E": "\u27f5", // RTL override
+};
+
+/** Versão visível de um valor: troca invisíveis por marcadores; "" vira rótulo. */
+function visualizarValor(valor, marcarEspacos) {
+  if (valor === "") return { texto: t(idiomaAtual, "lim_vazio"), placeholder: true };
+  let saida = "";
+  for (const ch of valor) {
+    if (ch === " ") saida += marcarEspacos ? MARCADORES[" "] : " ";
+    else saida += MARCADORES[ch] ?? ch;
   }
-  const pay = $("#chips-payloads");
-  for (const item of todosPayloads()) {
-    pay.appendChild(criarChipValor(item.rotulo, item.valor, item.valor, true));
+  return { texto: saida, placeholder: false };
+}
+
+/** Contagens compactas (grafema · code point · code unit · byte). */
+function contagensCompactas(valor) {
+  const c = contarTudo(valor);
+  return `${c.grafemas} gr · ${c.codePoints} cp · ${c.codeUnits} cu · ${c.bytes} B`;
+}
+
+/** Monta as famílias de casos-limite na aba (chamado uma vez no init). */
+function montarCasosLimite() {
+  const cont = $("#lim-familias");
+  cont.textContent = "";
+  for (const fam of FAMILIAS_LIMITE) {
+    cont.appendChild(criarFamiliaLimite(fam));
   }
 }
 
-/** Cria um chip que, ao clicar, insere o valor no campo ativo (ou copia). */
-function criarChipValor(rotulo, valor, titulo, perigo) {
-  const chip = document.createElement("button");
-  chip.className = perigo ? "chip perigo" : "chip";
-  chip.textContent = rotulo;
-  chip.title = titulo;
-  chip.addEventListener("click", () => usarValorAvulso(valor, rotulo));
-  return chip;
+function criarFamiliaLimite(fam) {
+  const bloco = document.createElement("div");
+  bloco.className = "lim-familia";
+  bloco.dataset.fam = fam.id;
+
+  const cab = document.createElement("div");
+  cab.className = "lim-familia__cab";
+  const tit = document.createElement("span");
+  tit.className = "lim-familia__tit";
+  tit.dataset.i18n = fam.tituloKey;
+  tit.textContent = t(idiomaAtual, fam.tituloKey);
+  const btnTodos = document.createElement("button");
+  btnTodos.className = "lim-copiar-todos";
+  btnTodos.dataset.i18n = "lim_copiar_todos";
+  btnTodos.textContent = t(idiomaAtual, "lim_copiar_todos");
+  btnTodos.addEventListener("click", () => copiarTodos(fam));
+  cab.append(tit, btnTodos);
+
+  const lista = document.createElement("div");
+  lista.className = "lim-lista";
+  for (const caso of fam.casos) {
+    lista.appendChild(criarCasoLimite(caso, fam));
+  }
+  bloco.append(cab, lista);
+  return bloco;
+}
+
+function criarCasoLimite(caso, fam) {
+  const linha = document.createElement("div");
+  linha.className = "lim-caso" + (fam.perigo ? " lim-caso--perigo" : "");
+  // Texto de busca (rótulo + porquê + tags), usado pelo filtro.
+  linha.dataset.busca = [caso.rotulo, caso.porque, ...(caso.tags || [])]
+    .join(" ").toLowerCase();
+
+  const main = document.createElement("button");
+  main.className = "lim-caso__main";
+  main.title = t(idiomaAtual, "inserir_campo");
+  main.addEventListener("click", () => usarValorAvulso(caso.valor, caso.rotulo));
+
+  const linha1 = document.createElement("div");
+  linha1.className = "lim-caso__l1";
+  const vis = visualizarValor(caso.valor, caso.invisivel);
+  const val = document.createElement("code");
+  val.className = "lim-caso__valor" + (vis.placeholder ? " lim-caso__valor--vazio" : "");
+  val.textContent = vis.texto;
+  val.dir = "ltr"; // valores são sempre mostrados em LTR, mesmo em UI RTL
+  const rot = document.createElement("span");
+  rot.className = "lim-caso__rot";
+  rot.textContent = caso.rotulo;
+  linha1.append(val, rot);
+
+  const pq = document.createElement("span");
+  pq.className = "lim-caso__pq";
+  pq.textContent = caso.porque || "";
+
+  main.append(linha1, pq);
+
+  if (fam.contar) {
+    const cont = document.createElement("span");
+    cont.className = "lim-caso__cont";
+    cont.textContent = contagensCompactas(caso.valor);
+    main.appendChild(cont);
+  }
+
+  const copiar = document.createElement("button");
+  copiar.className = "lim-caso__copiar";
+  copiar.title = t(idiomaAtual, "copiar");
+  copiar.setAttribute("aria-label", t(idiomaAtual, "copiar"));
+  copiar.innerHTML = ICONE_COPIAR;
+  copiar.addEventListener("click", (e) => {
+    e.stopPropagation();
+    copiar_(caso.valor);
+  });
+
+  linha.append(main, copiar);
+  return linha;
+}
+
+/** Copia um valor avulso para a área de transferência com feedback. */
+async function copiar_(valor) {
+  await copiar(valor, "#feedback-invalido");
+}
+
+/** Copia todos os valores de uma família, um por linha. */
+async function copiarTodos(fam) {
+  const texto = fam.casos.map((c) => c.valor).join("\n");
+  try {
+    await navigator.clipboard.writeText(texto);
+    mostrarFeedback(t(idiomaAtual, "lim_copiados", { n: fam.casos.length }), "ok", "#feedback-invalido");
+  } catch {
+    mostrarFeedback(t(idiomaAtual, "fb_copiar_erro"), "erro", "#feedback-invalido");
+  }
+}
+
+/** Filtro de busca: esconde casos/famílias que não batem com o termo. */
+function filtrarCasos(termo) {
+  const q = termo.trim().toLowerCase();
+  let visiveis = 0;
+  for (const fam of document.querySelectorAll("#lim-familias .lim-familia")) {
+    let famVisiveis = 0;
+    for (const caso of fam.querySelectorAll(".lim-caso")) {
+      const bate = !q || caso.dataset.busca.includes(q);
+      caso.hidden = !bate;
+      if (bate) famVisiveis++;
+    }
+    fam.hidden = famVisiveis === 0;
+    visiveis += famVisiveis;
+  }
+  $("#lim-sem-resultado").hidden = visiveis > 0;
 }
 
 /** Opções do seletor de idioma, a partir de core/text/idiomas.js. */
@@ -310,6 +437,9 @@ function aplicarIdioma(idioma) {
   document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
     el.setAttribute("aria-label", t(idioma, el.dataset.i18nAria));
   });
+  document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
+    el.placeholder = t(idioma, el.dataset.i18nPh);
+  });
 
   // Rótulos de categoria (montados dinamicamente).
   document.querySelectorAll(".grupo-doc__rot[data-cat]").forEach((el) => {
@@ -377,12 +507,8 @@ function ligarEventos() {
     el.addEventListener("click", fecharModalPais)
   );
 
-  document.querySelectorAll(".doc-btn[data-invalido]").forEach((b) =>
-    b.addEventListener("click", () => aoGerarInvalido(b.dataset.invalido))
-  );
   $("#btn-overflow").addEventListener("click", aoGerarOverflow);
-  $("#btn-copiar-invalido").addEventListener("click", () => copiar(ultimoInvalido, "#feedback-invalido"));
-  $("#btn-inserir-invalido").addEventListener("click", aoInserirInvalido);
+  $("#lim-busca").addEventListener("input", (e) => filtrarCasos(e.target.value));
 
   document.querySelectorAll("#txt-tipo .seg").forEach((b) =>
     b.addEventListener("click", () => selecionarTipoTexto(b.dataset.tipo))
@@ -620,30 +746,7 @@ async function aoInserirTexto() {
   mostrarFeedback(f.texto, f.tipo, "#feedback-texto");
 }
 
-// --- Massa inválida e payloads ----------------------------------------------
-
-async function aoGerarInvalido(tipo) {
-  const { rng, usado } = await proximoRng();
-  const r =
-    tipo === "cnpj"
-      ? gerarCnpjInvalido(rng, { mascara: config.documentos.mascara })
-      : gerarCpfInvalido(rng, { mascara: config.documentos.mascara });
-  ultimoInvalido = r.valor;
-
-  $("#valor-invalido").textContent = r.valor;
-  $("#resultado-invalido").hidden = false;
-  const motivo = t(idiomaAtual, r.motivo === "dv-errado" ? "motivo_dv_errado" : "motivo_uniforme");
-  mostrarFeedback(t(idiomaAtual, "fb_invalido_pronto", { motivo }), "ok", "#feedback-invalido");
-
-  await adicionarHistorico({
-    tipo: `inválido:${tipo}`,
-    valor: r.valor,
-    seed: config.seed,
-    contador: usado,
-    em: Date.now(),
-  });
-  if (!$("#secao-historico").hidden) await renderizarHistorico();
-}
+// --- Casos-limite (overflow + inserção de valores avulsos) ------------------
 
 async function aoGerarOverflow() {
   const tam = parseInt($("#overflow-tam").value, 10);
@@ -657,14 +760,7 @@ async function aoGerarOverflow() {
   mostrarFeedback(t(idiomaAtual, "fb_overflow", { n: tam }), "ok", "#feedback-texto");
 }
 
-async function aoInserirInvalido() {
-  if (!ultimoInvalido) return;
-  const r = await inserirNoCampoAtivo(ultimoInvalido, config.insercao.modo);
-  const f = feedbackInsercao(r);
-  mostrarFeedback(f.texto, f.tipo, "#feedback-invalido");
-}
-
-/** Insere um valor avulso (chip Unicode/payload) no campo ativo, ou copia. */
+/** Insere um valor avulso (caso-limite) no campo ativo, ou copia. */
 async function usarValorAvulso(valor, rotulo) {
   const r = await inserirNoCampoAtivo(valor, config.insercao.modo);
   if (r.ok) {

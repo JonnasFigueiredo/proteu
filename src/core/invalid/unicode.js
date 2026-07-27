@@ -1,62 +1,75 @@
 // Strings de fronteira Unicode — feitas para quebrar contagem, normalização,
 // truncamento e comparação ingênuos. Conjunto estático (não usa rng): a graça
 // é ter sempre os mesmos casos canônicos à mão.
+//
+// Cada caso: { rotulo, valor, porque (o bug que expõe), tags }.
 
 export const FRONTEIRAS_UNICODE = [
   {
     rotulo: "emoji ZWJ (família)",
     valor: "👩‍👩‍👧‍👦",
-    nota: "1 grafema, 7 code points, 11 code units, 25 bytes",
+    porque: "1 grafema para o olho, mas 7 code points e 25 bytes — estoura maxlength e trunca no meio do emoji.",
+    tags: ["contagem", "truncamento"],
   },
   {
     rotulo: "emoji + tom de pele",
     valor: "👍🏾",
-    nota: "modificador Fitzpatrick; 1 grafema, 4 code units",
+    porque: "Modificador Fitzpatrick: 1 grafema formado por 2 code points.",
+    tags: ["contagem"],
   },
   {
     rotulo: "zero-width space",
     valor: "in​visível",
-    nota: "U+200B no meio: parece 'invisível' mas tem char extra",
+    porque: "U+200B no meio: parece 'invisível' mas tem um caractere extra — quebra busca e deduplicação.",
+    tags: ["invisível", "comparação"],
   },
   {
     rotulo: "zero-width joiner solto",
     valor: "a‍b",
-    nota: "ZWJ sem contexto de emoji",
+    porque: "ZWJ (U+200D) sem contexto de emoji — passa despercebido e altera o valor.",
+    tags: ["invisível"],
   },
   {
     rotulo: "RTL override",
     valor: "abc‮def",
-    nota: "U+202E inverte a renderização do que vem depois",
+    porque: "U+202E inverte a renderização do que vem depois — mascara extensão de arquivo (ex.: 'foto‮gpj.exe').",
+    tags: ["exibição", "segurança"],
   },
   {
     rotulo: "combining (Zalgo leve)",
-    valor: "ẹ́̀̂̃̈",
-    nota: "1 base + 6 marcas combinantes = 1 grafema, 7 code points",
+    valor: "ẹ́̀̂̃̈",
+    porque: "1 base + 6 marcas combinantes = 1 grafema em 7 code points — quebra layout e limites.",
+    tags: ["contagem", "exibição"],
   },
   {
     rotulo: "NFD (decomposto)",
-    valor: "café",
-    nota: "'é' como e + acento; != 'café' NFC byte a byte",
+    valor: "café",
+    porque: "'é' como e + acento (NFD): diferente de 'café' NFC byte a byte — quebra busca, dedupe e chave única.",
+    tags: ["normalização", "comparação"],
   },
   {
-    rotulo: "homoglifos cirílicos",
+    rotulo: "homóglifos cirílicos",
     valor: "pауpal",
-    nota: "'а' e 'у' cirílicos passando por 'paypal'",
+    porque: "'а' e 'у' cirílicos imitam 'paypal' — testa anti-spoofing e filtros de nome.",
+    tags: ["segurança", "comparação"],
   },
   {
     rotulo: "surrogate solto",
     valor: "a\uD800b",
-    nota: "metade de par surrogate: quebra encode/serialização",
+    porque: "Metade de par surrogate: quebra encode/serialização (ex.: JSON.stringify).",
+    tags: ["serialização"],
   },
   {
     rotulo: "não-caractere",
     valor: "x￾y",
-    nota: "U+FFFE é permanentemente reservado (non-character)",
+    porque: "U+FFFE é permanentemente reservado (non-character) — muitos parsers rejeitam ou corrompem.",
+    tags: ["serialização"],
   },
   {
     rotulo: "BOM no meio",
     valor: "a﻿b",
-    nota: "U+FEFF (BOM) inesperado dentro do texto",
+    porque: "U+FEFF (BOM) inesperado dentro do texto — vira caractere fantasma em imports/CSV.",
+    tags: ["invisível", "serialização"],
   },
 ];
 

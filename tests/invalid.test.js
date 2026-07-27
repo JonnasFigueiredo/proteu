@@ -1,13 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { criarRng } from "../src/core/seed.js";
-import { validarCpf } from "../src/core/documents/cpf.js";
-import { validarCnpj } from "../src/core/documents/cnpj.js";
-import {
-  gerarCpfInvalido,
-  gerarCnpjInvalido,
-  CPF_UNIFORMES,
-  CNPJ_UNIFORMES,
-} from "../src/core/invalid/documentos-invalidos.js";
 import {
   FRONTEIRAS_UNICODE,
   valoresUnicode,
@@ -19,56 +10,20 @@ import {
   gerarOverflow,
   todosPayloads,
 } from "../src/core/invalid/payloads.js";
+import {
+  NUMEROS_DATAS,
+  ESPACOS_CONTROLE,
+  FORMATOS_INVALIDOS,
+} from "../src/core/invalid/valores-limite.js";
+import { FAMILIAS_LIMITE, todosCasos } from "../src/core/invalid/casos-limite.js";
 import { contarTudo } from "../src/core/text/contagem.js";
 
-describe("documentos inválidos", () => {
-  it("CPF inválido é SEMPRE rejeitado pela validação, com motivo", () => {
-    const rng = criarRng("cpf-inv");
-    const motivos = new Set();
-    for (let i = 0; i < 500; i++) {
-      const { valor, motivo } = gerarCpfInvalido(rng);
-      expect(validarCpf(valor), `deveria ser inválido: ${valor}`).toBe(false);
-      motivos.add(motivo);
-    }
-    expect(motivos).toEqual(new Set(["dv-errado", "sequencia-uniforme"]));
-  });
-
-  it("CNPJ inválido é SEMPRE rejeitado", () => {
-    const rng = criarRng("cnpj-inv");
-    for (let i = 0; i < 500; i++) {
-      const { valor } = gerarCnpjInvalido(rng);
-      expect(validarCnpj(valor), `deveria ser inválido: ${valor}`).toBe(false);
-    }
-  });
-
-  it("inválidos com máscara também são rejeitados", () => {
-    const rng = criarRng("mask-inv");
-    for (let i = 0; i < 100; i++) {
-      expect(validarCpf(gerarCpfInvalido(rng, { mascara: true }).valor)).toBe(false);
-      expect(validarCnpj(gerarCnpjInvalido(rng, { mascara: true }).valor)).toBe(false);
-    }
-  });
-
-  it("sequências uniformes listadas realmente são inválidas", () => {
-    for (const c of CPF_UNIFORMES) expect(validarCpf(c)).toBe(false);
-    for (const c of CNPJ_UNIFORMES) expect(validarCnpj(c)).toBe(false);
-  });
-
-  it("é determinístico", () => {
-    const a = criarRng("d");
-    const b = criarRng("d");
-    const la = Array.from({ length: 10 }, () => gerarCpfInvalido(a).valor);
-    const lb = Array.from({ length: 10 }, () => gerarCpfInvalido(b).valor);
-    expect(la).toEqual(lb);
-  });
-});
-
 describe("fronteiras Unicode", () => {
-  it("todo item tem rótulo, valor e nota", () => {
+  it("todo item tem rótulo, valor (string) e porquê", () => {
     for (const item of FRONTEIRAS_UNICODE) {
       expect(item.rotulo).toBeTruthy();
       expect(typeof item.valor).toBe("string");
-      expect(item.nota).toBeTruthy();
+      expect(item.porque).toBeTruthy();
     }
   });
 
@@ -86,12 +41,13 @@ describe("fronteiras Unicode", () => {
 });
 
 describe("payloads (uso defensivo)", () => {
-  it("XSS, SQLI e FORMATO têm rótulo e valor", () => {
+  it("XSS, SQLI e FORMATO têm rótulo, valor e porquê", () => {
     for (const grupo of [XSS, SQLI, FORMATO]) {
       expect(grupo.length).toBeGreaterThan(0);
       for (const p of grupo) {
         expect(p.rotulo).toBeTruthy();
         expect(p.valor).toBeTruthy();
+        expect(p.porque).toBeTruthy();
       }
     }
   });
@@ -109,5 +65,61 @@ describe("payloads (uso defensivo)", () => {
   it("gerarOverflow rejeita tamanho inválido", () => {
     expect(() => gerarOverflow(-1)).toThrow();
     expect(() => gerarOverflow(1.5)).toThrow();
+  });
+});
+
+describe("valores-limite (números/datas, espaços/controle, formatos)", () => {
+  it("números & datas: string vazia proibida, porquê presente", () => {
+    for (const c of NUMEROS_DATAS) {
+      expect(typeof c.valor).toBe("string");
+      expect(c.valor.length).toBeGreaterThan(0);
+      expect(c.porque).toBeTruthy();
+    }
+  });
+
+  it("espaços & controle carregam de fato caracteres invisíveis", () => {
+    const vazio = ESPACOS_CONTROLE.find((c) => c.rotulo === "string vazia");
+    expect(vazio.valor).toBe("");
+    const nbsp = ESPACOS_CONTROLE.find((c) => c.rotulo.includes("NBSP"));
+    expect([...nbsp.valor].map((ch) => ch.codePointAt(0))).toContain(0x00a0);
+    const nul = ESPACOS_CONTROLE.find((c) => c.rotulo.includes("NUL"));
+    expect([...nul.valor].map((ch) => ch.codePointAt(0))).toContain(0x0000);
+    // todos marcados como invisíveis
+    expect(ESPACOS_CONTROLE.every((c) => c.invisivel === true)).toBe(true);
+  });
+
+  it("formatos inválidos têm rótulo e valor", () => {
+    for (const c of FORMATOS_INVALIDOS) {
+      expect(c.rotulo).toBeTruthy();
+      expect(typeof c.valor).toBe("string");
+    }
+  });
+});
+
+describe("casos-limite (assembler das famílias)", () => {
+  it("expõe as 5 famílias esperadas, na ordem", () => {
+    expect(FAMILIAS_LIMITE.map((f) => f.id)).toEqual([
+      "unicode", "seguranca", "numeros", "espacos", "formatos",
+    ]);
+  });
+
+  it("toda família tem tituloKey e ao menos um caso", () => {
+    for (const fam of FAMILIAS_LIMITE) {
+      expect(fam.tituloKey).toMatch(/^lim_fam_/);
+      expect(fam.casos.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("todo caso tem rótulo, valor (string) e porquê", () => {
+    for (const c of todosCasos()) {
+      expect(c.rotulo).toBeTruthy();
+      expect(typeof c.valor).toBe("string");
+      expect(c.porque).toBeTruthy();
+    }
+  });
+
+  it("só a família de segurança é marcada como perigo; só a Unicode conta", () => {
+    expect(FAMILIAS_LIMITE.find((f) => f.perigo).id).toBe("seguranca");
+    expect(FAMILIAS_LIMITE.find((f) => f.contar).id).toBe("unicode");
   });
 });
