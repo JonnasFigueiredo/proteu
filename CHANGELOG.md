@@ -6,9 +6,17 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Planejado
-- Dados de Chile, México, Uruguai e Paraguai (arquitetura pronta; cada país é
-  um arquivo em `core/paises/`).
+- Dados de Chile, Uruguai e Paraguai (arquitetura pronta; cada país é um
+  arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
+
+## [0.17.0] — 2026-07-27
+
+### Adicionado
+- **México** 🇲🇽 (interface em espanhol): nome, datas, **CURP** (18 caracteres,
+  dígito verificador mod 10), **RFC** de pessoa física (13) e **RFC de empresa**
+  (persona moral, 12) com dígito verificador mod 11, **NSS** do IMSS (11 dígitos,
+  Luhn), código postal e telefone. Modal agora lista México entre os prontos.
 
 ## [0.16.0] — 2026-07-27
 

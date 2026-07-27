@@ -13,8 +13,8 @@ em runtime · apenas 4 permissões · Vanilla JS (sem build).
 **Multi-país:** um seletor de país (bandeira no cabeçalho) define de qual país os
 dados gerados são equivalentes, e a interface acompanha o idioma (Brasil → pt;
 EUA e Canadá → en; hispano-americanos → es; China → zh; Arábia Saudita → ar,
-com layout **RTL**). Prontos: **Brasil, Estados Unidos, Canadá, Argentina, China
-e Arábia Saudita**. **Chile, México, Uruguai e Paraguai** entram em seguida (a
+com layout **RTL**). Prontos: **Brasil, Estados Unidos, Canadá, Argentina, China,
+Arábia Saudita e México**. **Chile, Uruguai e Paraguai** entram em seguida (a
 arquitetura já suporta — cada país é um arquivo em `src/core/paises/`).
 
 ---
@@ -112,7 +112,7 @@ reproduzivel/
 │   │   ├── config.js                 # defaults + normalização/validação (tema, idioma)
 │   │   ├── i18n.js                    # traduções da interface (pt / es / en / zh)
 │   │   ├── gerador.js                # orquestrador multi-país (PAISES, gerar())
-│   │   ├── paises/                   # um arquivo por país (br, us, ca, ar, cn, sa)
+│   │   ├── paises/                   # um arquivo por país (br, us, ca, ar, cn, sa, mx)
 │   │   ├── field.js                  # descritor do campo → set de fronteira
 │   │   ├── documents/                # nome, datas, cpf, cnpj (+raiz), rg, cnh, ie,
 │   │   │                             #   cep, telefone, razao-social

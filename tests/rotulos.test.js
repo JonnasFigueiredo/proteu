@@ -26,7 +26,7 @@ describe("rótulos de documento — traduzíveis em todos os países", () => {
 
 describe("modo automático preserva o nome nativo do país", () => {
   // Fixar o idioma do próprio país deve dar o mesmo rótulo literal do registro.
-  const NATIVO = { br: "pt", us: "en", ar: "es", ca: "en", cn: "zh", sa: "ar" };
+  const NATIVO = { br: "pt", us: "en", ar: "es", ca: "en", cn: "zh", sa: "ar", mx: "es" };
   for (const [cod, idioma] of Object.entries(NATIVO)) {
     it(`${cod}: rótulo no idioma nativo (${idioma}) == rotulo literal`, () => {
       for (const [tipo, def] of Object.entries(PAISES[cod].tipos)) {

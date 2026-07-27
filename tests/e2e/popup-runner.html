@@ -40,6 +40,7 @@
       import { validarIdCardCN, validarUscc } from "/src/core/documents/cn.js";
       import { validarSin, validarBn } from "/src/core/documents/ca.js";
       import { validarNationalIdSA, validarVatSA } from "/src/core/documents/sa.js";
+      import { validarCurpMX, validarRfcMX, validarNssMX } from "/src/core/documents/mx.js";
       import { tiposDoPais } from "/src/core/gerador.js";
       const TIPOS = tiposDoPais("br");
       import { contarTudo } from "/src/core/text/contagem.js";
@@ -178,7 +179,7 @@
         const br = $('.pais-btn[data-pais="br"]');
         const cl = $('.pais-btn[data-pais="cl"]');
         assert("P13 Brasil ativo e habilitado", br.classList.contains("ativo") && !br.disabled);
-        assert("P13 EUA, Canadá, Argentina, China e Arábia Saudita habilitados", !$('.pais-btn[data-pais="us"]').disabled && !$('.pais-btn[data-pais="ca"]').disabled && !$('.pais-btn[data-pais="ar"]').disabled && !$('.pais-btn[data-pais="cn"]').disabled && !$('.pais-btn[data-pais="sa"]').disabled);
+        assert("P13 EUA, Canadá, Argentina, China, Arábia Saudita e México habilitados", !$('.pais-btn[data-pais="us"]').disabled && !$('.pais-btn[data-pais="ca"]').disabled && !$('.pais-btn[data-pais="ar"]').disabled && !$('.pais-btn[data-pais="cn"]').disabled && !$('.pais-btn[data-pais="sa"]').disabled && !$('.pais-btn[data-pais="mx"]').disabled);
         assert("P13 Chile ainda 'em breve' (desabilitado)", cl.disabled);
         assert("P13 país persistido é 'br' e interface em pt", cfg().pais === "br" && document.documentElement.lang === "pt-BR", cfg().pais);
         $("#modal-fechar").click(); await espera(20);
@@ -209,6 +210,12 @@
         await trocarPais("ar");
         assert("P14 Argentina: interface em espanhol", document.documentElement.lang === "es" && $("#btn-inserir").textContent === "Insertar en el campo");
         assert("P14 Argentina: CUIT gerado é válido", validarCuit(await gerarNoPais("cuit")), $("#valor-gerado").textContent);
+
+        await trocarPais("mx");
+        assert("P14 México: interface em espanhol", document.documentElement.lang === "es" && $("#btn-inserir").textContent === "Insertar en el campo");
+        assert("P14 México: CURP gerado é válido (DV mod 10)", validarCurpMX(await gerarNoPais("curp")), $("#valor-gerado").textContent);
+        assert("P14 México: RFC gerado é válido (DV mod 11)", validarRfcMX(await gerarNoPais("rfc")), $("#valor-gerado").textContent);
+        assert("P14 México: NSS gerado é válido (Luhn)", validarNssMX(await gerarNoPais("nss")), $("#valor-gerado").textContent);
 
         await trocarPais("cn");
         assert("P14 China: interface em chinês", document.documentElement.lang === "zh-CN" && $("#btn-inserir").textContent === "插入到字段");
