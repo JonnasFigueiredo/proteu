@@ -10,6 +10,25 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   um arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.15.0] — 2026-07-26
+
+### Adicionado
+- **Arábia Saudita** 🇸🇦 (interface em **árabe**, com layout **RTL** — direita
+  para a esquerda): nome árabe, datas, **الهوية الوطنية** (documento nacional,
+  DV Luhn), código postal, telefone celular, **السجل التجاري** (registro
+  comercial), **الرقم الضريبي** (VAT, 15 dígitos) e razão social.
+- **5º idioma de interface**: árabe (`ar`). Primeiro idioma **RTL** — o popup
+  aplica `dir="rtl"` no `<html>` (ver `DIR_ATTR` em `core/i18n.js`) e há ajustes
+  `[dir="rtl"]` no CSS. Funciona também no idioma **fixável**: um QA pode gerar
+  dados da Arábia Saudita e ler os rótulos em português (ex.: "Documento
+  nacional (ID)", "Registro comercial (CR)").
+- Bandeira da Arábia Saudita no modal (SVG inline) e detecção de `ar` no
+  primeiro uso (`resolverIdioma`).
+
+### Alterado
+- Modal de país agora lista **10 países** (Brasil, EUA, Canadá, Argentina,
+  China e Arábia Saudita prontos; Chile, México, Uruguai e Paraguai "em breve").
+
 ## [0.14.0] — 2026-07-26
 
 ### Adicionado

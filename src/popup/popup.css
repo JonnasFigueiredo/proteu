@@ -861,3 +861,11 @@ input:focus-visible {
 .selo .ic-selo {
   color: var(--verde);
 }
+
+/* --- RTL (árabe) ---------------------------------------------------------
+   O dir="rtl" no <html> já espelha o fluxo (flex, alinhamento de texto).
+   Aqui corrigimos as poucas regras com lado fixo (left/right explícitos). */
+[dir="rtl"] .pais-btn { text-align: right; }
+[dir="rtl"] .ic-selo { margin-right: 0; margin-left: 3px; }
+[dir="rtl"] .switch__trilho::after { left: auto; right: 2px; }
+[dir="rtl"] .switch input:checked + .switch__trilho::after { transform: translateX(-14px); }

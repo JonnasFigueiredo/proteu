@@ -13,6 +13,7 @@ import { US } from "./paises/us.js";
 import { AR } from "./paises/ar.js";
 import { CA } from "./paises/ca.js";
 import { CN } from "./paises/cn.js";
+import { SA } from "./paises/sa.js";
 
 // Países implementados (com geradores prontos).
 export const PAISES = {
@@ -21,6 +22,7 @@ export const PAISES = {
   ca: CA,
   ar: AR,
   cn: CN,
+  sa: SA,
 };
 
 export const PAIS_PADRAO = "br";
@@ -33,6 +35,7 @@ export const PAISES_DISPONIVEIS = [
   { codigo: "ca", rotulo: "Canadá", idioma: "en", implementado: true },
   { codigo: "ar", rotulo: "Argentina", idioma: "es", implementado: true },
   { codigo: "cn", rotulo: "China", idioma: "zh", implementado: true },
+  { codigo: "sa", rotulo: "Arábia Saudita", idioma: "ar", implementado: true },
   { codigo: "cl", rotulo: "Chile", idioma: "es", implementado: false },
   { codigo: "mx", rotulo: "México", idioma: "es", implementado: false },
   { codigo: "uy", rotulo: "Uruguai", idioma: "es", implementado: false },

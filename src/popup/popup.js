@@ -20,7 +20,7 @@ import { pseudolocalizar } from "../core/text/pseudolocale.js";
 import { gerarCpfInvalido, gerarCnpjInvalido } from "../core/invalid/documentos-invalidos.js";
 import { FRONTEIRAS_UNICODE } from "../core/invalid/unicode.js";
 import { todosPayloads, gerarOverflow } from "../core/invalid/payloads.js";
-import { t, LANG_ATTR } from "../core/i18n.js";
+import { t, LANG_ATTR, DIR_ATTR } from "../core/i18n.js";
 import { cnpjDeRaiz } from "../core/documents/cnpj.js";
 
 const PAIS_PADRAO = "br";
@@ -34,6 +34,7 @@ const BANDEIRAS_PAIS = {
   ca: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><rect width="6" height="16" fill="#d52b1e"/><rect x="18" width="6" height="16" fill="#d52b1e"/><path d="M12 3.5 12.8 6l1.9-.8-.9 1.9 1.9.7-1.9 1 .3 1.4-1.6-.5-.1 2h-.8l-.1-2-1.6.5.3-1.4-1.9-1 1.9-.7-.9-1.9 1.9.8Z" fill="#d52b1e"/></svg>',
   ar: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#74acdf"/><rect y="5.33" width="24" height="5.33" fill="#fff"/><circle cx="12" cy="8" r="1.5" fill="#f6b40e"/></svg>',
   cn: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#de2910"/><g fill="#ffde00"><circle cx="4" cy="4" r="2.2"/><circle cx="8.2" cy="1.8" r="0.7"/><circle cx="9.6" cy="3.8" r="0.7"/><circle cx="9.4" cy="6.4" r="0.7"/><circle cx="7.6" cy="8" r="0.7"/></g></svg>',
+  sa: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#006c35"/><g fill="#fff"><rect x="5" y="5" width="14" height="1.6" rx="0.8"/><path d="M5 11h13.5l-1.6-1.2 1.6-1.1H5z"/></g></svg>',
   cl: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><rect y="8" width="24" height="8" fill="#d52b1e"/><rect width="8" height="8" fill="#0039a6"/><circle cx="4" cy="4" r="1.6" fill="#fff"/></svg>',
   mx: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="8" height="16" fill="#006847"/><rect x="8" width="8" height="16" fill="#fff"/><rect x="16" width="8" height="16" fill="#ce1126"/><circle cx="12" cy="8" r="1.3" fill="#9b6b3a"/></svg>',
   uy: '<svg class="bandeira" viewBox="0 0 24 16"><rect width="24" height="16" fill="#fff"/><g fill="#0038a8"><rect y="3.55" width="24" height="1.78"/><rect y="7.1" width="24" height="1.78"/><rect y="10.66" width="24" height="1.78"/><rect y="14.2" width="24" height="1.78"/></g><rect width="9" height="8.88" fill="#fff"/><circle cx="4.5" cy="4.4" r="1.5" fill="#f6b40e"/></svg>',
@@ -298,6 +299,7 @@ function ligarEventosDocBtns() {
 function aplicarIdioma(idioma) {
   idiomaAtual = idioma;
   document.documentElement.lang = LANG_ATTR[idioma] || "pt-BR";
+  document.documentElement.dir = DIR_ATTR[idioma] || "ltr"; // árabe = rtl
 
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(idioma, el.dataset.i18n);

@@ -26,7 +26,7 @@ describe("rótulos de documento — traduzíveis em todos os países", () => {
 
 describe("modo automático preserva o nome nativo do país", () => {
   // Fixar o idioma do próprio país deve dar o mesmo rótulo literal do registro.
-  const NATIVO = { br: "pt", us: "en", ar: "es", ca: "en", cn: "zh" };
+  const NATIVO = { br: "pt", us: "en", ar: "es", ca: "en", cn: "zh", sa: "ar" };
   for (const [cod, idioma] of Object.entries(NATIVO)) {
     it(`${cod}: rótulo no idioma nativo (${idioma}) == rotulo literal`, () => {
       for (const [tipo, def] of Object.entries(PAISES[cod].tipos)) {
@@ -46,5 +46,18 @@ describe("cenário do QA: China com interface em português", () => {
     // Em chinês (automático), os mesmos campos mantêm o nome nativo.
     expect(rotuloDoTipo(cn.idCard, "zh")).toBe("身份证号");
     expect(rotuloDoTipo(cn.uscc, "zh")).toBe("统一社会信用代码");
+  });
+});
+
+describe("cenário do QA: Arábia Saudita com interface em português", () => {
+  it("rótulos dos campos sauditas aparecem em português", () => {
+    const sa = PAISES.sa.tipos;
+    expect(rotuloDoTipo(sa.nome, "pt")).toBe("Nome");
+    expect(rotuloDoTipo(sa.nationalId, "pt")).toBe("Documento nacional (ID)");
+    expect(rotuloDoTipo(sa.cr, "pt")).toBe("Registro comercial (CR)");
+    expect(rotuloDoTipo(sa.vat, "pt")).toBe("Nº de IVA (VAT)");
+    // Em árabe (automático), os mesmos campos mantêm o nome nativo.
+    expect(rotuloDoTipo(sa.nationalId, "ar")).toBe("الهوية الوطنية");
+    expect(rotuloDoTipo(sa.vat, "ar")).toBe("الرقم الضريبي");
   });
 });

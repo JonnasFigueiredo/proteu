@@ -4,12 +4,13 @@ import {
   resolverIdioma,
   IDIOMAS_UI,
   LANG_ATTR,
+  DIR_ATTR,
   _MENSAGENS,
 } from "../src/core/i18n.js";
 
 describe("i18n — estrutura", () => {
-  it("tem exatamente 4 idiomas de UI (pt, es, en, zh)", () => {
-    expect(IDIOMAS_UI.map((i) => i.code)).toEqual(["pt", "es", "en", "zh"]);
+  it("tem exatamente 5 idiomas de UI (pt, es, en, zh, ar)", () => {
+    expect(IDIOMAS_UI.map((i) => i.code)).toEqual(["pt", "es", "en", "zh", "ar"]);
   });
 
   it("todo idioma tem lang attr", () => {
@@ -17,12 +18,18 @@ describe("i18n — estrutura", () => {
       expect(LANG_ATTR[code]).toBeTruthy();
     }
   });
+
+  it("árabe é RTL; os demais são LTR (default)", () => {
+    expect(DIR_ATTR.ar).toBe("rtl");
+    expect(DIR_ATTR.pt || "ltr").toBe("ltr");
+    expect(resolverIdioma("ar-SA")).toBe("ar");
+  });
 });
 
 describe("i18n — paridade de chaves", () => {
   const chavesPt = Object.keys(_MENSAGENS.pt).sort();
 
-  for (const idioma of ["es", "en", "zh"]) {
+  for (const idioma of ["es", "en", "zh", "ar"]) {
     it(`${idioma} tem exatamente as mesmas chaves que pt (nenhuma faltando/sobrando)`, () => {
       const chaves = Object.keys(_MENSAGENS[idioma]).sort();
       expect(chaves).toEqual(chavesPt);
