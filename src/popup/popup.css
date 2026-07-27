@@ -888,8 +888,20 @@ input:focus-visible {
   box-shadow: 0 0 0 2px var(--azul-suave);
 }
 
+/* A lista de casos rola dentro de um limite — a intro e a busca ficam fixas
+   e o popup não vira uma página gigante (são dezenas de casos). */
+#lim-familias {
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline-end: 2px;
+}
+
 .lim-familia {
   margin-bottom: 14px;
+}
+.lim-familia:last-child {
+  margin-bottom: 2px;
 }
 .lim-familia__cab {
   display: flex;
