@@ -13,10 +13,10 @@ em runtime · apenas 4 permissões · Vanilla JS (sem build).
 **Multi-país:** um seletor de país (bandeira no cabeçalho) define de qual país os
 dados gerados são equivalentes, e a interface acompanha o idioma (Brasil → pt;
 EUA e Canadá → en; hispano-americanos → es; China → zh; Arábia Saudita → ar,
-com layout **RTL**; Índia → hi). Prontos: **Brasil, Estados Unidos, Canadá,
-Argentina, China, Arábia Saudita, México e Índia**. **Chile, Uruguai e Paraguai**
-entram em seguida (a arquitetura já suporta — cada país é um arquivo em
-`src/core/paises/`).
+com layout **RTL**; Índia → hi; Alemanha → de). Prontos: **Brasil, Estados
+Unidos, Canadá, Argentina, China, Arábia Saudita, México, Índia e Alemanha**.
+**Chile, Uruguai e Paraguai** entram em seguida (a arquitetura já suporta —
+cada país é um arquivo em `src/core/paises/`).
 
 ---
 
@@ -44,9 +44,9 @@ entram em seguida (a arquitetura já suporta — cada país é um arquivo em
 | **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. |
 | **Casos-limite** | Arsenal de entradas que quebram sistemas, cada uma com o **porquê**: fronteiras Unicode (contagens inline), payloads XSS/SQLi/formato (**uso defensivo**), números & datas de borda, espaços/controle invisíveis, formatos inválidos e overflow. Busca + "copiar todos"; 1 clique insere no campo. |
 
-Mais: **interface em pt/es/en/zh** (segue o país por padrão, mas o QA pode
-**fixar um idioma** na aba Config — assim dá para gerar dados da China e ler os
-rótulos dos campos em português, sem precisar de mandarim), **histórico** da
+Mais: **interface em pt/es/en/zh/ar/hi/de** (segue o país por padrão, mas o QA
+pode **fixar um idioma** na aba Config — assim dá para gerar dados da China e ler
+os rótulos dos campos em português, sem precisar de mandarim), **histórico** da
 sessão, cópia com um clique, **tema** claro/escuro/automático, menu de contexto
 (um item por tipo de documento) e
 atalho de teclado.
@@ -111,9 +111,9 @@ reproduzivel/
 │   ├── core/                         # lógica PURA: sem DOM, sem chrome.* → 100% testável
 │   │   ├── seed.js                   # PRNG determinístico (xmur3 → sfc32)
 │   │   ├── config.js                 # defaults + normalização/validação (tema, idioma)
-│   │   ├── i18n.js                    # traduções da interface (pt / es / en / zh)
+│   │   ├── i18n.js                    # traduções da UI (pt/es/en/zh/ar/hi/de)
 │   │   ├── gerador.js                # orquestrador multi-país (PAISES, gerar())
-│   │   ├── paises/                   # um arquivo por país (br, us, ca, ar, cn, sa, mx, in)
+│   │   ├── paises/                   # um arquivo por país (br, us, ca, ar, cn, sa, mx, in, de)
 │   │   ├── field.js                  # descritor do campo → set de fronteira
 │   │   ├── documents/                # nome, datas, cpf, cnpj (+raiz), rg, cnh, ie,
 │   │   │                             #   cep, telefone, razao-social

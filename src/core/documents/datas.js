@@ -24,6 +24,7 @@ const p2 = (n) => String(n).padStart(2, "0");
 function formatar(dia, mes, ano, formato) {
   if (formato === "us") return `${p2(mes)}/${p2(dia)}/${ano}`; // MM/DD/AAAA
   if (formato === "iso") return `${ano}-${p2(mes)}-${p2(dia)}`; // AAAA-MM-DD
+  if (formato === "de") return `${p2(dia)}.${p2(mes)}.${ano}`; // DD.MM.AAAA (Alemanha)
   return `${p2(dia)}/${p2(mes)}/${ano}`; // DD/MM/AAAA (br, padrão)
 }
 

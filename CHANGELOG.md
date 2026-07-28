@@ -10,6 +10,19 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.20.0] — 2026-07-27
+
+### Adicionado
+- **Alemanha** 🇩🇪 (interface em alemão): **IBAN** alemã (22 caracteres, dígito
+  verificador **mod-97-10** da ISO 13616 — o valor de teste bancário mais pedido
+  em QA de fintech), **Steuer-IdNr.** (11 dígitos, **ISO 7064 MOD 11,10**),
+  **USt-IdNr.** (DE + 9 dígitos, MOD 11,10), PLZ, telefone celular e Firmenname
+  com Rechtsform (GmbH, AG, GmbH & Co. KG…).
+- **7º idioma de interface**: alemão (`de`). Dicionário completo em
+  `core/i18n.js`, paridade garantida por teste.
+- Formato de data **DD.MM.AAAA** (convenção alemã) em `documents/datas.js`.
+- Bandeira da Alemanha no modal; detecção de `de` no primeiro uso.
+
 ## [0.19.0] — 2026-07-27
 
 ### Adicionado
