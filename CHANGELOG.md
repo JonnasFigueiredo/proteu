@@ -10,6 +10,24 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.22.0] — 2026-07-27
+
+### Adicionado
+- **Exportar em lote** (aba Persona): gera até **1000 personas** coerentes e
+  copia/baixa em **CSV**, **JSON** ou **fixture de Playwright/Cypress**. É a
+  ponte do QA manual para o automatizado — nenhuma extensão concorrente faz
+  isso, e os geradores que fazem vivem fora do navegador.
+- **A seed viaja junto com os dados**: o JSON leva `seed`, `pais` e
+  `contadorInicial`; a fixture leva os três no cabeçalho. Quem receber o arquivo
+  **regera exatamente as mesmas personas** — é o antídoto para fixture obsoleta
+  e "na minha máquina funciona".
+- `core/exportar.js` (puro e testável): CSV com escaping **RFC 4180** (aspas,
+  vírgula e quebra de linha), e as colunas são os **slots** (`nome`, `email`,
+  `documento`…) — estáveis e independentes do idioma da interface, porque
+  código de automação não pode depender de rótulo de UI.
+- O download usa `Blob` + `<a download>`: **nenhuma permissão nova** (as 4
+  continuam sendo contextMenus, storage, activeTab e scripting).
+
 ## [0.21.0] — 2026-07-27
 
 ### Adicionado

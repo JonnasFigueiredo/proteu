@@ -1135,6 +1135,32 @@ input:focus-visible {
   word-break: break-all;
 }
 
+.exp-bloco {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--borda);
+}
+
+.exp-ajuda {
+  margin: 4px 0 8px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--texto-fraco);
+}
+
+.exp-linha {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.exp-linha > * {
+  flex: 1;
+  min-width: 0;
+}
+.exp-linha #exp-qtd {
+  flex: 0 0 70px;
+}
+
 /* --- RTL (árabe) ---------------------------------------------------------
    O dir="rtl" no <html> já espelha o fluxo (flex, alinhamento de texto e as
    propriedades lógicas inline acima). Aqui só o que usa lado físico fixo. */

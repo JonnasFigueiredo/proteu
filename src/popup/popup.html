@@ -61,6 +61,23 @@
 
         <div id="persona-lista" class="pers-lista"></div>
 
+        <div class="exp-bloco">
+          <span class="rot-mini" data-i18n="exp_titulo">Exportar em lote</span>
+          <p class="exp-ajuda" data-i18n="exp_ajuda">A seed vai junto no arquivo: quem receber consegue regerar exatamente as mesmas personas.</p>
+          <div class="exp-linha">
+            <input id="exp-qtd" type="number" min="1" max="1000" value="10" aria-label="Quantidade" />
+            <select id="exp-formato" aria-label="Formato">
+              <option value="csv" data-i18n="exp_csv">CSV</option>
+              <option value="json" data-i18n="exp_json">JSON</option>
+              <option value="playwright" data-i18n="exp_playwright">Fixture (Playwright/Cypress)</option>
+            </select>
+          </div>
+          <div class="exp-linha">
+            <button id="btn-exp-copiar" class="secundario" data-i18n="copiar">Copiar</button>
+            <button id="btn-exp-baixar" class="secundario" data-i18n="exp_baixar">Baixar</button>
+          </div>
+        </div>
+
         <p id="feedback-persona" class="feedback" role="status" aria-live="polite"></p>
       </section>
 

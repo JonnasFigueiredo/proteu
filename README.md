@@ -38,6 +38,7 @@ cada país é um arquivo em `src/core/paises/`).
 | Área | O que gera |
 |------|------------|
 | **Persona + preencher formulário** | Uma **pessoa fictícia coerente** (o e-mail sai do nome; os documentos têm DV válido) e um botão que **preenche o formulário inteiro** com ela. A persona toda é uma única geração, então a seed reproduz a pessoa completa. **Senha, readonly, disabled e upload nunca são tocados.** |
+| **Exportar em lote** | Até 1000 personas em **CSV**, **JSON** ou **fixture de Playwright/Cypress** — com a **seed dentro do arquivo**, para quem receber regerar exatamente os mesmos dados. |
 | **Pessoa** | Nome · data de nascimento (sempre maior de idade) · data de admissão · CPF · RG (SSP-SP) · CNH · CEP coerente por UF · telefone fixo/celular com DDD real. |
 | **Empresa** | **CNPJ numérico *e* alfanumérico na mesma função** (novo padrão jul/2026, incl. o caso oficial SERPRO `12.ABC.345/01DE-35`) · **CNPJ com a mesma raiz** (matriz 0001 + filiais 0002, 0003… compartilhando os 8 primeiros dígitos) · razão social · Inscrição Estadual (SP). Com e sem máscara. |
 | **Detecção → fronteira** | Chips clicáveis a partir do campo focado: `maxlength` ±1, `number` min/max + `1e999`/`NaN`, datas de fronteira, e-mails que passam na regex mas quebram no servidor, strings Unicode. |
@@ -116,6 +117,7 @@ reproduzivel/
 │   │   ├── gerador.js                # orquestrador multi-país (PAISES, gerar())
 │   │   ├── persona.js                # pessoa coerente (e-mail derivado do nome)
 │   │   ├── mapeamento.js             # campo do form → slot da persona
+│   │   ├── exportar.js               # N personas → CSV / JSON / fixture
 │   │   ├── paises/                   # um arquivo por país (br, us, ca, ar, cn, sa, mx, in, de)
 │   │   ├── field.js                  # descritor do campo → set de fronteira
 │   │   ├── documents/                # nome, datas, cpf, cnpj (+raiz), rg, cnh, ie,

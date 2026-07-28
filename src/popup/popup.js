@@ -21,6 +21,7 @@ import { gerarOverflow } from "../core/invalid/payloads.js";
 import { FAMILIAS_LIMITE } from "../core/invalid/casos-limite.js";
 import { gerarPersona } from "../core/persona.js";
 import { planejarPreenchimento } from "../core/mapeamento.js";
+import { gerarLote, serializar, FORMATOS } from "../core/exportar.js";
 import { t, LANG_ATTR, DIR_ATTR } from "../core/i18n.js";
 import { cnpjDeRaiz } from "../core/documents/cnpj.js";
 
@@ -548,6 +549,8 @@ function ligarEventos() {
 
   $("#btn-nova-persona").addEventListener("click", aoNovaPersona);
   $("#btn-preencher-form").addEventListener("click", aoPreencherFormulario);
+  $("#btn-exp-copiar").addEventListener("click", aoExportarCopiar);
+  $("#btn-exp-baixar").addEventListener("click", aoExportarBaixar);
 
   document.querySelectorAll("#txt-tipo .seg").forEach((b) =>
     b.addEventListener("click", () => selecionarTipoTexto(b.dataset.tipo))
@@ -889,6 +892,63 @@ async function aoPreencherFormulario() {
   }
   mostrarFeedback(
     t(idiomaAtual, "fb_form_preenchido", { n: preenchidos, ignorados }),
+    "ok",
+    "#feedback-persona"
+  );
+}
+
+// --- Exportação em lote (CSV / JSON / fixture) ------------------------------
+
+/**
+ * Gera o lote pedido e devolve { texto, formato, lote }, ou null se a
+ * quantidade for inválida (já mostrando o feedback).
+ */
+async function montarExportacao() {
+  const qtd = parseInt($("#exp-qtd").value, 10);
+  const formato = $("#exp-formato").value;
+  config = await carregarConfig();
+  let lote;
+  try {
+    lote = gerarLote(config, qtd);
+  } catch {
+    mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro", "#feedback-persona");
+    return null;
+  }
+  // O lote consome contadores: persistir mantém a sequência sem repetir dados.
+  await persistirContador(lote.proximoContador);
+  config.contador = lote.proximoContador;
+  return { texto: serializar(lote, formato), formato, lote };
+}
+
+async function aoExportarCopiar() {
+  const r = await montarExportacao();
+  if (!r) return;
+  try {
+    await navigator.clipboard.writeText(r.texto);
+    mostrarFeedback(
+      t(idiomaAtual, "fb_exportado", { n: r.lote.personas.length }),
+      "ok",
+      "#feedback-persona"
+    );
+  } catch {
+    mostrarFeedback(t(idiomaAtual, "fb_copiar_erro"), "erro", "#feedback-persona");
+  }
+}
+
+async function aoExportarBaixar() {
+  const r = await montarExportacao();
+  if (!r) return;
+  // Blob + <a download>: baixa sem precisar da permissão "downloads".
+  const ext = (FORMATOS[r.formato] || FORMATOS.csv).extensao;
+  const blob = new Blob([r.texto], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `proteu-${r.lote.pais}-${r.lote.seed}-${r.lote.personas.length}.${ext}`;
+  a.click();
+  URL.revokeObjectURL(url);
+  mostrarFeedback(
+    t(idiomaAtual, "fb_exportado", { n: r.lote.personas.length }),
     "ok",
     "#feedback-persona"
   );
