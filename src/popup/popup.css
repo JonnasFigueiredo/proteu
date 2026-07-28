@@ -1078,6 +1078,63 @@ input:focus-visible {
   color: var(--texto-fraco);
 }
 
+/* --- Persona -------------------------------------------------------------- */
+.pers-acoes {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 8px;
+}
+.pers-acoes button {
+  flex: 1;
+}
+
+.pers-switch {
+  margin-bottom: 10px;
+}
+
+.pers-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pers-linha {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  text-align: start;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  cursor: pointer;
+}
+.pers-linha:hover {
+  background: var(--superficie-2);
+  border-color: var(--azul);
+}
+.pers-linha:focus-visible {
+  outline: 2px solid var(--azul);
+  outline-offset: 1px;
+}
+
+.pers-linha__rot {
+  flex: 0 0 38%;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--texto-fraco);
+}
+
+.pers-linha__val {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 12.5px;
+  color: var(--texto);
+  word-break: break-all;
+}
+
 /* --- RTL (árabe) ---------------------------------------------------------
    O dir="rtl" no <html> já espelha o fluxo (flex, alinhamento de texto e as
    propriedades lógicas inline acima). Aqui só o que usa lado físico fixo. */

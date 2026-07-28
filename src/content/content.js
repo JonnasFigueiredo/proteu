@@ -140,6 +140,74 @@
     };
   }
 
+  // --- Preenchimento do formulário inteiro ----------------------------------
+  //
+  // O content script NÃO decide nada: ele coleta os descritores, o popup usa
+  // core/mapeamento.js (puro e testável) para escolher os valores, e devolve um
+  // plano por índice. Guardamos a lista coletada para casar os índices depois.
+  let camposColetados = [];
+
+  /** Texto do <label> associado ao campo (for=, wrapper, ou aria-labelledby). */
+  function labelDoCampo(el) {
+    try {
+      if (el.labels && el.labels.length) return el.labels[0].textContent.trim();
+      const porAria = el.getAttribute("aria-labelledby");
+      if (porAria) {
+        const alvo = document.getElementById(porAria);
+        if (alvo) return alvo.textContent.trim();
+      }
+      const pai = el.closest("label");
+      if (pai) return pai.textContent.trim();
+    } catch {
+      // Campo fora do documento ou seletor inválido: sem label, sem drama.
+    }
+    return null;
+  }
+
+  /** Campo visível de verdade (não basta não ser hidden). */
+  function ehVisivel(el) {
+    if (!el.isConnected) return false;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) return false;
+    const s = window.getComputedStyle(el);
+    return s.visibility !== "hidden" && s.display !== "none";
+  }
+
+  /** Coleta os campos preenchíveis do frame, com descritor + índice. */
+  function coletarCampos() {
+    const nodes = document.querySelectorAll("input, textarea, [contenteditable=true]");
+    camposColetados = [];
+    const descritores = [];
+    for (const el of nodes) {
+      if (!ehEditavel(el) || !ehVisivel(el)) continue;
+      const indice = camposColetados.length;
+      camposColetados.push(el);
+      descritores.push({
+        ...descritor(el),
+        indice,
+        id: el.id || null,
+        autocomplete: el.getAttribute("autocomplete"),
+        ariaLabel: el.getAttribute("aria-label"),
+        title: el.getAttribute("title"),
+        label: labelDoCampo(el),
+        readonly: el.readOnly === true,
+        disabled: el.disabled === true,
+      });
+    }
+    return descritores;
+  }
+
+  /** Aplica o plano [{indice, valor}] nos campos coletados. */
+  function preencherLote(plano) {
+    let preenchidos = 0;
+    for (const item of plano || []) {
+      const el = camposColetados[item.indice];
+      if (!el || !el.isConnected) continue;
+      if (injetarValor(el, item.valor)) preenchidos++;
+    }
+    return preenchidos;
+  }
+
   // Roteia mensagens vindas do popup/service worker.
   chrome.runtime.onMessage.addListener((msg, _sender, responder) => {
     if (!msg || msg.app !== "proteu") return false;
@@ -152,6 +220,16 @@
       case "DETECTAR":
         responder({ ok: true, descritor: descritor(alvoAtual) });
         return false;
+
+      case "COLETAR_CAMPOS":
+        responder({ ok: true, campos: coletarCampos() });
+        return false;
+
+      case "PREENCHER_LOTE": {
+        const n = preencherLote(msg.plano);
+        responder({ ok: n > 0, preenchidos: n });
+        return false;
+      }
 
       case "INSERIR": {
         if (!alvoAtual || !alvoAtual.isConnected) {

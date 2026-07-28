@@ -10,6 +10,34 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.21.0] — 2026-07-27
+
+### Adicionado
+- **Persona** (nova aba, agora a primeira): uma **pessoa fictícia coerente** em
+  vez de campos soltos — o **e-mail é derivado do nome** (`Carla Ribeiro` →
+  `carla.ribeiro@example.com`), os documentos têm DV válido e a persona inteira
+  é **uma única geração**, então `seed + contador` reproduz a pessoa completa.
+  Funciona nos 9 países: o slot encontra o tipo pela `rotuloKey`, sem precisar
+  de mapa por país. Nomes em escrita não-latina (zh/ar/hi) usam e-mail de
+  fallback, já que não há transliteração confiável offline.
+- **Preencher formulário** — um clique preenche **todos** os campos da página
+  com essa persona. Diferente das concorrentes, o que entra é dado **válido e
+  coerente**, não texto aleatório. Campos de **senha, readonly, disabled,
+  upload e hidden nunca são tocados**, nem no modo "preencher tudo".
+- `core/persona.js` e `core/mapeamento.js` (lógica pura e testável): o content
+  script só coleta descritores e aplica um plano — **quem decide é o core**.
+  O mapeamento segue `autocomplete` (padrão da web) → `type` → texto do campo
+  (name/id/placeholder/label/aria-label), com padrões em pt/en/es/de.
+- `tests/e2e/form-teste.html`: formulário com rotulagem variada para exercitar
+  o preenchimento (serve também como página de QA manual).
+
+### Corrigido
+- Data em `<input type="date">`: o navegador **descarta em silêncio** qualquer
+  formato que não seja ISO. Agora a data é convertida (`13/10/1953` →
+  `1953-10-13`), usando o país para desempatar dia/mês quando ambos são ≤ 12.
+- Código postal não entrava na persona de BR/US/AR, porque cada país usa nome
+  próprio (`doc_cep`, `doc_zip`, `doc_cpa`) e o slot só procurava `doc_postal`.
+
 ## [0.20.0] — 2026-07-27
 
 ### Adicionado

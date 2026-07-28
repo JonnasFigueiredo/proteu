@@ -28,7 +28,8 @@
     </header>
 
     <nav class="abas" role="tablist">
-      <button class="aba aba--ativa" data-view="documentos" role="tab" data-i18n="tab_docs">Documentos</button>
+      <button class="aba aba--ativa" data-view="persona" role="tab" data-i18n="tab_persona">Persona</button>
+      <button class="aba" data-view="documentos" role="tab" data-i18n="tab_docs">Documentos</button>
       <button class="aba" data-view="texto" role="tab" data-i18n="tab_texto">Texto</button>
       <button class="aba" data-view="invalidos" role="tab" data-i18n="tab_invalidos">Inválidos</button>
     </nav>
@@ -43,8 +44,28 @@
     </section>
 
     <main class="conteudo">
+      <!-- Persona: uma pessoa fictícia coerente + preencher o formulário -->
+      <section class="painel painel--ativo" data-view="persona" role="tabpanel">
+        <p class="lim-intro" data-i18n="pers_intro">Uma pessoa fictícia coerente: o e-mail sai do nome e os documentos são válidos. A mesma seed reproduz a mesma persona.</p>
+
+        <div class="pers-acoes">
+          <button id="btn-nova-persona" class="secundario" data-i18n="pers_nova">Nova persona</button>
+          <button id="btn-preencher-form" class="primario" data-i18n="pers_preencher">Preencher formulário</button>
+        </div>
+
+        <label class="switch pers-switch">
+          <input type="checkbox" id="opt-preencher-tudo" />
+          <span class="switch__trilho"></span>
+          <span class="switch__rot" data-i18n="pers_preencher_tudo">Preencher também os campos que não reconheço</span>
+        </label>
+
+        <div id="persona-lista" class="pers-lista"></div>
+
+        <p id="feedback-persona" class="feedback" role="status" aria-live="polite"></p>
+      </section>
+
       <!-- Documentos -->
-      <section class="painel painel--ativo" data-view="documentos" role="tabpanel">
+      <section class="painel" data-view="documentos" role="tabpanel">
         <div class="opcoes-doc">
           <label class="switch">
             <input type="checkbox" id="opt-mascara" />

@@ -19,6 +19,8 @@ import { contarTudo } from "../core/text/contagem.js";
 import { pseudolocalizar } from "../core/text/pseudolocale.js";
 import { gerarOverflow } from "../core/invalid/payloads.js";
 import { FAMILIAS_LIMITE } from "../core/invalid/casos-limite.js";
+import { gerarPersona } from "../core/persona.js";
+import { planejarPreenchimento } from "../core/mapeamento.js";
 import { t, LANG_ATTR, DIR_ATTR } from "../core/i18n.js";
 import { cnpjDeRaiz } from "../core/documents/cnpj.js";
 
@@ -59,6 +61,7 @@ let idiomaAtual = "pt";
 let ultimoValor = null;
 let ultimoTexto = null;
 let tipoTexto = "palavras"; // "palavras" | "frases" | "tamanho"
+let personaAtual = null;
 // Grupo de CNPJs da mesma empresa: matriz (0001) e filiais (0002, 0003…).
 let grupoRaiz = null;
 
@@ -80,6 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   aplicarIdioma(idiomaAtual);
   atualizarBandeiraPais();
   ligarEventos();
+  await aoNovaPersona(); // a aba Persona já abre com uma pessoa pronta
   await detectarCampo();
 });
 
@@ -429,6 +433,7 @@ async function mudarPais(pais) {
   aplicarIdioma(idiomaAtual);
   atualizarBandeiraPais();
   fecharModalPais();
+  await aoNovaPersona(); // documentos do país anterior não valem mais
   // Esconde resultados do país anterior.
   $("#resultado").hidden = true;
   $("#resultado-invalido").hidden = true;
@@ -487,6 +492,9 @@ function aplicarIdioma(idioma) {
 
   aplicarTema(config.tema); // re-traduz o title do botão de tema
 
+  // Persona já exibida: rótulos no novo idioma (os valores não mudam).
+  if (personaAtual) renderizarPersona();
+
   // Recontagem já exibida usa rótulos traduzidos.
   if (ultimoTexto !== null) renderContagens(ultimoTexto);
 }
@@ -538,6 +546,9 @@ function ligarEventos() {
   $("#btn-overflow").addEventListener("click", aoGerarOverflow);
   $("#lim-busca").addEventListener("input", (e) => filtrarCasos(e.target.value));
 
+  $("#btn-nova-persona").addEventListener("click", aoNovaPersona);
+  $("#btn-preencher-form").addEventListener("click", aoPreencherFormulario);
+
   document.querySelectorAll("#txt-tipo .seg").forEach((b) =>
     b.addEventListener("click", () => selecionarTipoTexto(b.dataset.tipo))
   );
@@ -559,7 +570,7 @@ function ligarEventos() {
 // --- Navegação entre views (abas + painéis de ícone) ------------------------
 
 // Views acionadas por abas; config/histórico entram pelos ícones do cabeçalho.
-const VIEWS_ABA = new Set(["documentos", "texto", "invalidos"]);
+const VIEWS_ABA = new Set(["persona", "documentos", "texto", "invalidos"]);
 let viewAtual = "documentos";
 
 function mostrarView(nome) {
@@ -772,6 +783,115 @@ async function aoInserirTexto() {
   const r = await inserirNoCampoAtivo(ultimoTexto, config.insercao.modo);
   const f = feedbackInsercao(r);
   mostrarFeedback(f.texto, f.tipo, "#feedback-texto");
+}
+
+// --- Persona (pessoa coerente + preencher o formulário inteiro) -------------
+
+/** Gera uma nova persona, avança o contador e renderiza. */
+async function aoNovaPersona() {
+  config = await carregarConfig();
+  personaAtual = gerarPersona(config);
+  // A persona inteira é UMA geração: o contador avança uma vez só, e é isso
+  // que faz "seed + contador" reproduzir a pessoa completa.
+  await persistirContador(personaAtual.proximoContador);
+  config.contador = personaAtual.proximoContador;
+  renderizarPersona();
+  limparFeedback("#feedback-persona");
+}
+
+/** Desenha a persona como linhas rotuladas (clique copia o valor). */
+function renderizarPersona() {
+  const cont = $("#persona-lista");
+  cont.textContent = "";
+  if (!personaAtual) return;
+
+  for (const campo of personaAtual.campos) {
+    const linha = document.createElement("button");
+    linha.className = "pers-linha";
+    linha.title = t(idiomaAtual, "copiar");
+    linha.addEventListener("click", () => copiar(campo.valor, "#feedback-persona"));
+
+    const rot = document.createElement("span");
+    rot.className = "pers-linha__rot";
+    // Rótulo no idioma da interface (mesma regra dos botões de documento).
+    rot.textContent = campo.rotuloKey
+      ? t(idiomaAtual, campo.rotuloKey)
+      : campo.rotulo;
+
+    const val = document.createElement("code");
+    val.className = "pers-linha__val";
+    val.textContent = campo.valor;
+    val.dir = "ltr"; // valores sempre LTR, mesmo com a UI em árabe
+
+    linha.append(rot, val);
+    cont.appendChild(linha);
+  }
+}
+
+/**
+ * Preenche o formulário da aba ativa com a persona.
+ *
+ * O content script só coleta e aplica; QUEM DECIDE é core/mapeamento.js, aqui
+ * no popup. Cada frame é tratado isoladamente (os índices são por frame).
+ */
+async function aoPreencherFormulario() {
+  if (!personaAtual) await aoNovaPersona();
+
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab) return;
+
+  let frames;
+  try {
+    frames = await chrome.scripting.executeScript({
+      target: { tabId: tab.id, allFrames: true },
+      files: ["src/content/content.js"],
+    });
+  } catch {
+    mostrarFeedback(t(idiomaAtual, "fb_pagina_bloqueada"), "erro", "#feedback-persona");
+    return;
+  }
+
+  const preencherDesconhecidos = $("#opt-preencher-tudo").checked;
+  let preenchidos = 0;
+  let ignorados = 0;
+
+  for (const frame of frames) {
+    try {
+      const coleta = await chrome.tabs.sendMessage(
+        tab.id,
+        { app: "proteu", tipo: "COLETAR_CAMPOS" },
+        { frameId: frame.frameId }
+      );
+      if (!coleta || !coleta.ok || !coleta.campos.length) continue;
+
+      const { plano, ignorados: ign } = planejarPreenchimento(
+        coleta.campos,
+        personaAtual,
+        { preencherDesconhecidos }
+      );
+      ignorados += ign;
+      if (!plano.length) continue;
+
+      const resp = await chrome.tabs.sendMessage(
+        tab.id,
+        { app: "proteu", tipo: "PREENCHER_LOTE", plano },
+        { frameId: frame.frameId }
+      );
+      if (resp && resp.preenchidos) preenchidos += resp.preenchidos;
+    } catch {
+      // frame inacessível; segue para o próximo.
+    }
+  }
+
+  if (preenchidos === 0) {
+    mostrarFeedback(t(idiomaAtual, "fb_sem_campos_form"), "erro", "#feedback-persona");
+    return;
+  }
+  mostrarFeedback(
+    t(idiomaAtual, "fb_form_preenchido", { n: preenchidos, ignorados }),
+    "ok",
+    "#feedback-persona"
+  );
 }
 
 // --- Casos-limite (overflow + inserção de valores avulsos) ------------------
