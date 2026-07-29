@@ -76,7 +76,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     config = await salvarConfig(config);
   }
   idiomaAtual = idiomaEfetivo();
-  montarBotoesDocumento();
   montarIdiomas();
   montarModalPaises();
   montarCasosLimite();
@@ -253,46 +252,115 @@ function montarIdiomas() {
 // Ordem em que as categorias aparecem no painel Documentos.
 const ORDEM_CATEGORIAS = ["Pessoa", "Empresa", "Veículo", "Contato", "Financeiro"];
 
-/** Botões de documento agrupados por categoria, para o país ativo. */
-function montarBotoesDocumento() {
-  const container = $("#botoes-doc");
-  container.textContent = ""; // re-render ao trocar de país
+/**
+ * Desenha o perfil em seções (Pessoa / Empresa). Os campos essenciais ficam à
+ * vista; o resto vai para um "mostrar mais" — é o que mantém a aba enxuta
+ * mesmo em países com muitos documentos (o Brasil tem 12).
+ */
+function renderizarPerfil() {
+  const cont = $("#perfil-secoes");
+  cont.textContent = "";
+  if (!personaAtual) return;
 
-  // Agrupa os tipos do país por categoria.
-  const grupos = new Map();
-  for (const [tipo, def] of Object.entries(tiposDoPais(config.pais))) {
-    const cat = def.categoria || "Outros";
-    if (!grupos.has(cat)) grupos.set(cat, []);
-    grupos.get(cat).push([tipo, def]);
+  const porCategoria = new Map();
+  for (const campo of personaAtual.campos) {
+    const cat = campo.categoria || "Pessoa";
+    if (!porCategoria.has(cat)) porCategoria.set(cat, []);
+    porCategoria.get(cat).push(campo);
   }
 
-  const ordem = [...ORDEM_CATEGORIAS, ...[...grupos.keys()].filter((c) => !ORDEM_CATEGORIAS.includes(c))];
-  for (const cat of ordem) {
-    const itens = grupos.get(cat);
-    if (!itens) continue;
+  const ordem = [
+    ...ORDEM_CATEGORIAS,
+    ...[...porCategoria.keys()].filter((c) => !ORDEM_CATEGORIAS.includes(c)),
+  ];
 
-    const grupo = document.createElement("div");
-    grupo.className = "grupo-doc";
+  for (const cat of ordem) {
+    const campos = porCategoria.get(cat);
+    if (!campos) continue;
+
+    const secao = document.createElement("section");
+    secao.className = "pf-secao";
+
     const rot = document.createElement("span");
-    rot.className = "grupo-doc__rot";
+    rot.className = "pf-secao__rot";
     rot.dataset.cat = cat; // permite re-traduzir ao trocar de idioma
     rot.textContent = t(idiomaAtual, `cat_${cat}`);
-    const grade = document.createElement("div");
-    grade.className = "grade-doc";
+    secao.appendChild(rot);
 
-    for (const [tipo, def] of itens) {
-      const btn = document.createElement("button");
-      btn.className = "doc-btn";
-      btn.dataset.tipo = tipo;
-      if (def.rotuloKey) btn.dataset.rotulokey = def.rotuloKey;
-      const rotulo = def.rotuloKey ? t(idiomaAtual, def.rotuloKey) : def.rotulo;
-      btn.textContent = rotulo;
-      btn.title = `${t(idiomaAtual, "gerar")} ${rotulo}`;
-      grade.appendChild(btn);
+    const essenciais = campos.filter((c) => c.essencial);
+    const extras = campos.filter((c) => !c.essencial);
+
+    for (const campo of essenciais) secao.appendChild(criarLinhaPerfil(campo));
+
+    if (extras.length) {
+      const det = document.createElement("details");
+      det.className = "pf-mais";
+      const sum = document.createElement("summary");
+      sum.className = "pf-mais__cab";
+      sum.textContent = t(idiomaAtual, "pf_mais", { n: extras.length });
+      det.appendChild(sum);
+      for (const campo of extras) det.appendChild(criarLinhaPerfil(campo));
+      secao.appendChild(det);
     }
-    grupo.append(rot, grade);
-    container.appendChild(grupo);
+
+    // Documentos sequenciais (CNPJ matriz + filiais) são uma AÇÃO, não um
+    // campo com valor único — ficam como botão no fim da seção.
+    for (const [tipo, def] of Object.entries(tiposDoPais(config.pais))) {
+      if (!def.raiz || (def.categoria || "Pessoa") !== cat) continue;
+      const btn = document.createElement("button");
+      btn.className = "pf-acao-raiz";
+      btn.dataset.tipo = tipo;
+      btn.dataset.rotulokey = def.rotuloKey || "";
+      btn.textContent = `+ ${def.rotuloKey ? t(idiomaAtual, def.rotuloKey) : def.rotulo}`;
+      btn.addEventListener("click", () => aoGerarCnpjRaiz(tipo));
+      secao.appendChild(btn);
+    }
+
+    cont.appendChild(secao);
   }
+}
+
+/** Uma linha do perfil: clique insere no campo (ou copia); o botão só copia. */
+function criarLinhaPerfil(campo) {
+  const linha = document.createElement("div");
+  linha.className = "pf-linha";
+  // Identificam a linha sem depender do rótulo (que muda com o idioma).
+  linha.dataset.slot = campo.slot;
+  if (campo.chaveTipo) linha.dataset.chave = campo.chaveTipo;
+
+  const main = document.createElement("button");
+  main.className = "pf-linha__main";
+  main.title = t(idiomaAtual, "inserir_campo");
+  main.addEventListener("click", () => usarValorAvulso(campo.valor, rotuloDoCampo(campo), "#feedback-persona"));
+
+  const rot = document.createElement("span");
+  rot.className = "pf-linha__rot";
+  if (campo.rotuloKey) rot.dataset.rotulokey = campo.rotuloKey;
+  rot.textContent = rotuloDoCampo(campo);
+
+  const val = document.createElement("code");
+  val.className = "pf-linha__val";
+  val.textContent = campo.valor;
+  val.dir = "ltr"; // valores sempre LTR, mesmo com a UI em árabe
+  main.append(rot, val);
+
+  const btnCopiar = document.createElement("button");
+  btnCopiar.className = "pf-linha__copiar";
+  btnCopiar.title = t(idiomaAtual, "copiar");
+  btnCopiar.setAttribute("aria-label", t(idiomaAtual, "copiar"));
+  btnCopiar.innerHTML = ICONE_COPIAR;
+  btnCopiar.addEventListener("click", (e) => {
+    e.stopPropagation();
+    copiar(campo.valor, "#feedback-persona");
+  });
+
+  linha.append(main, btnCopiar);
+  return linha;
+}
+
+/** Rótulo do campo no idioma da interface (cai no literal do país). */
+function rotuloDoCampo(campo) {
+  return campo.rotuloKey ? t(idiomaAtual, campo.rotuloKey) : campo.rotulo;
 }
 
 function refletirConfigNaUI() {
@@ -428,16 +496,13 @@ async function mudarPais(pais) {
     c.contador = 0; // reinicia a sequência determinística no novo país
   });
   idiomaAtual = idiomaEfetivo();
-  montarBotoesDocumento();
-  ligarEventosDocBtns();
   $("#opcoes-cnpj").hidden = !paisMostraOpcoesCnpj(pais);
   aplicarIdioma(idiomaAtual);
   atualizarBandeiraPais();
   fecharModalPais();
-  await aoNovaPersona(); // documentos do país anterior não valem mais
-  // Esconde resultados do país anterior.
-  $("#resultado").hidden = true;
-  $("#resultado-invalido").hidden = true;
+  // Novo país = novo perfil: os documentos do anterior não valem mais.
+  // (renderizarPerfil roda dentro de aoNovaPersona.)
+  await aoNovaPersona();
 }
 
 /** Atualiza a bandeira do cabeçalho e o item ativo no modal. */
@@ -446,13 +511,6 @@ function atualizarBandeiraPais() {
   document.querySelectorAll(".pais-btn").forEach((b) =>
     b.classList.toggle("ativo", b.dataset.pais === config.pais)
   );
-}
-
-/** (Re)liga os cliques dos botões de documento — chamado após re-render. */
-function ligarEventosDocBtns() {
-  document.querySelectorAll(".doc-btn[data-tipo]").forEach((b) => {
-    b.onclick = () => aoGerar(b.dataset.tipo);
-  });
 }
 
 /** Aplica o idioma: traduz elementos [data-i18n*], categorias, tema, países. */
@@ -474,18 +532,6 @@ function aplicarIdioma(idioma) {
     el.placeholder = t(idioma, el.dataset.i18nPh);
   });
 
-  // Rótulos de categoria (montados dinamicamente).
-  document.querySelectorAll(".grupo-doc__rot[data-cat]").forEach((el) => {
-    el.textContent = t(idioma, `cat_${el.dataset.cat}`);
-  });
-
-  // Botões de documento: rótulo no idioma da interface (via rotuloKey).
-  document.querySelectorAll(".doc-btn[data-rotulokey]").forEach((btn) => {
-    const rotulo = t(idioma, btn.dataset.rotulokey);
-    btn.textContent = rotulo;
-    btn.title = `${t(idioma, "gerar")} ${rotulo}`;
-  });
-
   // Nomes de país no modal (montados dinamicamente).
   document.querySelectorAll("[data-pais-nome]").forEach((el) => {
     el.textContent = t(idioma, `pais_${el.dataset.paisNome}`);
@@ -494,7 +540,7 @@ function aplicarIdioma(idioma) {
   aplicarTema(config.tema); // re-traduz o title do botão de tema
 
   // Persona já exibida: rótulos no novo idioma (os valores não mudam).
-  if (personaAtual) renderizarPersona();
+  if (personaAtual) renderizarPerfil();
 
   // Recontagem já exibida usa rótulos traduzidos.
   if (ultimoTexto !== null) renderContagens(ultimoTexto);
@@ -503,17 +549,11 @@ function aplicarIdioma(idioma) {
 // --- Eventos ----------------------------------------------------------------
 
 function ligarEventos() {
-  document.querySelectorAll(".doc-btn[data-tipo]").forEach((b) =>
-    b.addEventListener("click", () => aoGerar(b.dataset.tipo))
-  );
-
   // Abas principais.
   document.querySelectorAll(".aba").forEach((aba) =>
     aba.addEventListener("click", () => mostrarView(aba.dataset.view))
   );
 
-  $("#btn-copiar").addEventListener("click", () => copiar(ultimoValor));
-  $("#btn-inserir").addEventListener("click", aoInserir);
 
   $("#opt-mascara").addEventListener("change", (e) =>
     atualizarConfig((c) => (c.documentos.mascara = e.target.checked))
@@ -573,7 +613,7 @@ function ligarEventos() {
 // --- Navegação entre views (abas + painéis de ícone) ------------------------
 
 // Views acionadas por abas; config/histórico entram pelos ícones do cabeçalho.
-const VIEWS_ABA = new Set(["persona", "documentos", "texto", "invalidos"]);
+const VIEWS_ABA = new Set(["perfil", "texto", "invalidos"]);
 let viewAtual = "documentos";
 
 function mostrarView(nome) {
@@ -607,33 +647,13 @@ async function atualizarConfig(mutar) {
 
 // --- Geração ----------------------------------------------------------------
 
-async function aoGerar(tipo) {
-  // Recarrega para pegar o contador mais recente (menu de contexto também avança).
-  config = await carregarConfig();
-  // Documentos "mesma raiz" (ex.: CNPJ matriz + filiais) têm fluxo próprio.
-  if (tiposDoPais(config.pais)[tipo]?.raiz) return aoGerarCnpjRaiz(tipo);
-
-  const r = gerar(tipo, config);
-  ultimoValor = r.valor;
-
-  await persistirContador(r.proximoContador);
-  config.contador = r.proximoContador;
-  await adicionarHistorico({
-    tipo,
-    valor: r.valor,
-    seed: config.seed,
-    contador: r.contador,
-    em: Date.now(),
-  });
-
-  $("#valor-gerado").textContent = r.valor;
-  $("#resultado").hidden = false;
-  limparFeedback();
-  if (!$("#secao-historico").hidden) await renderizarHistorico();
-}
-
-/** Mesma raiz: 1º clique = matriz (0001); seguintes = filiais (0002…). */
+/**
+ * Mesma raiz: 1º clique = matriz (0001); seguintes = filiais (0002…).
+ * É a única geração que continua sendo uma AÇÃO (não um campo do perfil),
+ * porque o valor muda a cada clique dentro do mesmo grupo.
+ */
 async function aoGerarCnpjRaiz(tipo) {
+  config = await carregarConfig();
   let valor, ordem, chaveFb;
   if (!grupoRaiz) {
     // Matriz: gerada pelo rng (seed:contador), como qualquer documento.
@@ -653,9 +673,13 @@ async function aoGerarCnpjRaiz(tipo) {
     chaveFb = "fb_cnpj_filial";
   }
   ultimoValor = valor;
-  $("#valor-gerado").textContent = valor;
-  $("#resultado").hidden = false;
-  mostrarFeedback(t(idiomaAtual, chaveFb, { ordem: String(ordem).padStart(4, "0") }), "ok");
+  // Vai direto para o campo focado (ou área de transferência) e avisa a ordem.
+  await usarValorAvulso(valor, tipo, "#feedback-persona");
+  mostrarFeedback(
+    t(idiomaAtual, chaveFb, { ordem: String(ordem).padStart(4, "0") }),
+    "ok",
+    "#feedback-persona"
+  );
 
   await adicionarHistorico({
     tipo,
@@ -798,37 +822,8 @@ async function aoNovaPersona() {
   // que faz "seed + contador" reproduzir a pessoa completa.
   await persistirContador(personaAtual.proximoContador);
   config.contador = personaAtual.proximoContador;
-  renderizarPersona();
+  renderizarPerfil();
   limparFeedback("#feedback-persona");
-}
-
-/** Desenha a persona como linhas rotuladas (clique copia o valor). */
-function renderizarPersona() {
-  const cont = $("#persona-lista");
-  cont.textContent = "";
-  if (!personaAtual) return;
-
-  for (const campo of personaAtual.campos) {
-    const linha = document.createElement("button");
-    linha.className = "pers-linha";
-    linha.title = t(idiomaAtual, "copiar");
-    linha.addEventListener("click", () => copiar(campo.valor, "#feedback-persona"));
-
-    const rot = document.createElement("span");
-    rot.className = "pers-linha__rot";
-    // Rótulo no idioma da interface (mesma regra dos botões de documento).
-    rot.textContent = campo.rotuloKey
-      ? t(idiomaAtual, campo.rotuloKey)
-      : campo.rotulo;
-
-    const val = document.createElement("code");
-    val.className = "pers-linha__val";
-    val.textContent = campo.valor;
-    val.dir = "ltr"; // valores sempre LTR, mesmo com a UI em árabe
-
-    linha.append(rot, val);
-    cont.appendChild(linha);
-  }
 }
 
 /**
@@ -969,15 +964,15 @@ async function aoGerarOverflow() {
 }
 
 /** Insere um valor avulso (caso-limite) no campo ativo, ou copia. */
-async function usarValorAvulso(valor, rotulo) {
+async function usarValorAvulso(valor, rotulo, sel = "#feedback-invalido") {
   const r = await inserirNoCampoAtivo(valor, config.insercao.modo);
   if (r.ok) {
-    mostrarFeedback(t(idiomaAtual, "fb_chip_inserido", { rotulo }), "ok", "#feedback-invalido");
+    mostrarFeedback(t(idiomaAtual, "fb_chip_inserido", { rotulo }), "ok", sel);
   } else if (r.motivo === "sem-campo") {
     // Sem campo focado: cai para a área de transferência.
-    await copiar(valor, "#feedback-invalido");
+    await copiar(valor, sel);
   } else {
-    mostrarFeedback(t(idiomaAtual, "fb_nao_inseriu"), "erro", "#feedback-invalido");
+    mostrarFeedback(t(idiomaAtual, "fb_nao_inseriu"), "erro", sel);
   }
 }
 
@@ -994,13 +989,6 @@ async function copiar(valor, sel = "#feedback") {
 }
 
 // --- Inserir no campo ativo -------------------------------------------------
-
-async function aoInserir() {
-  if (!ultimoValor) return;
-  const r = await inserirNoCampoAtivo(ultimoValor, config.insercao.modo);
-  const f = feedbackInsercao(r);
-  mostrarFeedback(f.texto, f.tipo);
-}
 
 async function inserirNoCampoAtivo(valor, modo) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

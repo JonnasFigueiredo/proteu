@@ -37,7 +37,7 @@ cada país é um arquivo em `src/core/paises/`).
 
 | Área | O que gera |
 |------|------------|
-| **Persona + preencher formulário** | Uma **pessoa fictícia coerente** (o e-mail sai do nome; os documentos têm DV válido) e um botão que **preenche o formulário inteiro** com ela. A persona toda é uma única geração, então a seed reproduz a pessoa completa. **Senha, readonly, disabled e upload nunca são tocados.** |
+| **Perfil + preencher formulário** | Uma **pessoa fictícia coerente** com **todos os documentos do país** (o e-mail sai do nome; os documentos têm DV válido) e um botão que **preenche o formulário inteiro** com ela. A persona toda é uma única geração, então a seed reproduz a pessoa completa. **Senha, readonly, disabled e upload nunca são tocados.** |
 | **Exportar em lote** | Até 1000 personas em **CSV**, **JSON** ou **fixture de Playwright/Cypress** — com a **seed dentro do arquivo**, para quem receber regerar exatamente os mesmos dados. |
 | **Pessoa** | Nome · data de nascimento (sempre maior de idade) · data de admissão · CPF · RG (SSP-SP) · CNH · CEP coerente por UF · telefone fixo/celular com DDD real. |
 | **Empresa** | **CNPJ numérico *e* alfanumérico na mesma função** (novo padrão jul/2026, incl. o caso oficial SERPRO `12.ABC.345/01DE-35`) · **CNPJ com a mesma raiz** (matriz 0001 + filiais 0002, 0003… compartilhando os 8 primeiros dígitos) · razão social · Inscrição Estadual (SP). Com e sem máscara. |
@@ -70,11 +70,11 @@ atalho de teclado.
 
 ### O popup
 
-- **Abas** — *Persona*, *Documentos*, *Texto* e *Casos-limite*; os ícones do cabeçalho abrem
+- **Abas** — *Perfil*, *Texto* e *Casos-limite*; os ícones do cabeçalho abrem
   *Histórico* e *Configurações*. Só um bloco aparece por vez.
-- **Documentos** — opção "Com máscara" e o toggle "CNPJ alfanumérico (novo
-  padrão)" ficam no topo; os botões são agrupados por categoria (Pessoa,
-  Empresa, Veículo, Contato).
+- **Perfil** — uma pessoa fictícia com todos os documentos do país, em seções
+  Pessoa e Empresa. Os essenciais ficam à vista; o resto atrás de "mais N".
+  Exportar em lote e Opções ficam recolhidos no rodapé da aba.
 - **Gerar → Copiar / Inserir no campo** — o valor aparece no card de resultado.
 - **Seed** no rodapé (editável); o botão ao lado sorteia uma nova (e reinicia a
   sequência). Selo **100% local** sempre à vista.

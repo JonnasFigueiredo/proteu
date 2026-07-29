@@ -28,10 +28,9 @@
     </header>
 
     <nav class="abas" role="tablist">
-      <button class="aba aba--ativa" data-view="persona" role="tab" data-i18n="tab_persona">Persona</button>
-      <button class="aba" data-view="documentos" role="tab" data-i18n="tab_docs">Documentos</button>
+      <button class="aba aba--ativa" data-view="perfil" role="tab" data-i18n="tab_perfil">Perfil</button>
       <button class="aba" data-view="texto" role="tab" data-i18n="tab_texto">Texto</button>
-      <button class="aba" data-view="invalidos" role="tab" data-i18n="tab_invalidos">Inválidos</button>
+      <button class="aba" data-view="invalidos" role="tab" data-i18n="tab_invalidos">Casos-limite</button>
     </nav>
 
     <section id="secao-campo" class="banner-campo" hidden>
@@ -44,71 +43,59 @@
     </section>
 
     <main class="conteudo">
-      <!-- Persona: uma pessoa fictícia coerente + preencher o formulário -->
-      <section class="painel painel--ativo" data-view="persona" role="tabpanel">
-        <p class="lim-intro" data-i18n="pers_intro">Uma pessoa fictícia coerente: o e-mail sai do nome e os documentos são válidos. A mesma seed reproduz a mesma persona.</p>
-
-        <div class="pers-acoes">
-          <button id="btn-nova-persona" class="secundario" data-i18n="pers_nova">Nova persona</button>
+      <!-- Perfil: uma pessoa fictícia completa (documentos coerentes entre si) -->
+      <section class="painel painel--ativo" data-view="perfil" role="tabpanel">
+        <div class="pf-acoes">
+          <button id="btn-nova-persona" class="secundario" data-i18n="pf_novo">Nova pessoa</button>
           <button id="btn-preencher-form" class="primario" data-i18n="pers_preencher">Preencher formulário</button>
         </div>
 
-        <label class="switch pers-switch">
-          <input type="checkbox" id="opt-preencher-tudo" />
-          <span class="switch__trilho"></span>
-          <span class="switch__rot" data-i18n="pers_preencher_tudo">Preencher também os campos que não reconheço</span>
-        </label>
+        <div id="perfil-secoes"></div>
 
-        <div id="persona-lista" class="pers-lista"></div>
+        <details class="pf-det">
+          <summary class="pf-det__cab" data-i18n="exp_titulo">Exportar em lote</summary>
+          <div class="pf-det__corpo">
+            <p class="exp-ajuda" data-i18n="exp_ajuda">A seed vai junto no arquivo: quem receber consegue regerar exatamente as mesmas personas.</p>
+            <div class="exp-linha">
+              <input id="exp-qtd" type="number" min="1" max="1000" value="10" aria-label="Quantidade" />
+              <select id="exp-formato" aria-label="Formato">
+                <option value="csv" data-i18n="exp_csv">CSV</option>
+                <option value="json" data-i18n="exp_json">JSON</option>
+                <option value="playwright" data-i18n="exp_playwright">Fixture (Playwright/Cypress)</option>
+              </select>
+            </div>
+            <div class="exp-linha">
+              <button id="btn-exp-copiar" class="secundario" data-i18n="copiar">Copiar</button>
+              <button id="btn-exp-baixar" class="secundario" data-i18n="exp_baixar">Baixar</button>
+            </div>
+          </div>
+        </details>
 
-        <div class="exp-bloco">
-          <span class="rot-mini" data-i18n="exp_titulo">Exportar em lote</span>
-          <p class="exp-ajuda" data-i18n="exp_ajuda">A seed vai junto no arquivo: quem receber consegue regerar exatamente as mesmas personas.</p>
-          <div class="exp-linha">
-            <input id="exp-qtd" type="number" min="1" max="1000" value="10" aria-label="Quantidade" />
-            <select id="exp-formato" aria-label="Formato">
-              <option value="csv" data-i18n="exp_csv">CSV</option>
-              <option value="json" data-i18n="exp_json">JSON</option>
-              <option value="playwright" data-i18n="exp_playwright">Fixture (Playwright/Cypress)</option>
-            </select>
+        <details class="pf-det">
+          <summary class="pf-det__cab" data-i18n="pf_opcoes">Opções</summary>
+          <div class="pf-det__corpo">
+            <label class="switch">
+              <input type="checkbox" id="opt-mascara" />
+              <span class="switch__trilho"></span>
+              <span class="switch__rot" data-i18n="com_mascara">Com máscara</span>
+            </label>
+            <label class="switch">
+              <input type="checkbox" id="opt-preencher-tudo" />
+              <span class="switch__trilho"></span>
+              <span class="switch__rot" data-i18n="pers_preencher_tudo">Preencher também os campos que não reconheço</span>
+            </label>
+            <div id="opcoes-cnpj">
+              <label class="check">
+                <input type="checkbox" id="opt-alfanumerico" /> <span data-i18n="cnpj_alfa">CNPJ alfanumérico (novo padrão)</span>
+              </label>
+              <label class="check" id="wrap-ambiguas" hidden>
+                <input type="checkbox" id="opt-ambiguas" /> <span data-i18n="excluir_ambiguas">Excluir ambíguas (I, O, U, Q, F)</span>
+              </label>
+            </div>
           </div>
-          <div class="exp-linha">
-            <button id="btn-exp-copiar" class="secundario" data-i18n="copiar">Copiar</button>
-            <button id="btn-exp-baixar" class="secundario" data-i18n="exp_baixar">Baixar</button>
-          </div>
-        </div>
+        </details>
 
         <p id="feedback-persona" class="feedback" role="status" aria-live="polite"></p>
-      </section>
-
-      <!-- Documentos -->
-      <section class="painel" data-view="documentos" role="tabpanel">
-        <div class="opcoes-doc">
-          <label class="switch">
-            <input type="checkbox" id="opt-mascara" />
-            <span class="switch__trilho"></span>
-            <span class="switch__rot" data-i18n="com_mascara">Com máscara</span>
-          </label>
-          <div id="opcoes-cnpj">
-            <label class="check">
-              <input type="checkbox" id="opt-alfanumerico" /> <span data-i18n="cnpj_alfa">CNPJ alfanumérico (novo padrão)</span>
-            </label>
-            <label class="check" id="wrap-ambiguas" hidden>
-              <input type="checkbox" id="opt-ambiguas" /> <span data-i18n="excluir_ambiguas">Excluir ambíguas (I, O, U, Q, F)</span>
-            </label>
-          </div>
-        </div>
-
-        <div id="botoes-doc" class="grupos-doc"></div>
-
-        <div id="resultado" class="resultado" hidden>
-          <output id="valor-gerado" class="valor"></output>
-          <div class="acoes-resultado">
-            <button id="btn-copiar" class="secundario" data-i18n="copiar">Copiar</button>
-            <button id="btn-inserir" class="primario" data-i18n="inserir_campo">Inserir no campo</button>
-          </div>
-          <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
-        </div>
       </section>
 
       <!-- Texto -->

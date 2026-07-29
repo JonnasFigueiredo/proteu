@@ -87,13 +87,34 @@ function tipoDocumentoPrincipal(tipos) {
 }
 
 /**
- * Gera uma persona coerente para o país da config.
+ * O documento principal da empresa (CNPJ no Brasil, EIN nos EUA, USt-IdNr na
+ * Alemanha…). Ignora a razão social e os tipos sequenciais (`raiz`).
+ */
+function tipoDocumentoPrincipalEmpresa(tipos) {
+  for (const [chave, def] of Object.entries(tipos)) {
+    if (def.categoria !== "Empresa") continue;
+    if (def.raiz || def.rotuloKey === "doc_razao") continue;
+    return [chave, def];
+  }
+  return null;
+}
+
+/**
+ * Gera o perfil completo de alguém fictício para o país da config.
+ *
+ * Contém **todos** os documentos do país ativo, não só os principais: assim o
+ * RG e o CNPJ são da MESMA pessoa/empresa que o CPF, e não valores soltos.
+ *
+ * Regra de país: os tipos vêm exclusivamente de `tiposDoPais(config.pais)` —
+ * nenhum documento de outro país entra (há teste travando isso). Documentos
+ * com comportamento sequencial (`raiz`, ex.: CNPJ matriz + filiais) ficam de
+ * fora: são uma ação na UI, não um campo com valor único.
  *
  * Todos os campos saem do MESMO rng (derivado de `${seed}:${contador}`), então
- * a persona inteira é reproduzível — e o contador avança uma única vez.
+ * o perfil inteiro é reproduzível — e o contador avança uma única vez.
  *
  * @param {object} config - config normalizada (pais, seed, contador, documentos)
- * @returns {{ campos: Array<{slot,chaveTipo,rotuloKey,rotulo,valor}>, porSlot: object, contador: number, proximoContador: number }}
+ * @returns {{ pais, campos: Array<{slot,chaveTipo,rotuloKey,rotulo,valor,categoria,essencial}>, porSlot: object, contador: number, proximoContador: number }}
  */
 export function gerarPersona(config) {
   if (!config || !config.seed) throw new Error("Config sem seed");
@@ -102,11 +123,18 @@ export function gerarPersona(config) {
   const tipos = tiposDoPais(config.pais);
 
   const campos = [];
-  const adicionar = (slot, achado) => {
+  const usados = new Set(); // chaves já geradas, p/ não repetir no varredor final
+
+  const adicionar = (slot, achado, essencial = true) => {
     if (!achado) return null;
     const [chaveTipo, def] = achado;
+    if (usados.has(chaveTipo)) return null;
+    usados.add(chaveTipo);
     const valor = def.gerar(rng, config);
-    campos.push({ slot, chaveTipo, rotuloKey: def.rotuloKey, rotulo: def.rotulo, valor });
+    campos.push({
+      slot, chaveTipo, rotuloKey: def.rotuloKey, rotulo: def.rotulo, valor,
+      categoria: def.categoria || "Pessoa", essencial,
+    });
     return valor;
   };
 
@@ -115,13 +143,26 @@ export function gerarPersona(config) {
 
   // E-mail não é um "tipo" de país — é derivado, e é o que dá coerência.
   const email = emailDaPersona(nome, rng);
-  campos.push({ slot: "email", chaveTipo: null, rotuloKey: "pers_email", rotulo: "E-mail", valor: email });
+  campos.push({
+    slot: "email", chaveTipo: null, rotuloKey: "pers_email", rotulo: "E-mail",
+    valor: email, categoria: "Pessoa", essencial: true,
+  });
 
   adicionar("documento", tipoDocumentoPrincipal(tipos));
   adicionar("nascimento", tipoDoSlot(tipos, "nascimento"));
   adicionar("telefone", tipoDoSlot(tipos, "telefone"));
   adicionar("postal", tipoDoSlot(tipos, "postal"));
   adicionar("empresa", tipoDoSlot(tipos, "empresa"));
+  // Documento principal da empresa (CNPJ, EIN, USt-IdNr…): fica visível junto
+  // da razão social, porque é o par que todo formulário de PJ pede.
+  adicionar("documentoEmpresa", tipoDocumentoPrincipalEmpresa(tipos));
+
+  // O resto dos documentos do país — mesma pessoa, mas fora do essencial:
+  // a UI os deixa atrás de um "mostrar mais" para não poluir.
+  for (const [chaveTipo, def] of Object.entries(tipos)) {
+    if (usados.has(chaveTipo) || def.raiz) continue;
+    adicionar(chaveTipo, [chaveTipo, def], false);
+  }
 
   const porSlot = {};
   for (const c of campos) porSlot[c.slot] = c.valor;

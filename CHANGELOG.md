@@ -10,6 +10,32 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.23.0] — 2026-07-29
+
+### Alterado
+- **Persona e Documentos viraram uma aba só: "Perfil".** As duas mostravam a
+  mesma coisa em níveis diferentes — agora é **uma pessoa fictícia com TODOS os
+  documentos do país**, coerentes entre si. Acabou a duplicação de gerar um CPF
+  avulso que não tinha relação com o nome ao lado.
+  - Seções **Pessoa** e **Empresa** (as categorias que já existiam nos registros).
+  - Os campos essenciais ficam à vista; o resto vai para **"mais N"** — assim a
+    aba fica enxuta mesmo no Brasil, que tem 12 documentos.
+  - **Exportar em lote** e **Opções** ficam recolhidos no rodapé da aba.
+  - Clicar numa linha insere no campo focado (ou copia); o botão ao lado copia.
+  - **CNPJ mesma raiz** continua sendo uma ação (matriz 0001 → filiais), porque
+    o valor muda a cada clique — não é um campo de valor único.
+- O **conteúdo da aba passou a rolar internamente** (o popup inteiro passava dos
+  600px que o Chrome permite). Cabeçalho, abas e a **seed no rodapé** ficam
+  sempre visíveis; só a área central rola.
+
+### Adicionado
+- `gerarPersona` agora cobre **todos** os tipos do país, cada campo com
+  `categoria` e `essencial` para a UI decidir o que mostrar.
+- **Teste de invariante da regra de país** (65 casos): para os 9 países, todo
+  campo do perfil vem do registro daquele país, cada documento passa no
+  **validador oficial** (com e sem máscara), não há repetição, e trocar de país
+  não deixa resíduo do anterior.
+
 ## [0.22.0] — 2026-07-27
 
 ### Adicionado

@@ -73,48 +73,47 @@
         // P1 — seed persistida no primeiro carregamento
         assert("P1 seed gerada e persistida", /^[0-9a-f]{6}$/.test(cfg().seed), cfg().seed);
 
-        // P2 — todos os 13 botões de documento geram valor não vazio
+        // Lê um campo do perfil pela chave do tipo (independe do idioma).
+        const doPerfil = (chave) => {
+          const l = document.querySelector(`.pf-linha[data-chave="${chave}"] .pf-linha__val`);
+          return l ? l.textContent : null;
+        };
+        const novaPessoa = async () => { $("#btn-nova-persona").click(); await espera(40); };
+
+        // P2 — o perfil traz TODOS os tipos do país (menos os sequenciais)
+        const semRaiz = Object.entries(TIPOS).filter(([, d]) => !d.raiz).map(([k]) => k);
         let todosGeram = true, falhou = "";
-        for (const tipo of Object.keys(TIPOS)) {
-          $(`.doc-btn[data-tipo="${tipo}"]`).click();
-          await espera(15);
-          const v = $("#valor-gerado").textContent;
-          if (!v) { todosGeram = false; falhou = tipo; }
+        for (const tipo of semRaiz) {
+          if (!doPerfil(tipo)) { todosGeram = false; falhou = tipo; }
         }
-        assert("P2 todos os tipos de documento geram valor", todosGeram, "falhou: " + falhou);
+        assert("P2 o perfil cobre todos os tipos do país", todosGeram, "faltou: " + falhou);
+        assert("P2 o perfil tem e-mail derivado do nome", /@example\.com$/.test(doPerfil("cpf") ? document.querySelector('.pf-linha[data-slot="email"] .pf-linha__val').textContent : ""));
 
-        // P3 — CPF e CNPJ gerados pelo popup são válidos
-        $('.doc-btn[data-tipo="cpf"]').click(); await espera(15);
-        assert("P3 CPF gerado é válido", validarCpf($("#valor-gerado").textContent), $("#valor-gerado").textContent);
-        $('.doc-btn[data-tipo="cnpj"]').click(); await espera(15);
-        assert("P3 CNPJ gerado é válido", validarCnpj($("#valor-gerado").textContent), $("#valor-gerado").textContent);
+        // P3 — CPF e CNPJ do perfil são válidos
+        assert("P3 CPF do perfil é válido", validarCpf(doPerfil("cpf")), doPerfil("cpf"));
+        assert("P3 CNPJ do perfil é válido", validarCnpj(doPerfil("cnpj")), doPerfil("cnpj"));
 
-        // P4 — histórico registrou as gerações
-        assert("P4 histórico registra gerações", hist().length > 0, "len=" + hist().length);
-
-        // P5 — gerar avança o contador; trocar a seed reinicia para 0
+        // P4 — o perfil inteiro é UMA geração (contador avança 1 por pessoa)
         const antes = cfg().contador;
-        $('.doc-btn[data-tipo="cpf"]').click(); await espera(15);
-        assert("P5 gerar avança o contador", cfg().contador === antes + 1, `${antes}→${cfg().contador}`);
+        await novaPessoa();
+        assert("P4 nova pessoa avança o contador em 1", cfg().contador === antes + 1, `${antes}→${cfg().contador}`);
+
+        // P5 — trocar a seed reinicia o contador
         $("#campo-seed").value = "7f2a91";
         $("#campo-seed").dispatchEvent(new Event("change"));
-        await espera(20);
+        await espera(30);
         assert("P5 trocar a seed reinicia o contador", cfg().contador === 0 && cfg().seed === "7f2a91", JSON.stringify({ s: cfg().seed, c: cfg().contador }));
 
-        // P6 — reprodutibilidade: mesma seed → mesma sequência de CPFs
-        function proximosDoisCpf() {
-          const out = [];
-          $("#campo-seed").value = "abcdef";
+        // P6 — reprodutibilidade: mesma seed → mesmo perfil
+        async function primeiroPerfilComSeed(seed) {
+          $("#campo-seed").value = seed;
           $("#campo-seed").dispatchEvent(new Event("change"));
-          return espera(20).then(async () => {
-            $('.doc-btn[data-tipo="cpf"]').click(); await espera(15); out.push($("#valor-gerado").textContent);
-            $('.doc-btn[data-tipo="cpf"]').click(); await espera(15); out.push($("#valor-gerado").textContent);
-            return out;
-          });
+          await espera(40);
+          return [doPerfil("nome"), doPerfil("cpf"), doPerfil("cnpj")];
         }
-        const seqA = await proximosDoisCpf();
-        const seqB = await proximosDoisCpf();
-        assert("P6 mesma seed reproduz a mesma sequência", JSON.stringify(seqA) === JSON.stringify(seqB), `${seqA} vs ${seqB}`);
+        const seqA = await primeiroPerfilComSeed("abcdef");
+        const seqB = await primeiroPerfilComSeed("abcdef");
+        assert("P6 mesma seed reproduz o mesmo perfil", JSON.stringify(seqA) === JSON.stringify(seqB), `${seqA} vs ${seqB}`);
 
         // P7 — config persiste: alternar "Com máscara" grava no storage
         const mascaraAntes = cfg().documentos.mascara;
@@ -168,10 +167,11 @@
         assert("P11 casos Unicode exibem as contagens inline", document.querySelector('.lim-familia[data-fam="unicode"] .lim-caso__cont') !== null);
 
         // P12 — navegação por abas troca o painel ativo
-        $('.aba[data-view="documentos"]').click();
-        const docAtivo = $('.painel[data-view="documentos"]').classList.contains("painel--ativo");
+        $('.aba[data-view="perfil"]').click();
+        const perfilAtivo = $('.painel[data-view="perfil"]').classList.contains("painel--ativo");
         const textoInativo = !$('.painel[data-view="texto"]').classList.contains("painel--ativo");
-        assert("P12 abas alternam o painel ativo (um por vez)", docAtivo && textoInativo);
+        assert("P12 abas alternam o painel ativo (um por vez)", perfilAtivo && textoInativo);
+        assert("P12 são 3 abas (Perfil, Texto, Casos-limite)", document.querySelectorAll(".aba").length === 3);
 
         // P13 — modal de seleção de país (Brasil ativo, demais "em breve")
         $("#btn-pais").click(); await espera(20);
@@ -200,48 +200,46 @@
           $("#btn-pais").click(); await espera(20);
           $(`.pais-btn[data-pais="${codigo}"]`).click(); await espera(40);
         };
-        const gerarNoPais = async (tipo) => {
-          $(`.doc-btn[data-tipo="${tipo}"]`).click(); await espera(20);
-          return $("#valor-gerado").textContent;
-        };
+        // O perfil ja contem todos os documentos do pais; basta ler a linha.
+        const gerarNoPais = async (tipo) => doPerfil(tipo);
 
         await trocarPais("us");
-        assert("P14 EUA: interface em inglês", document.documentElement.lang === "en" && $("#btn-inserir").textContent === "Insert into field");
-        assert("P14 EUA: categorias Person/Company", $(".grupo-doc__rot").textContent === "Person");
+        assert("P14 EUA: interface em inglês", document.documentElement.lang === "en" && $(".aba[data-view=\"perfil\"]").textContent === "Profile");
+        assert("P14 EUA: categorias Person/Company", $(".pf-secao__rot").textContent === "Person");
         assert("P14 EUA: opções de CNPJ escondidas (só BR tem)", $("#opcoes-cnpj").hidden);
-        assert("P14 EUA: SSN gerado é válido", validarSsn(await gerarNoPais("ssn")), $("#valor-gerado").textContent);
+        assert("P14 EUA: SSN gerado é válido", validarSsn(await gerarNoPais("ssn")), "");
         assert("P14 EUA: país persistido", cfg().pais === "us");
 
         await trocarPais("ca");
-        assert("P14 Canadá: interface em inglês", document.documentElement.lang === "en" && $("#btn-inserir").textContent === "Insert into field");
-        assert("P14 Canadá: SIN gerado é válido (Luhn)", validarSin(await gerarNoPais("sin")), $("#valor-gerado").textContent);
-        assert("P14 Canadá: BN gerado é válido (Luhn)", validarBn(await gerarNoPais("bn")), $("#valor-gerado").textContent);
+        assert("P14 Canadá: interface em inglês", document.documentElement.lang === "en" && $(".aba[data-view=\"perfil\"]").textContent === "Profile");
+        assert("P14 Canadá: SIN gerado é válido (Luhn)", validarSin(await gerarNoPais("sin")), "");
+        assert("P14 Canadá: BN gerado é válido (Luhn)", validarBn(await gerarNoPais("bn")), "");
 
         await trocarPais("ar");
-        assert("P14 Argentina: interface em espanhol", document.documentElement.lang === "es" && $("#btn-inserir").textContent === "Insertar en el campo");
-        assert("P14 Argentina: CUIT gerado é válido", validarCuit(await gerarNoPais("cuit")), $("#valor-gerado").textContent);
+        assert("P14 Argentina: interface em espanhol", document.documentElement.lang === "es" && $(".aba[data-view=\"perfil\"]").textContent === "Perfil");
+        assert("P14 Argentina: CUIT gerado é válido", validarCuit(await gerarNoPais("cuit")), "");
 
         await trocarPais("mx");
-        assert("P14 México: interface em espanhol", document.documentElement.lang === "es" && $("#btn-inserir").textContent === "Insertar en el campo");
-        assert("P14 México: CURP gerado é válido (DV mod 10)", validarCurpMX(await gerarNoPais("curp")), $("#valor-gerado").textContent);
-        assert("P14 México: RFC gerado é válido (DV mod 11)", validarRfcMX(await gerarNoPais("rfc")), $("#valor-gerado").textContent);
-        assert("P14 México: NSS gerado é válido (Luhn)", validarNssMX(await gerarNoPais("nss")), $("#valor-gerado").textContent);
+        assert("P14 México: interface em espanhol", document.documentElement.lang === "es" && $(".aba[data-view=\"perfil\"]").textContent === "Perfil");
+        assert("P14 México: CURP gerado é válido (DV mod 10)", validarCurpMX(await gerarNoPais("curp")), "");
+        assert("P14 México: RFC gerado é válido (DV mod 11)", validarRfcMX(await gerarNoPais("rfc")), "");
+        assert("P14 México: NSS gerado é válido (Luhn)", validarNssMX(await gerarNoPais("nss")), "");
 
         await trocarPais("cn");
-        assert("P14 China: interface em chinês", document.documentElement.lang === "zh-CN" && $("#btn-inserir").textContent === "插入到字段");
-        assert("P14 China: ID card gerado é válido (MOD 11-2)", validarIdCardCN(await gerarNoPais("idCard")), $("#valor-gerado").textContent);
-        assert("P14 China: USCC gerado é válido (MOD 31-3)", validarUscc(await gerarNoPais("uscc")), $("#valor-gerado").textContent);
+        assert("P14 China: interface em chinês", document.documentElement.lang === "zh-CN" && $(".aba[data-view=\"perfil\"]").textContent === "资料");
+        assert("P14 China: ID card gerado é válido (MOD 11-2)", validarIdCardCN(await gerarNoPais("idCard")), "");
+        assert("P14 China: USCC gerado é válido (MOD 31-3)", validarUscc(await gerarNoPais("uscc")), "");
 
         await trocarPais("in");
-        assert("P14 Índia: interface em híndi", document.documentElement.lang === "hi" && $("#btn-inserir").textContent === "फ़ील्ड में डालें");
-        assert("P14 Índia: Aadhaar gerado é válido (Verhoeff)", validarAadhaar(await gerarNoPais("aadhaar")), $("#valor-gerado").textContent);
-        assert("P14 Índia: GSTIN gerado é válido (base-36)", validarGstin(await gerarNoPais("gstin")), $("#valor-gerado").textContent);
-        assert("P14 Índia: PAN gerado tem formato válido", validarPan(await gerarNoPais("pan")), $("#valor-gerado").textContent);
+        assert("P14 Índia: interface em híndi", document.documentElement.lang === "hi" && $(".aba[data-view=\"perfil\"]").textContent === "प्रोफ़ाइल");
+        assert("P14 Índia: Aadhaar gerado é válido (Verhoeff)", validarAadhaar(await gerarNoPais("aadhaar")), "");
+        assert("P14 Índia: GSTIN gerado é válido (base-36)", validarGstin(await gerarNoPais("gstin")), "");
+        assert("P14 Índia: PAN gerado tem formato válido", validarPan(await gerarNoPais("pan")), "");
 
         await trocarPais("de");
-        assert("P14 Alemanha: interface em alemão", document.documentElement.lang === "de" && $("#btn-inserir").textContent === "Ins Feld einfügen");
-        assert("P14 Alemanha: IBAN gerado é válido (mod-97-10)", validarIbanDE(await gerarNoPais("iban")), $("#valor-gerado").textContent);
-        assert("P14 Alemanha: Steuer-IdNr válido (MOD 11,10)", validarSteuerId(await gerarNoPais("steuerId")), $("#valor-gerado").textContent);
+        assert("P14 Alemanha: interface em alemão", document.documentElement.lang === "de" && $(".aba[data-view=\"perfil\"]").textContent === "Profil");
+        assert("P14 Alemanha: IBAN gerado é válido (mod-97-10)", validarIbanDE(await gerarNoPais("iban")), "");
+        assert("P14 Alemanha: Steuer-IdNr válido (MOD 11,10)", validarSteuerId(await gerarNoPais("steuerId")), "");
 
         await trocarPais("br"); // volta ao Brasil para não afetar outros checks
         assert("P14 volta ao Brasil (pt)", cfg().pais === "br" && document.documentElement.lang === "pt-BR");
@@ -256,13 +254,13 @@
 
         // Vai para a China: dados chineses, mas interface e rótulos em português.
         await trocarPais("cn");
-        assert("P15 China + pt fixo: interface fica em português", document.documentElement.lang === "pt-BR" && $("#btn-inserir").textContent === "Inserir no campo");
-        const rotIdCard = $('.doc-btn[data-tipo="idCard"]').textContent;
+        assert("P15 China + pt fixo: interface fica em português", document.documentElement.lang === "pt-BR" && $(".aba[data-view=\"perfil\"]").textContent === "Perfil");
+        const rotIdCard = $(`.pf-linha[data-chave="idCard"] .pf-linha__rot`).textContent;
         assert("P15 rótulo do ID card em português", rotIdCard === "Nº de identidade", rotIdCard);
-        const rotUscc = $('.doc-btn[data-tipo="uscc"]').textContent;
+        const rotUscc = $(`.pf-linha[data-chave="uscc"] .pf-linha__rot`).textContent;
         assert("P15 rótulo do USCC em português", rotUscc === "Registro de empresa (USCC)", rotUscc);
         // Mas o DADO gerado continua sendo chinês (ID card válido MOD 11-2).
-        assert("P15 dado do ID card continua chinês e válido", validarIdCardCN(await gerarNoPais("idCard")), $("#valor-gerado").textContent);
+        assert("P15 dado do ID card continua chinês e válido", validarIdCardCN(await gerarNoPais("idCard")), "");
 
         // Volta para automático e Brasil (não afeta outros checks / re-runs).
         $('.aba[data-view="config"]').click(); await espera(20);
@@ -273,17 +271,17 @@
 
         // P16 — Arábia Saudita: interface árabe RTL + documentos válidos
         await trocarPais("sa");
-        assert("P16 Arábia Saudita: interface em árabe", document.documentElement.lang === "ar" && $("#btn-inserir").textContent === "إدراج في الحقل");
+        assert("P16 Arábia Saudita: interface em árabe", document.documentElement.lang === "ar" && $(".aba[data-view=\"perfil\"]").textContent === "ملف");
         assert("P16 Arábia Saudita: direção RTL aplicada no <html>", document.documentElement.dir === "rtl");
-        assert("P16 Arábia Saudita: Documento nacional válido (Luhn)", validarNationalIdSA(await gerarNoPais("nationalId")), $("#valor-gerado").textContent);
-        assert("P16 Arábia Saudita: VAT válido (15 díg)", validarVatSA(await gerarNoPais("vat")), $("#valor-gerado").textContent);
+        assert("P16 Arábia Saudita: Documento nacional válido (Luhn)", validarNationalIdSA(await gerarNoPais("nationalId")), "");
+        assert("P16 Arábia Saudita: VAT válido (15 díg)", validarVatSA(await gerarNoPais("vat")), "");
 
         // QA pt lendo dados sauditas: fixa pt, rótulos em pt, dados árabes, LTR de volta.
         $('.aba[data-view="config"]').click(); await espera(20);
         $("#sel-idioma").value = "pt"; $("#sel-idioma").dispatchEvent(new Event("change")); await espera(30);
         assert("P16 pt fixo em SA: interface pt e direção LTR", document.documentElement.lang === "pt-BR" && document.documentElement.dir === "ltr");
-        assert("P16 rótulo do Documento nacional em pt", $('.doc-btn[data-tipo="nationalId"]').textContent === "Documento nacional (ID)");
-        assert("P16 dado nacional continua saudita e válido", validarNationalIdSA(await gerarNoPais("nationalId")), $("#valor-gerado").textContent);
+        assert("P16 rótulo do Documento nacional em pt", $(`.pf-linha[data-chave="nationalId"] .pf-linha__rot`).textContent === "Documento nacional (ID)");
+        assert("P16 dado nacional continua saudita e válido", validarNationalIdSA(await gerarNoPais("nationalId")), "");
 
         // Restaura automático + Brasil.
         $('.aba[data-view="config"]').click(); await espera(20);

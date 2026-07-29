@@ -330,9 +330,15 @@ button {
 }
 
 /* ---------- Conteúdo / painéis ---------- */
+/* O Chrome corta o popup em 600px de altura. Em vez de deixar a janela inteira
+   rolar (o que esconderia a seed no rodapé e o seletor de país no topo), só o
+   conteúdo da aba rola — cabeçalho e rodapé ficam sempre à vista. */
 .conteudo {
   padding: 14px;
   min-height: 180px;
+  max-height: 430px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .painel {
@@ -926,12 +932,9 @@ input:focus-visible {
   box-shadow: 0 0 0 2px var(--azul-suave);
 }
 
-/* A lista de casos rola dentro de um limite — a intro e a busca ficam fixas
-   e o popup não vira uma página gigante (são dezenas de casos). */
+/* A rolagem agora é do .conteudo (uma só, para todas as abas) — aqui basta
+   não deixar a lista empurrar a largura. */
 #lim-familias {
-  max-height: 300px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
   padding-inline-end: 2px;
 }
 
@@ -1078,61 +1081,178 @@ input:focus-visible {
   color: var(--texto-fraco);
 }
 
-/* --- Persona -------------------------------------------------------------- */
-.pers-acoes {
+/* --- Perfil (pessoa fictícia completa) ------------------------------------ */
+.pf-acoes {
   display: flex;
   gap: 8px;
-  margin: 10px 0 8px;
+  margin-bottom: 10px;
 }
-.pers-acoes button {
+/* Fonte/padding menores para os dois rótulos caberem numa linha só —
+   com "Preencher formulário" em 14px, o botão quebrava em duas. */
+.pf-acoes button {
   flex: 1;
+  padding: 7px 6px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
-.pers-switch {
+.pf-secao {
+  display: block;
   margin-bottom: 10px;
 }
 
-.pers-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.pf-secao__rot {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--texto-fraco);
+  margin-bottom: 5px;
 }
 
-.pers-linha {
+.pf-linha {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.pf-linha__main {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  width: 100%;
-  padding: 7px 9px;
+  flex: 1;
+  min-width: 0;
+  padding: 5px 9px;
   text-align: start;
   background: var(--superficie);
   border: 1px solid var(--borda);
   border-radius: var(--raio-sm);
   cursor: pointer;
 }
-.pers-linha:hover {
+.pf-linha__main:hover {
   background: var(--superficie-2);
   border-color: var(--azul);
 }
-.pers-linha:focus-visible {
+.pf-linha__main:focus-visible {
   outline: 2px solid var(--azul);
   outline-offset: 1px;
 }
 
-.pers-linha__rot {
-  flex: 0 0 38%;
+.pf-linha__rot {
+  flex: 0 0 36%;
   font-size: 11px;
   font-weight: 600;
   color: var(--texto-fraco);
 }
 
-.pers-linha__val {
+.pf-linha__val {
   flex: 1;
   min-width: 0;
   font-family: ui-monospace, "Cascadia Code", monospace;
   font-size: 12.5px;
   color: var(--texto);
   word-break: break-all;
+}
+
+/* O botão de copiar só aparece no hover/foco da linha — mantém a lista limpa. */
+.pf-linha__copiar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--raio-sm);
+  cursor: pointer;
+  opacity: 0;
+}
+.pf-linha:hover .pf-linha__copiar,
+.pf-linha__copiar:focus-visible {
+  opacity: 1;
+}
+.pf-linha__copiar:hover {
+  background: var(--superficie-2);
+  border-color: var(--borda);
+}
+
+/* "mostrar mais N" dentro de cada seção */
+.pf-mais {
+  margin-top: 2px;
+}
+.pf-mais__cab {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--azul);
+  cursor: pointer;
+  padding: 3px 2px;
+  list-style: none;
+}
+.pf-mais__cab::-webkit-details-marker {
+  display: none;
+}
+.pf-mais__cab::before {
+  content: "▸ ";
+  font-size: 9px;
+}
+.pf-mais[open] .pf-mais__cab::before {
+  content: "▾ ";
+}
+.pf-mais[open] .pf-mais__cab {
+  margin-bottom: 3px;
+}
+
+/* Ação de documento sequencial (CNPJ matriz + filiais) */
+.pf-acao-raiz {
+  margin-top: 4px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--azul);
+  background: transparent;
+  border: 1px dashed var(--borda);
+  border-radius: var(--raio-sm);
+  cursor: pointer;
+}
+.pf-acao-raiz:hover {
+  border-color: var(--azul);
+  background: var(--azul-suave);
+}
+
+/* Blocos recolhíveis do rodapé da aba (Exportar / Opções) */
+.pf-det {
+  border-top: 1px solid var(--borda);
+}
+.pf-det__cab {
+  padding: 9px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--texto-fraco);
+  cursor: pointer;
+  list-style: none;
+}
+.pf-det__cab::-webkit-details-marker {
+  display: none;
+}
+.pf-det__cab::before {
+  content: "▸ ";
+  font-size: 9px;
+}
+.pf-det[open] .pf-det__cab::before {
+  content: "▾ ";
+}
+.pf-det__cab:hover {
+  color: var(--texto);
+}
+.pf-det__corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 2px 12px;
 }
 
 .exp-bloco {
