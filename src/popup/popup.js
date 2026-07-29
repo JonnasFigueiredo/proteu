@@ -22,6 +22,7 @@ import { FAMILIAS_LIMITE } from "../core/invalid/casos-limite.js";
 import { gerarPersona } from "../core/persona.js";
 import { planejarPreenchimento } from "../core/mapeamento.js";
 import { gerarLote, serializar, FORMATOS } from "../core/exportar.js";
+import { proximoTema } from "../core/tema.js";
 import { t, LANG_ATTR, DIR_ATTR } from "../core/i18n.js";
 import { cnpjDeRaiz } from "../core/documents/cnpj.js";
 
@@ -53,7 +54,6 @@ const ICONES_TEMA = {
   claro: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
   escuro: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>',
 };
-const PROXIMO_TEMA = { auto: "claro", claro: "escuro", escuro: "auto" };
 const CHAVE_TEMA = { auto: "tema_auto", claro: "tema_claro", escuro: "tema_escuro" };
 
 // Estado local do popup; a fonte da verdade é o chrome.storage.
@@ -388,8 +388,16 @@ function aplicarTema(tema) {
   btn.title = `${t(idiomaAtual, "t_tema")}: ${t(idiomaAtual, CHAVE_TEMA[tema])}`;
 }
 
+/**
+ * Botão do cabeçalho: inverte o tema QUE ESTÁ NA TELA.
+ *
+ * Antes ele ciclava auto → claro → escuro → auto, e como "auto" coincide com
+ * claro ou escuro conforme o sistema, um clique em cada três não mudava nada.
+ * O modo "auto" continua disponível no seletor da aba Configurações.
+ */
 async function aoAlternarTema() {
-  const proximo = PROXIMO_TEMA[config.tema] || "auto";
+  const sistemaEscuro = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const proximo = proximoTema(config.tema, sistemaEscuro);
   await atualizarConfig((c) => (c.tema = proximo));
   aplicarTema(proximo);
   $("#sel-tema").value = proximo;

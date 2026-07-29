@@ -10,6 +10,19 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.23.1] — 2026-07-29
+
+### Corrigido
+- **Botão de tema exigia cliques extras.** O ciclo era auto → claro → escuro →
+  auto, mas "auto" sempre coincide visualmente com claro ou escuro (conforme o
+  sistema): num sistema no modo escuro, ir de "escuro" para "auto" não mudava
+  nada na tela. Um clique em cada três parecia não funcionar.
+  Agora o botão do cabeçalho **inverte sempre o tema que está na tela** — todo
+  clique muda. O modo "automático (segue o sistema)" continua disponível no
+  seletor da aba Configurações, onde a escolha é explícita.
+  A decisão virou lógica pura em `core/tema.js`, com teste que percorre 10
+  cliques e exige que nenhum repita o tema visível.
+
 ## [0.23.0] — 2026-07-29
 
 ### Alterado
