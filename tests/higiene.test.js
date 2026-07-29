@@ -82,6 +82,37 @@ describe("higiene — CSS", () => {
   });
 });
 
+describe("higiene — o JS só busca elementos que existem", () => {
+  // Bug real que este teste teria pego: o popup consultava `#secao-historico`,
+  // um id que não existe. `null.hidden` lançava dentro de uma função async, e a
+  // promise rejeitada levava junto o que vinha depois — o perfil parava de
+  // renderizar. Erro invisível no console e nenhum teste falhava.
+  // Comentários citam seletores ao explicar o histórico — só o código conta.
+  const codigo = semComentarios(popupJs);
+  const idsNoHtml = new Set([...popupHtml.matchAll(/\bid="([\w-]+)"/g)].map((m) => m[1]));
+  const idsCriadosNoJs = new Set(
+    [...codigo.matchAll(/\.id\s*=\s*["'`]([\w-]+)["'`]/g)].map((m) => m[1])
+  );
+
+  it('todo $("#id") do popup existe no HTML ou é criado em runtime', () => {
+    const buscados = [...codigo.matchAll(/\$\(\s*["'`]#([\w-]+)["'`]\s*\)/g)].map((m) => m[1]);
+    const inexistentes = [...new Set(buscados)].filter(
+      (id) => !idsNoHtml.has(id) && !idsCriadosNoJs.has(id)
+    );
+    expect(inexistentes, `ids inexistentes: ${inexistentes.join(", ")}`).toEqual([]);
+  });
+
+  it("todo querySelector por id também aponta para algo real", () => {
+    const buscados = [
+      ...codigo.matchAll(/querySelector(?:All)?\(\s*["'`]#([\w-]+)/g),
+    ].map((m) => m[1]);
+    const inexistentes = [...new Set(buscados)].filter(
+      (id) => !idsNoHtml.has(id) && !idsCriadosNoJs.has(id)
+    );
+    expect(inexistentes, `ids inexistentes: ${inexistentes.join(", ")}`).toEqual([]);
+  });
+});
+
 describe("higiene — JavaScript", () => {
   it("nenhum import do popup fica sem uso", () => {
     const corpo = popupJs.replace(/^import[\s\S]*?from\s+"[^"]+";$/gm, "");
