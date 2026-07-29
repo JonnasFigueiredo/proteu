@@ -693,7 +693,7 @@ async function aoGerarCnpjRaiz(tipo) {
     contador: config.contador,
     em: Date.now(),
   });
-  if (!$("#secao-historico").hidden) await renderizarHistorico();
+  if (historicoVisivel()) await renderizarHistorico();
 }
 
 // --- Geração de texto -------------------------------------------------------
@@ -762,7 +762,7 @@ async function aoGerarTexto() {
     contador: usado,
     em: Date.now(),
   });
-  if (!$("#secao-historico").hidden) await renderizarHistorico();
+  if (historicoVisivel()) await renderizarHistorico();
 }
 
 /** Mostra o texto, marca a direção (RTL) e exibe as 4 contagens. */
@@ -837,7 +837,7 @@ async function aoNovaPersona() {
     contador: personaAtual.contador,
     em: Date.now(),
   });
-  if (!$("#secao-historico").hidden) await renderizarHistorico();
+  if (historicoVisivel()) await renderizarHistorico();
 
   renderizarPerfil();
   limparFeedback("#feedback-persona");
@@ -1134,6 +1134,19 @@ async function aoNovaSeed() {
 }
 
 // --- Histórico --------------------------------------------------------------
+
+/**
+ * O painel de histórico está aberto? Só então vale re-renderizá-lo.
+ *
+ * Antes isto checava `$("#secao-historico").hidden` — um id que não existe
+ * no HTML. A leitura de `.hidden` em null lançava, e como as chamadas são
+ * assíncronas o erro sumia numa promise rejeitada, levando junto o que
+ * vinha depois (no caso da persona, a renderização do perfil inteiro).
+ */
+function historicoVisivel() {
+  const painel = document.querySelector('.painel[data-view="historico"]');
+  return !!painel && painel.classList.contains("painel--ativo");
+}
 
 async function renderizarHistorico() {
   const hist = await carregarHistorico();
