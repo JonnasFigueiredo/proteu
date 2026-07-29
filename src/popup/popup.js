@@ -59,7 +59,6 @@ const CHAVE_TEMA = { auto: "tema_auto", claro: "tema_claro", escuro: "tema_escur
 // Estado local do popup; a fonte da verdade é o chrome.storage.
 let config = null;
 let idiomaAtual = "pt";
-let ultimoValor = null;
 let ultimoTexto = null;
 let tipoTexto = "palavras"; // "palavras" | "frases" | "tamanho"
 let personaAtual = null;
@@ -249,8 +248,9 @@ function montarIdiomas() {
   }
 }
 
-// Ordem em que as categorias aparecem no painel Documentos.
-const ORDEM_CATEGORIAS = ["Pessoa", "Empresa", "Veículo", "Contato", "Financeiro"];
+// Ordem em que as seções aparecem no perfil. Categorias fora desta lista
+// entram depois, na ordem em que o registro do país as declara.
+const ORDEM_CATEGORIAS = ["Pessoa", "Empresa"];
 
 /**
  * Desenha o perfil em seções (Pessoa / Empresa). Os campos essenciais ficam à
@@ -680,14 +680,11 @@ async function aoGerarCnpjRaiz(tipo) {
     valor = cnpjDeRaiz(grupoRaiz.raiz, ordem, { mascara: config.documentos.mascara });
     chaveFb = "fb_cnpj_filial";
   }
-  ultimoValor = valor;
-  // Vai direto para o campo focado (ou área de transferência) e avisa a ordem.
-  await usarValorAvulso(valor, tipo, "#feedback-persona");
-  mostrarFeedback(
-    t(idiomaAtual, chaveFb, { ordem: String(ordem).padStart(4, "0") }),
-    "ok",
-    "#feedback-persona"
-  );
+  // O rótulo já leva a ordem ("CNPJ matriz (0001)"), então uma única mensagem
+  // dá conta: antes, um mostrarFeedback logo depois sobrescrevia o resultado
+  // da inserção e escondia falhas.
+  const rotulo = t(idiomaAtual, chaveFb, { ordem: String(ordem).padStart(4, "0") });
+  await usarValorAvulso(valor, rotulo, "#feedback-persona");
 
   await adicionarHistorico({
     tipo,
@@ -830,6 +827,18 @@ async function aoNovaPersona() {
   // que faz "seed + contador" reproduzir a pessoa completa.
   await persistirContador(personaAtual.proximoContador);
   config.contador = personaAtual.proximoContador;
+
+  // Uma entrada por pessoa (não uma por campo): guardar o contador basta para
+  // reproduzir o perfil inteiro, e o nome é o que identifica quem foi gerado.
+  await adicionarHistorico({
+    tipo: `perfil:${config.pais}`,
+    valor: personaAtual.porSlot.nome || personaAtual.campos[0]?.valor || "",
+    seed: config.seed,
+    contador: personaAtual.contador,
+    em: Date.now(),
+  });
+  if (!$("#secao-historico").hidden) await renderizarHistorico();
+
   renderizarPerfil();
   limparFeedback("#feedback-persona");
 }

@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { slotDoCampo, planejarPreenchimento, paraDataIso } from "../src/core/mapeamento.js";
+import {
+  slotDoCampo, planejarPreenchimento, paraDataIso, ehIgnorado,
+} from "../src/core/mapeamento.js";
 import { gerarPersona } from "../src/core/persona.js";
 
 const campo = (extra) => ({ tag: "input", type: "text", indice: 0, ...extra });
@@ -61,6 +63,36 @@ describe("mapeamento — texto do campo, multi-idioma", () => {
     for (const sigla of ["CPF", "SSN", "DNI", "CURP", "RFC", "Aadhaar", "IBAN"]) {
       expect(slotDoCampo(campo({ label: sigla })), sigla).toBe("documento");
     }
+  });
+});
+
+describe("ehIgnorado — a lista do que a extensão nunca preenche", () => {
+  // Vale testar direto (e não só através do plano): é a garantia de que um
+  // campo de senha não recebe lixo nem no modo "preencher tudo".
+  it("ignora os tipos perigosos ou sem sentido", () => {
+    for (const type of [
+      "password", "hidden", "submit", "reset", "button", "image", "file",
+      "checkbox", "radio", "color", "range",
+    ]) {
+      expect(ehIgnorado(campo({ type })), type).toBe(true);
+    }
+  });
+
+  it("ignora campos travados pelo próprio site", () => {
+    expect(ehIgnorado(campo({ readonly: true }))).toBe(true);
+    expect(ehIgnorado(campo({ disabled: true }))).toBe(true);
+  });
+
+  it("não ignora campo de texto comum", () => {
+    expect(ehIgnorado(campo({ type: "text" }))).toBe(false);
+    expect(ehIgnorado(campo({ type: "email" }))).toBe(false);
+    expect(ehIgnorado(campo({ tag: "textarea", type: "" }))).toBe(false);
+  });
+
+  it("entrada inválida é tratada como ignorada (nunca preenche no escuro)", () => {
+    expect(ehIgnorado(null)).toBe(true);
+    expect(ehIgnorado(undefined)).toBe(true);
+    expect(ehIgnorado("não é objeto")).toBe(true);
   });
 });
 

@@ -155,11 +155,6 @@ button {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12) inset;
 }
 
-#btn-idioma {
-  display: grid;
-  place-items: center;
-}
-
 /* ---------- Modal de seleção de país ---------- */
 .modal {
   position: fixed;
@@ -368,16 +363,6 @@ button {
   margin-bottom: 0;
 }
 
-/* ---------- Opções de documento (máscara + CNPJ) ---------- */
-.opcoes-doc {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--borda);
-}
-
 /* ---------- Switch (Com máscara) ---------- */
 .switch {
   display: inline-flex;
@@ -435,61 +420,6 @@ button {
   font-size: 13px;
 }
 
-/* ---------- Documentos por categoria ---------- */
-.grupos-doc {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.grupo-doc__rot {
-  display: block;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--texto-fraco);
-  margin-bottom: 6px;
-}
-
-.grade-doc {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-/* Botão de documento: leve (contorno), não a parede de azul */
-.doc-btn {
-  padding: 8px 10px;
-  border: 1px solid var(--borda);
-  border-radius: var(--raio-sm);
-  background: var(--superficie);
-  color: var(--texto);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: border-color 0.12s, background 0.12s;
-}
-
-.doc-btn:hover {
-  border-color: var(--azul);
-  background: var(--azul-suave);
-  color: var(--azul-forte);
-}
-
-.doc-btn.perigo-btn {
-  border-color: var(--vermelho);
-  color: var(--vermelho);
-  background: var(--fundo);
-}
-
-.doc-btn.perigo-btn:hover {
-  background: var(--vermelho-suave);
-}
-
 /* ---------- Chips ---------- */
 .chips {
   display: flex;
@@ -512,18 +442,6 @@ button {
   border-color: var(--azul);
   color: var(--azul);
   background: var(--azul-suave);
-}
-
-.chip.perigo {
-  border-color: var(--vermelho);
-  color: var(--vermelho);
-  background: var(--fundo);
-  font-family: ui-monospace, "Cascadia Code", monospace;
-}
-
-.chip.perigo:hover {
-  background: var(--vermelho-suave);
-  color: var(--vermelho);
 }
 
 /* ---------- Banner "Campo detectado" ---------- */
@@ -1253,12 +1171,6 @@ input:focus-visible {
   flex-direction: column;
   gap: 8px;
   padding: 2px 2px 12px;
-}
-
-.exp-bloco {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--borda);
 }
 
 .exp-ajuda {

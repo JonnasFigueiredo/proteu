@@ -10,6 +10,34 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.23.2] — 2026-07-29
+
+### Corrigido
+- **Histórico voltou a registrar as gerações** (regressão da unificação das
+  abas): ao remover a aba Documentos, nada mais alimentava o histórico além do
+  texto e do CNPJ mesma-raiz. Agora cada pessoa gerada entra como **uma linha**
+  (`perfil:<país>` + nome), guardando o contador — o suficiente para a seed
+  reproduzir o perfil inteiro depois.
+- **Feedback do CNPJ mesma-raiz**: mostrava a chave interna (`cnpjRaiz`) como
+  rótulo, e a mensagem seguinte sobrescrevia o resultado da inserção, escondendo
+  falhas. Agora é uma mensagem só, com o rótulo traduzido e a ordem ("CNPJ
+  matriz (0001)").
+
+### Removido
+- Código morto que a unificação das abas deixou para trás: 12 blocos de CSS
+  (`.doc-btn`, `.grade-doc`, `.opcoes-doc`, `.exp-bloco`, `#btn-idioma`…),
+  as chaves de tradução `idioma_9` e `t_idioma` nos 7 idiomas, a variável
+  `ultimoValor` (escrita e nunca lida) e 3 categorias que nenhum país usa.
+
+### Adicionado
+- **Testes de higiene** (`tests/higiene.test.js`): falham quando volta a
+  aparecer chave de tradução órfã, classe/id de CSS sem uso, import sem uso,
+  export de `core/` sem consumidor, uso de DOM/`chrome.*` dentro do `core/`
+  (que precisa rodar no Node) ou alteração nas **4 permissões** do manifest.
+  A limpeza deixa de depender de alguém reparar meses depois.
+- `ehIgnorado` agora tem teste direto — é a garantia de que campo de senha,
+  upload, readonly e disabled não recebem valor nem no modo "preencher tudo".
+
 ## [0.23.1] — 2026-07-29
 
 ### Corrigido
