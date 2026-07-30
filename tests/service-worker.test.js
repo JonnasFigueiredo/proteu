@@ -20,12 +20,27 @@ function instalarChromeFake() {
   });
   const enviadas = [];
   const menusCriados = [];
+  const errosMenu = [];
 
   globalThis.chrome = {
     runtime: { onInstalled: capturar("instalado") },
     contextMenus: {
-      async removeAll() { menusCriados.length = 0; },
-      create: (def) => menusCriados.push(def),
+      // `removeAll` é assíncrono no Chrome real; o mock também cede o controle,
+      // senão a corrida que este arquivo testa nunca aconteceria.
+      async removeAll() {
+        await Promise.resolve();
+        menusCriados.length = 0;
+      },
+      // O Chrome real recusa id repetido com "Cannot create item with duplicate
+      // id". Sem isso no mock, o bug de menu duplicado passava batido.
+      create: (def) => {
+        if (menusCriados.some((m) => m.id === def.id)) {
+          errosMenu.push(`Cannot create item with duplicate id ${def.id}`);
+          return def.id;
+        }
+        menusCriados.push(def);
+        return def.id;
+      },
       onClicked: capturar("menuClicado"),
     },
     commands: { onCommand: capturar("comando") },
@@ -45,7 +60,7 @@ function instalarChromeFake() {
       onChanged: capturar("storageChanged"),
     },
   };
-  return { listeners, sync, local, enviadas, menusCriados };
+  return { listeners, sync, local, enviadas, menusCriados, errosMenu };
 }
 
 const flush = () => new Promise((r) => setTimeout(r, 20));
@@ -135,5 +150,57 @@ describe("service worker — atalho 'repetir última geração'", () => {
     await ctx.listeners.comando("outro-comando");
     await flush();
     expect(ctx.enviadas.length).toBe(antes);
+  });
+});
+
+describe("service worker — menu de contexto sem ids duplicados", () => {
+  // Bug real, visto ao carregar a extensão pela primeira vez: o console
+  // enchia de "Cannot create item with duplicate id proteu:gerar:nome",
+  // ":dataNascimento", ":cpf"… — a lista inteira de documentos do país.
+  //
+  // Causa: duas reconstruções concorrentes. Na instalação, `onInstalled`
+  // dispara uma e o popup — ao gravar o país pela primeira vez (null → "br") —
+  // dispara outra. Cada uma faz `await removeAll()`, e é nesse await que a
+  // segunda entra: as duas limpam o menu e as duas criam os mesmos ids.
+
+  it("reconstruções concorrentes não colidem", async () => {
+    ctx.errosMenu.length = 0;
+    // Exatamente o cenário da instalação: onInstalled + primeira gravação do
+    // país, sem esperar uma terminar antes de disparar a outra.
+    ctx.listeners.instalado();
+    ctx.listeners.storageChanged(
+      { config: { oldValue: { pais: null }, newValue: { pais: "br" } } },
+      "sync"
+    );
+    await flush();
+
+    expect(ctx.errosMenu, ctx.errosMenu.join(" | ")).toEqual([]);
+  });
+
+  it("o menu fica com um item por documento, sem repetição", async () => {
+    ctx.errosMenu.length = 0;
+    await ctx.listeners.instalado();
+    await flush();
+
+    const ids = ctx.menusCriados.map((m) => m.id);
+    expect(ids.length).toBe(new Set(ids).size);
+    expect(ids).toContain("proteu:raiz");
+    // Todo item de documento pendura na raiz.
+    for (const m of ctx.menusCriados.filter((x) => x.id !== "proteu:raiz")) {
+      expect(m.parentId).toBe("proteu:raiz");
+      expect(m.id.startsWith("proteu:gerar:")).toBe(true);
+    }
+  });
+
+  it("uma enxurrada de trocas de país não gera colisão", async () => {
+    ctx.errosMenu.length = 0;
+    for (const pais of ["us", "cn", "de", "br", "in", "sa"]) {
+      ctx.listeners.storageChanged(
+        { config: { oldValue: { pais: "xx" }, newValue: { pais } } },
+        "sync"
+      );
+    }
+    await flush();
+    expect(ctx.errosMenu, ctx.errosMenu.join(" | ")).toEqual([]);
   });
 });

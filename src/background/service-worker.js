@@ -10,8 +10,8 @@ const PREFIXO_MENU = "proteu:gerar:";
 
 // --- Menu de contexto (um item por documento do país ativo) ----------------
 
-/** (Re)constrói o menu de contexto conforme o país ativo na config. */
-async function reconstruirMenu() {
+/** Constrói o menu de contexto conforme o país ativo na config. */
+async function construirMenu() {
   const config = await carregarConfig();
   const pais = config.pais || PAIS_PADRAO;
   const tipos = tiposDoPais(pais);
@@ -31,6 +31,24 @@ async function reconstruirMenu() {
       contexts: ["editable"],
     });
   }
+}
+
+// Fila de uma posição: as reconstruções nunca se sobrepõem.
+//
+// Sem isto, duas chamadas concorrentes se atropelam. Acontecia na instalação:
+// `onInstalled` dispara uma, e o popup — ao gravar o país pela primeira vez
+// (null → "br") — dispara outra. Cada uma faz `await removeAll()`, e é nesse
+// await que a segunda entra: as duas limpam o menu e as duas tentam criar os
+// mesmos ids, gerando "Cannot create item with duplicate id proteu:gerar:*"
+// para a lista inteira de documentos.
+let filaMenu = Promise.resolve();
+
+/** Enfileira uma reconstrução do menu. */
+function reconstruirMenu() {
+  filaMenu = filaMenu
+    .catch(() => {}) // uma falha anterior não trava as próximas
+    .then(construirMenu);
+  return filaMenu;
 }
 
 chrome.runtime.onInstalled.addListener(reconstruirMenu);
