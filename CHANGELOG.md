@@ -10,6 +10,23 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.24.1] — 2026-07-29
+
+### Corrigido
+- **Menu de contexto enchia o console de "Cannot create item with duplicate id
+  proteu:gerar:*"** ao instalar a extensão. Era uma **corrida**: na instalação,
+  `onInstalled` dispara uma reconstrução do menu e o popup — ao gravar o país
+  pela primeira vez (null → "br") — dispara outra. Cada uma faz
+  `await removeAll()`, e é nesse `await` que a segunda entra: as duas limpam o
+  menu e as duas tentam criar os mesmos ids, um erro por documento do país.
+  As reconstruções agora passam por uma **fila de uma posição**, então nunca se
+  sobrepõem.
+- O mock de `contextMenus.create` nos testes aceitava id repetido, ao contrário
+  do Chrome real — por isso o bug passava batido. Agora recusa, e três testes
+  cobrem o cenário da instalação e uma enxurrada de trocas de país.
+  Verificado revertendo a correção: os testes reproduzem a lista de erros
+  exatamente como ela aparecia no navegador.
+
 ## [0.24.0] — 2026-07-29
 
 ### Adicionado
