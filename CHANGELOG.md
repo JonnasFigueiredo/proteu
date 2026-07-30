@@ -10,6 +10,20 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.23.3] — 2026-07-29
+
+### Corrigido
+- **O perfil ficava em branco ao clicar em "Nova pessoa".** O popup consultava
+  `$("#secao-historico")`, um id que não existe no HTML (o painel de histórico é
+  `.painel[data-view="historico"]`). Ler `.hidden` de `null` lançava dentro de
+  função assíncrona, e a promise rejeitada levava junto o que vinha depois —
+  inclusive a renderização do perfil. Eram 3 ocorrências: em duas (texto e CNPJ
+  mesma-raiz) o efeito era apenas o histórico não atualizar, em silêncio.
+  Encontrado ao montar a apresentação com o popup real embutido.
+- Teste de higiene novo cobre a classe inteira: todo `$("#id")` e
+  `querySelector("#id")` do popup precisa apontar para um id existente no HTML
+  ou criado em tempo de execução.
+
 ## [0.23.2] — 2026-07-29
 
 ### Corrigido
