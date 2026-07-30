@@ -12,18 +12,28 @@ const RAIZ = path.resolve(import.meta.dirname, "..");
 const empacotador = fs.readFileSync(path.join(RAIZ, "empacotar.mjs"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(RAIZ, "manifest.json"), "utf8"));
 
+const ESPERADO_NO_PACOTE = ["manifest.json", "icons", "src", "LICENSE", "NOTICE"];
+
 describe("pacote — o que entra no zip", () => {
-  it("inclui só manifest, icons e src", () => {
+  it("inclui o que a extensão roda, mais LICENSE e NOTICE", () => {
     const m = empacotador.match(/const INCLUIR = \[([^\]]+)\]/);
     expect(m, "constante INCLUIR não encontrada").toBeTruthy();
     const itens = m[1].match(/"([^"]+)"/g).map((s) => s.replace(/"/g, ""));
-    expect(itens).toEqual(["manifest.json", "icons", "src"]);
+    expect(itens).toEqual(ESPERADO_NO_PACOTE);
   });
 
   it("os arquivos listados existem de fato", () => {
-    for (const alvo of ["manifest.json", "icons", "src"]) {
+    for (const alvo of ESPERADO_NO_PACOTE) {
       expect(fs.existsSync(path.join(RAIZ, alvo)), alvo).toBe(true);
     }
+  });
+
+  it("a licença acompanha a distribuição (Apache 2.0, seção 4a)", () => {
+    // Distribuir o zip sem a licença descumpriria a própria licença escolhida.
+    const m = empacotador.match(/const INCLUIR = \[([^\]]+)\]/);
+    const itens = m[1].match(/"([^"]+)"/g).map((s) => s.replace(/"/g, ""));
+    expect(itens).toContain("LICENSE");
+    expect(itens).toContain("NOTICE");
   });
 
   it("todo arquivo que a extensão carrega está dentro do que é empacotado", () => {

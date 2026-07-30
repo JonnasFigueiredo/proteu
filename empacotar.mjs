@@ -20,8 +20,10 @@ const manifest = JSON.parse(fs.readFileSync(path.join(RAIZ, "manifest.json"), "u
 const DESTINO = path.join(RAIZ, "dist");
 const NOME = `proteu-qa-${manifest.version}.zip`;
 
-// O que a extensão precisa para rodar — e nada mais.
-const INCLUIR = ["manifest.json", "icons", "src"];
+// O que a extensão precisa para rodar, mais LICENSE e NOTICE: a seção 4(a) da
+// Apache 2.0 exige que a licença acompanhe cada cópia distribuída, e o pacote
+// da loja é uma distribuição.
+const INCLUIR = ["manifest.json", "icons", "src", "LICENSE", "NOTICE"];
 // Ferramentas de desenvolvimento que moram nessas pastas mas não são da extensão.
 const EXCLUIR = [/\.ps1$/i, /\.md$/i];
 

@@ -1,0 +1,47 @@
+Proteu QA
+Copyright 2026 Jonnas Figueiredo
+
+Este produto é licenciado sob a Apache License, Version 2.0. Uma cópia da
+licença acompanha esta distribuição, no arquivo LICENSE.
+
+--------------------------------------------------------------------------------
+
+MARCAS
+
+A licença cobre o código-fonte. O nome "Proteu QA" e o ícone da joaninha não
+são licenciados por ela: uma versão modificada e redistribuída deve usar nome e
+identidade próprios, para não confundir quem instala. Dizer que a versão é
+derivada da Proteu QA é permitido e bem-vindo.
+
+--------------------------------------------------------------------------------
+
+DADOS GERADOS
+
+Todos os dados produzidos por este software são FICTÍCIOS e destinados a teste
+de software. Os documentos têm dígito verificador aritmeticamente válido — é o
+que permite exercitar validações reais — mas não correspondem a pessoas,
+empresas ou registros existentes, nem são consultados em qualquer base.
+
+--------------------------------------------------------------------------------
+
+PAYLOADS DE TESTE (uso defensivo)
+
+A aba "Casos-limite" inclui payloads de XSS, injeção de SQL e outras classes de
+entrada maliciosa. Existem para você verificar a validação e o escaping de
+sistemas PRÓPRIOS, em ambientes de teste sob sua responsabilidade. Não os use
+contra sistemas de terceiros sem autorização explícita — isso pode ser ilegal.
+
+O software não executa ataque nenhum: apenas coloca strings em campos que você
+mesmo escolhe. Conforme as seções 7 e 8 da Apache License 2.0, é distribuído
+"COMO ESTÁ", sem garantias, e o autor não responde pelo uso que se faz dele.
+
+--------------------------------------------------------------------------------
+
+DEPENDÊNCIAS
+
+Não há dependências em tempo de execução: o código executado no navegador é
+inteiramente próprio, sem bibliotecas de terceiros.
+
+Para desenvolvimento, o projeto usa Vitest (MIT) como executor de testes, e
+esbuild (MIT) apenas para gerar a prévia do popup. Nenhum dos dois é
+distribuído no pacote da extensão.
