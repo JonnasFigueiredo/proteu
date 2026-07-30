@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Laboratório de teste — Proteu QA</title>
+    <style>
+      :root {
+        --tinta: #14181f; --papel: #f6f8fa; --painel: #fff; --linha: #dce3ea;
+        --fraco: #6b7684; --azul: #1565c0; --azul-fraco: #e8f0fe;
+        --verde: #1e7d32; --verde-fraco: #e7f4e8;
+        --vermelho: #c62828; --vermelho-fraco: #fdecec;
+        --ambar: #8a6100; --ambar-fraco: #fdf3e0;
+        --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --tinta: #e6eaf1; --papel: #0f1319; --painel: #171c24; --linha: #262e3a;
+          --fraco: #94a0b0; --azul: #5b9bf3; --azul-fraco: #172740;
+          --verde: #6bbf70; --verde-fraco: #14261a;
+          --vermelho: #ef5350; --vermelho-fraco: #2c1a1b;
+          --ambar: #e0aa3e; --ambar-fraco: #2a2113;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; padding: 0 20px 80px; background: var(--papel); color: var(--tinta);
+        font: 15px/1.6 "Segoe UI", system-ui, sans-serif;
+      }
+      .larg { max-width: 940px; margin: 0 auto; }
+
+      /* Painel fixo com o placar */
+      .placar {
+        position: sticky; top: 0; z-index: 20;
+        background: var(--painel); border-bottom: 1px solid var(--linha);
+        margin: 0 -20px 26px; padding: 12px 20px;
+        display: flex; flex-wrap: wrap; gap: 18px; align-items: center;
+      }
+      .placar b { font-family: var(--mono); font-size: 19px; }
+      .placar span { font-size: 11px; color: var(--fraco); display: block; text-transform: uppercase; letter-spacing: .06em; }
+      .placar .item { min-width: 84px; }
+      .placar button {
+        margin-left: auto; padding: 7px 14px; font: inherit; font-size: 13px; cursor: pointer;
+        background: var(--painel); color: var(--tinta); border: 1px solid var(--linha); border-radius: 7px;
+      }
+      .placar button:hover { border-color: var(--azul); color: var(--azul); }
+
+      h1 { font-size: 26px; margin: 22px 0 6px; letter-spacing: -.02em; }
+      .intro { color: var(--fraco); margin: 0 0 8px; max-width: 68ch; }
+
+      section {
+        background: var(--painel); border: 1px solid var(--linha);
+        border-radius: 12px; padding: 18px 20px; margin: 16px 0;
+      }
+      h2 {
+        font-size: 16px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px;
+      }
+      h2 .n {
+        font-family: var(--mono); font-size: 12px; color: var(--azul);
+        background: var(--azul-fraco); border-radius: 6px; padding: 2px 8px;
+      }
+      .dica { font-size: 13.5px; color: var(--fraco); margin: 0 0 14px; max-width: 72ch; }
+
+      .grade { display: grid; gap: 12px; }
+      @media (min-width: 640px) { .grade--2 { grid-template-columns: 1fr 1fr; } }
+
+      label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+      input, textarea, select {
+        width: 100%; padding: 7px 9px; font: inherit; font-size: 14px;
+        color: var(--tinta); background: var(--papel);
+        border: 1px solid var(--linha); border-radius: 7px;
+      }
+      input:focus, textarea:focus { outline: 2px solid var(--azul); outline-offset: 1px; }
+      input[readonly], input:disabled { background: var(--linha); color: var(--fraco); }
+      .campo { min-width: 0; }
+      .obs { font-size: 11.5px; color: var(--fraco); margin-top: 3px; font-family: var(--mono); }
+
+      .selo {
+        display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px;
+        border-radius: 5px; font-family: var(--mono);
+      }
+      .ok { background: var(--verde-fraco); color: var(--verde); }
+      .ruim { background: var(--vermelho-fraco); color: var(--vermelho); }
+      .neutro { background: var(--linha); color: var(--fraco); }
+      .aviso { background: var(--ambar-fraco); color: var(--ambar); }
+
+      .proibido { border-color: var(--vermelho); }
+      .proibido h2 .n { background: var(--vermelho-fraco); color: var(--vermelho); }
+
+      /* Monitor de eventos */
+      #log {
+        font-family: var(--mono); font-size: 12px; line-height: 1.55;
+        max-height: 190px; overflow-y: auto; background: var(--papel);
+        border: 1px solid var(--linha); border-radius: 8px; padding: 10px;
+        margin: 0; white-space: pre-wrap; word-break: break-all;
+      }
+      #log:empty::after { content: "Nada ainda. Insira um valor em qualquer campo."; color: var(--fraco); }
+      .lg-ev { color: var(--azul); }
+      .lg-ok { color: var(--verde); }
+      .lg-x { color: var(--vermelho); }
+
+      table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+      th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--linha); }
+      th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--fraco); }
+      td.mono { font-family: var(--mono); }
+      tbody tr:last-child td { border-bottom: 0; }
+
+      .contagens { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; }
+      .cont { font-family: var(--mono); font-size: 13px; }
+      .cont b { font-size: 17px; display: block; }
+      .cont span { font-size: 11px; color: var(--fraco); }
+
+      kbd {
+        font-family: var(--mono); font-size: 12px; padding: 2px 6px;
+        border: 1px solid var(--linha); border-bottom-width: 2px; border-radius: 5px;
+        background: var(--papel);
+      }
+      ol.passos { padding-left: 20px; margin: 0; }
+      ol.passos li { margin-bottom: 7px; }
+      iframe.filho { width: 100%; height: 190px; border: 1px solid var(--linha); border-radius: 8px; }
+      .rodape { color: var(--fraco); font-size: 13px; text-align: center; margin-top: 34px; }
+    </style>
+  </head>
+  <body>
+    <div class="larg">
+      <div class="placar">
+        <div class="item"><b id="p-campos">0</b><span>campos escritos</span></div>
+        <div class="item"><b id="p-eventos">0</b><span>eventos nativos</span></div>
+        <div class="item"><b id="p-validos">0</b><span>documentos válidos</span></div>
+        <div class="item"><b id="p-invalidos">0</b><span>inválidos</span></div>
+        <div class="item"><b id="p-proibidos">0</b><span class="">campos proibidos tocados</span></div>
+        <button id="btn-zerar" type="button">Zerar</button>
+      </div>
+
+      <h1>Laboratório de teste — Proteu QA</h1>
+      <p class="intro">
+        Cada seção exercita uma funcionalidade da extensão. A página observa os
+        campos e valida os documentos com <strong>código próprio</strong>, sem
+        compartilhar nada com a extensão — se ela gerar um documento errado, aqui
+        acusa.
+      </p>
+      <p class="intro">
+        Abra o popup da Proteu QA, use <strong>Preencher formulário</strong> e
+        acompanhe o placar acima. O ideal ao final: <span class="selo ok">campos proibidos tocados = 0</span>
+        e <span class="selo ok">inválidos = 0</span>.
+      </p>
+
+      <!-- 1 -->
+      <section>
+        <h2><span class="n">1</span> Preencher formulário — rotulagem variada</h2>
+        <p class="dica">
+          Formulário real nunca é uniforme. Cada campo aqui se identifica de um
+          jeito diferente, para exercitar as três camadas de reconhecimento:
+          <code>autocomplete</code>, <code>type</code> e o texto do campo.
+        </p>
+        <div class="grade grade--2">
+          <div class="campo">
+            <label for="c1">Nome completo</label>
+            <input id="c1" name="nome" type="text" />
+            <div class="obs">&lt;label for&gt; + name="nome"</div>
+          </div>
+          <div class="campo">
+            <label for="c2">Contato eletrônico</label>
+            <input id="c2" type="email" autocomplete="email" />
+            <div class="obs">rótulo não diz "e-mail" → pega por autocomplete</div>
+          </div>
+          <div class="campo">
+            <label for="c3">Fale comigo por voz</label>
+            <input id="c3" type="tel" />
+            <div class="obs">rótulo não diz "telefone" → pega por type</div>
+          </div>
+          <div class="campo">
+            <label for="c4">Quando você nasceu</label>
+            <input id="c4" type="date" />
+            <div class="obs">type=date exige ISO; formato errado é descartado</div>
+          </div>
+          <div class="campo">
+            <label for="c5">Onde você mora</label>
+            <input id="c5" type="text" autocomplete="postal-code" />
+            <div class="obs">autocomplete="postal-code"</div>
+          </div>
+          <div class="campo">
+            <input type="text" placeholder="Razão social da empresa" aria-label="Razão social da empresa" />
+            <div class="obs">sem label → pega por placeholder</div>
+          </div>
+          <div class="campo">
+            <input type="text" aria-label="Sobrenome" />
+            <div class="obs">sem label e sem placeholder → pega por aria-label</div>
+          </div>
+          <div class="campo">
+            <label for="c8">Código interno XPTO-42</label>
+            <input id="c8" name="xpto_42" type="text" />
+            <div class="obs">irreconhecível: vazio no modo normal, "teste" no modo preencher-tudo</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="proibido">
+        <h2><span class="n">2</span> Não deve ser tocado — nunca</h2>
+        <p class="dica">
+          A extensão não escreve em senha, upload, somente-leitura, desabilitado
+          nem oculto — <strong>nem no modo "preencher também os campos que não
+          reconheço"</strong>. Se o contador de proibidos subir, é bug.
+        </p>
+        <div class="grade grade--2">
+          <div class="campo">
+            <label for="s1">Senha</label>
+            <input id="s1" type="password" name="senha" data-proibido="senha" />
+          </div>
+          <div class="campo">
+            <label for="s2">Nome (somente leitura)</label>
+            <input id="s2" type="text" name="nome" value="não mexer" readonly data-proibido="readonly" />
+          </div>
+          <div class="campo">
+            <label for="s3">E-mail (desabilitado)</label>
+            <input id="s3" type="email" value="nao@mexer.com" disabled data-proibido="disabled" />
+          </div>
+          <div class="campo">
+            <label for="s4">Anexo</label>
+            <input id="s4" type="file" data-proibido="file" />
+          </div>
+        </div>
+        <input type="hidden" name="nome" value="oculto" data-proibido="hidden" />
+      </section>
+
+      <!-- 3 -->
+      <section>
+        <h2><span class="n">3</span> Validação cruzada dos documentos</h2>
+        <p class="dica">
+          Insira o documento e a página confere o dígito verificador na hora, com
+          implementação independente. Cole também valores errados de propósito —
+          o selo deve virar <span class="selo ruim">inválido</span>.
+        </p>
+        <div class="grade grade--2">
+          <div class="campo">
+            <label for="v-cpf">CPF <span class="selo neutro" id="sel-v-cpf">aguardando</span></label>
+            <input id="v-cpf" data-valida="cpf" type="text" />
+            <div class="obs">mod 11 · Brasil</div>
+          </div>
+          <div class="campo">
+            <label for="v-cnpj">CNPJ <span class="selo neutro" id="sel-v-cnpj">aguardando</span></label>
+            <input id="v-cnpj" data-valida="cnpj" type="text" />
+            <div class="obs">mod 11 · aceita o alfanumérico novo</div>
+          </div>
+          <div class="campo">
+            <label for="v-iban">IBAN <span class="selo neutro" id="sel-v-iban">aguardando</span></label>
+            <input id="v-iban" data-valida="iban" type="text" />
+            <div class="obs">mod-97-10 · Alemanha</div>
+          </div>
+          <div class="campo">
+            <label for="v-luhn">SIN / BN / NSS <span class="selo neutro" id="sel-v-luhn">aguardando</span></label>
+            <input id="v-luhn" data-valida="luhn" type="text" />
+            <div class="obs">Luhn · Canadá e México</div>
+          </div>
+          <div class="campo">
+            <label for="v-verhoeff">Aadhaar <span class="selo neutro" id="sel-v-verhoeff">aguardando</span></label>
+            <input id="v-verhoeff" data-valida="verhoeff" type="text" />
+            <div class="obs">Verhoeff · Índia</div>
+          </div>
+          <div class="campo">
+            <label for="v-mod1110">Steuer-IdNr <span class="selo neutro" id="sel-v-mod1110">aguardando</span></label>
+            <input id="v-mod1110" data-valida="mod1110" type="text" />
+            <div class="obs">ISO 7064 MOD 11,10 · Alemanha</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section>
+        <h2><span class="n">4</span> Campo controlado por framework</h2>
+        <p class="dica">
+          Aqui está o teste que separa a Proteu das outras: este campo guarda o
+          valor num estado próprio e só o atualiza quando recebe um
+          <code>input</code> nativo — como React e Vue fazem. Escrever direto no
+          <code>value</code>, sem disparar evento, deixa o estado dessincronizado
+          e o valor <strong>se perde no primeiro re-render</strong>.
+        </p>
+        <div class="grade grade--2">
+          <div class="campo">
+            <label for="ctrl">Campo controlado <span class="selo neutro" id="sel-ctrl">aguardando</span></label>
+            <input id="ctrl" name="nome" type="text" />
+            <div class="obs">estado interno: <span id="ctrl-estado">(vazio)</span></div>
+          </div>
+          <div class="campo" style="align-self: end">
+            <button type="button" id="btn-rerender" style="width:100%;padding:8px;font:inherit;font-size:13px;cursor:pointer;background:var(--papel);color:var(--tinta);border:1px solid var(--linha);border-radius:7px">
+              Forçar re-render (como um framework faria)
+            </button>
+            <div class="obs">se o valor sumir aqui, a inserção não foi robusta</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section>
+        <h2><span class="n">5</span> Shadow DOM aberto</h2>
+        <p class="dica">
+          O campo abaixo vive dentro de um shadow root aberto. A extensão o
+          alcança porque lê o foco por <code>composedPath()</code>, e não por
+          <code>event.target</code> (que vem "retargetado" para o host).
+        </p>
+        <div id="host-shadow"></div>
+      </section>
+
+      <!-- 6 -->
+      <section>
+        <h2><span class="n">6</span> Iframe de mesma origem</h2>
+        <p class="dica">
+          A extensão é injetada em todos os frames; quem tem o campo focado é
+          quem insere. Clique no campo de dentro do quadro e gere um valor.
+        </p>
+        <iframe
+          class="filho"
+          title="Formulário dentro de um iframe"
+          srcdoc="&lt;body style='font:14px system-ui;margin:12px;color:#333'&gt;&lt;p style='margin:0 0 8px;font-size:12px;color:#777'&gt;Estou dentro de um iframe.&lt;/p&gt;&lt;label style='font-size:12px;font-weight:600'&gt;CPF (no iframe)&lt;br&gt;&lt;input name='cpf' style='width:96%;padding:6px;font:inherit'&gt;&lt;/label&gt;&lt;label style='font-size:12px;font-weight:600;display:block;margin-top:8px'&gt;Nome (no iframe)&lt;br&gt;&lt;input name='nome' style='width:96%;padding:6px;font:inherit'&gt;&lt;/label&gt;&lt;/body&gt;"
+        ></iframe>
+      </section>
+
+      <!-- 7 -->
+      <section>
+        <h2><span class="n">7</span> Detecção de campo e valores de fronteira</h2>
+        <p class="dica">
+          Clique num campo e abra o popup: a extensão lê os atributos e oferece
+          valores de fronteira específicos dele (limite, limite ±1, datas
+          impossíveis, e-mails que passam na regex mas quebram no servidor).
+        </p>
+        <div class="grade grade--2">
+          <div class="campo">
+            <label for="f1">Apelido (máx. 10)</label>
+            <input id="f1" type="text" maxlength="10" required />
+            <div class="obs">maxlength=10 · required</div>
+          </div>
+          <div class="campo">
+            <label for="f2">Idade (18 a 120)</label>
+            <input id="f2" type="number" min="18" max="120" />
+            <div class="obs">number · min/max</div>
+          </div>
+          <div class="campo">
+            <label for="f3">Data do evento</label>
+            <input id="f3" type="date" min="2020-01-01" max="2030-12-31" />
+            <div class="obs">date com min/max</div>
+          </div>
+          <div class="campo">
+            <label for="f4">Site</label>
+            <input id="f4" type="url" />
+            <div class="obs">url</div>
+          </div>
+          <div class="campo">
+            <label for="f5">CEP (com pattern)</label>
+            <input id="f5" type="text" pattern="\d{5}-\d{3}" inputmode="numeric" />
+            <div class="obs">pattern + inputmode</div>
+          </div>
+          <div class="campo">
+            <label for="f6">Observações</label>
+            <textarea id="f6" rows="2" maxlength="200"></textarea>
+            <div class="obs">textarea · maxlength=200</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section>
+        <h2><span class="n">8</span> Casos-limite e as 4 contagens</h2>
+        <p class="dica">
+          Insira aqui os casos da aba <strong>Casos-limite</strong> e compare as
+          contagens com as que o popup mostra. É onde se vê que "100 caracteres"
+          é ambíguo: o emoji de família é 1 grafema e 25 bytes.
+        </p>
+        <div class="campo">
+          <label for="lim">Campo livre</label>
+          <textarea id="lim" rows="3"></textarea>
+        </div>
+        <div class="contagens">
+          <div class="cont"><b id="c-graf">0</b><span>grafemas</span></div>
+          <div class="cont"><b id="c-cp">0</b><span>code points</span></div>
+          <div class="cont"><b id="c-cu">0</b><span>code units</span></div>
+          <div class="cont"><b id="c-by">0</b><span>bytes UTF-8</span></div>
+          <div class="cont"><b id="c-inv">0</b><span>invisíveis</span></div>
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section>
+        <h2><span class="n">9</span> Menu de contexto e atalhos</h2>
+        <p class="dica">
+          Estes dois caminhos não passam pelo popup — se um funciona e o outro
+          não, o problema está no service worker.
+        </p>
+        <ol class="passos">
+          <li>
+            Clique com o <strong>botão direito</strong> no campo abaixo → menu
+            <strong>Proteu QA</strong> → escolha um documento.
+            <div class="obs">os itens do menu devem estar no idioma do país ativo</div>
+          </li>
+          <li>Clique no campo e pressione <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>8</kbd> para repetir a última geração.</li>
+          <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>9</kbd> abre o popup.</li>
+        </ol>
+        <div class="campo" style="margin-top: 12px">
+          <label for="menu1">Campo para o botão direito</label>
+          <input id="menu1" name="cpf" type="text" />
+        </div>
+      </section>
+
+      <!-- 10 -->
+      <section>
+        <h2><span class="n">10</span> Monitor de eventos</h2>
+        <p class="dica">
+          Toda escrita nos campos aparece aqui, com os eventos que a acompanharam.
+          Uma inserção correta traz <code>input</code> <em>e</em>
+          <code>change</code> — é o que faz React e Vue registrarem a mudança.
+        </p>
+        <pre id="log"></pre>
+      </section>
+
+      <section>
+        <h2><span class="n">✓</span> Roteiro sugerido</h2>
+        <table>
+          <thead><tr><th>Passo</th><th>Onde</th><th>Esperado</th></tr></thead>
+          <tbody>
+            <tr><td>Abrir o popup</td><td>ícone da joaninha</td><td>Perfil com 12 linhas preenchidas</td></tr>
+            <tr><td>Nova pessoa ×5</td><td>aba Perfil</td><td>nunca vem vazio</td></tr>
+            <tr><td>Preencher formulário</td><td>aba Perfil</td><td>seção 1 preenchida; proibidos = 0</td></tr>
+            <tr><td>Conferir o e-mail</td><td>seção 1</td><td>combina com o nome gerado</td></tr>
+            <tr><td>Copiar CPF e CNPJ</td><td>Perfil → seção 3</td><td>selo <span class="selo ok">válido</span></td></tr>
+            <tr><td>Forçar re-render</td><td>seção 4</td><td>o valor permanece</td></tr>
+            <tr><td>Trocar para Alemanha</td><td>bandeira</td><td>IBAN e Steuer válidos na seção 3</td></tr>
+            <tr><td>Trocar para Índia</td><td>bandeira</td><td>Aadhaar válido (Verhoeff)</td></tr>
+            <tr><td>Arábia Saudita</td><td>bandeira</td><td>interface em árabe, layout invertido</td></tr>
+            <tr><td>Fixar Português</td><td>Opções</td><td>rótulos em pt, dados ainda árabes</td></tr>
+            <tr><td>Alternar tema ×6</td><td>ícone de lua</td><td>muda todas as vezes</td></tr>
+            <tr><td>Exportar 10 em fixture</td><td>Exportar em lote</td><td>cabeçalho com a seed</td></tr>
+            <tr><td>Inserir caso Unicode</td><td>Casos-limite → seção 8</td><td>contagens iguais às do popup</td></tr>
+            <tr><td>Botão direito</td><td>seção 9</td><td>menu no idioma do país</td></tr>
+            <tr><td>Ver o console</td><td>F12 na página de extensões</td><td>nenhum erro novo</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <p class="rodape">
+        Todos os dados usados aqui são fictícios. Esta página não envia nada para
+        lugar nenhum — abra o DevTools e confira a aba Network.
+      </p>
+    </div>
+
+    <script>
+      "use strict";
+
+      // ---------- Placar ----------
+      const placar = { campos: new Set(), eventos: 0, validos: 0, invalidos: 0, proibidos: new Set() };
+      const $ = (s) => document.querySelector(s);
+      function pintarPlacar() {
+        $("#p-campos").textContent = placar.campos.size;
+        $("#p-eventos").textContent = placar.eventos;
+        $("#p-validos").textContent = placar.validos;
+        $("#p-invalidos").textContent = placar.invalidos;
+        const pr = $("#p-proibidos");
+        pr.textContent = placar.proibidos.size;
+        pr.style.color = placar.proibidos.size ? "var(--vermelho)" : "";
+      }
+
+      // ---------- Monitor ----------
+      const log = $("#log");
+      function anotar(texto, classe) {
+        const l = document.createElement("div");
+        if (classe) l.className = classe;
+        const agora = new Date().toLocaleTimeString("pt-BR", { hour12: false });
+        l.textContent = `${agora}  ${texto}`;
+        log.prepend(l);
+        while (log.childElementCount > 120) log.lastElementChild.remove();
+      }
+
+      /** Nome legível de um campo, para o log. */
+      function apelido(el) {
+        if (!el || !el.tagName) return "?";
+        const lab = el.labels && el.labels[0] && el.labels[0].textContent.trim();
+        return (
+          lab || el.getAttribute("aria-label") || el.placeholder ||
+          el.name || el.id || el.tagName.toLowerCase()
+        );
+      }
+
+      // ---------- Validadores independentes ----------
+      // Escritos aqui de propósito: não compartilham código com a extensão, então
+      // servem de conferência cruzada de verdade.
+      const so = (s) => String(s || "").replace(/[^\dA-Za-z]/g, "").toUpperCase();
+
+      function validarCpf(v) {
+        const d = so(v);
+        if (!/^\d{11}$/.test(d) || /^(\d)\1{10}$/.test(d)) return false;
+        for (const [len, peso] of [[9, 10], [10, 11]]) {
+          let s = 0;
+          for (let i = 0; i < len; i++) s += Number(d[i]) * (peso - i);
+          const dv = (s * 10) % 11 % 10;
+          if (dv !== Number(d[len])) return false;
+        }
+        return true;
+      }
+
+      function validarCnpj(v) {
+        const d = so(v);
+        if (d.length !== 14) return false;
+        // O padrão novo aceita letras nas 12 primeiras posições; o DV é numérico.
+        if (!/^[0-9A-Z]{12}\d{2}$/.test(d)) return false;
+        const val = (ch) => ch.charCodeAt(0) - 48; // "0"→0 … "A"→17
+        const calc = (n) => {
+          const pesos = n === 12 ? [5,4,3,2,9,8,7,6,5,4,3,2] : [6,5,4,3,2,9,8,7,6,5,4,3,2];
+          let s = 0;
+          for (let i = 0; i < n; i++) s += val(d[i]) * pesos[i];
+          const r = s % 11;
+          return r < 2 ? 0 : 11 - r;
+        };
+        return calc(12) === Number(d[12]) && calc(13) === Number(d[13]);
+      }
+
+      function validarIban(v) {
+        const s = so(v);
+        if (!/^[A-Z]{2}\d{2}[0-9A-Z]{10,30}$/.test(s)) return false;
+        const rot = s.slice(4) + s.slice(0, 4);
+        let num = "";
+        for (const ch of rot) num += /[A-Z]/.test(ch) ? String(ch.charCodeAt(0) - 55) : ch;
+        let resto = 0;
+        for (const ch of num) resto = (resto * 10 + Number(ch)) % 97;
+        return resto === 1;
+      }
+
+      function validarLuhn(v) {
+        const d = so(v).replace(/\D/g, "");
+        if (d.length < 9) return false;
+        // Luhn aceita "000000000" (soma zero), mas nenhum órgão emite isso.
+        if (/^(\d)\1+$/.test(d)) return false;
+        let s = 0;
+        for (let i = 0; i < d.length; i++) {
+          let n = Number(d[d.length - 1 - i]);
+          if (i % 2 === 1) { n *= 2; if (n > 9) n -= 9; }
+          s += n;
+        }
+        return s % 10 === 0;
+      }
+
+      // Verhoeff (Aadhaar) — grupo diédrico D5.
+      const VD = [
+        [0,1,2,3,4,5,6,7,8,9],[1,2,3,4,0,6,7,8,9,5],[2,3,4,0,1,7,8,9,5,6],
+        [3,4,0,1,2,8,9,5,6,7],[4,0,1,2,3,9,5,6,7,8],[5,9,8,7,6,0,4,3,2,1],
+        [6,5,9,8,7,1,0,4,3,2],[7,6,5,9,8,2,1,0,4,3],[8,7,6,5,9,3,2,1,0,4],
+        [9,8,7,6,5,4,3,2,1,0],
+      ];
+      const VP = [
+        [0,1,2,3,4,5,6,7,8,9],[1,5,7,6,2,8,3,0,9,4],[5,8,0,3,7,9,6,1,4,2],
+        [8,9,1,6,0,4,3,5,2,7],[9,4,5,3,1,2,6,8,7,0],[4,2,8,6,5,7,3,9,0,1],
+        [2,7,9,3,8,0,6,4,1,5],[7,0,4,6,9,1,3,2,5,8],
+      ];
+      function validarVerhoeff(v) {
+        const d = so(v).replace(/\D/g, "");
+        if (!/^[2-9]\d{11}$/.test(d)) return false;
+        let c = 0;
+        const rev = [...d].reverse();
+        for (let i = 0; i < rev.length; i++) c = VD[c][VP[i % 8][Number(rev[i])]];
+        return c === 0;
+      }
+
+      // ISO 7064 MOD 11,10 (Steuer-IdNr alemã).
+      function validarMod1110(v) {
+        const d = so(v).replace(/\D/g, "");
+        if (!/^[1-9]\d{10}$/.test(d)) return false;
+        let produto = 10;
+        for (const ch of d.slice(0, 10)) {
+          let soma = (Number(ch) + produto) % 10;
+          if (soma === 0) soma = 10;
+          produto = (soma * 2) % 11;
+        }
+        return (11 - produto) % 10 === Number(d[10]);
+      }
+
+      const VALIDADORES = {
+        cpf: validarCpf, cnpj: validarCnpj, iban: validarIban,
+        luhn: validarLuhn, verhoeff: validarVerhoeff, mod1110: validarMod1110,
+      };
+
+      function conferir(el) {
+        const tipo = el.dataset.valida;
+        const selo = document.getElementById("sel-v-" + tipo);
+        const bruto = el.value.trim();
+        if (!bruto) {
+          selo.textContent = "aguardando";
+          selo.className = "selo neutro";
+          return;
+        }
+        const ok = VALIDADORES[tipo](bruto);
+        selo.textContent = ok ? "válido" : "inválido";
+        selo.className = "selo " + (ok ? "ok" : "ruim");
+        if (ok) placar.validos++; else placar.invalidos++;
+        anotar(`${tipo.toUpperCase()}  ${bruto}  →  ${ok ? "VÁLIDO" : "INVÁLIDO"}`, ok ? "lg-ok" : "lg-x");
+        pintarPlacar();
+      }
+
+      // ---------- Contagens ----------
+      // Escapes, nunca os caracteres literais: invisivel no fonte vira bug.
+      // Escapes, nunca os caracteres literais: invisivel no fonte vira bug.
+      const INVISIVEIS = /[\u00AD\u200B-\u200F\u202A-\u202E\u2060\uFEFF]/g;
+      function contar(txt) {
+        let grafemas;
+        try {
+          grafemas = [...new Intl.Segmenter("pt", { granularity: "grapheme" }).segment(txt)].length;
+        } catch {
+          grafemas = [...txt].length; // navegador sem Segmenter
+        }
+        return {
+          grafemas,
+          cp: [...txt].length,
+          cu: txt.length,
+          bytes: new TextEncoder().encode(txt).length,
+          inv: (txt.match(INVISIVEIS) || []).length,
+        };
+      }
+      function pintarContagens() {
+        const c = contar($("#lim").value);
+        $("#c-graf").textContent = c.grafemas;
+        $("#c-cp").textContent = c.cp;
+        $("#c-cu").textContent = c.cu;
+        $("#c-by").textContent = c.bytes;
+        const inv = $("#c-inv");
+        inv.textContent = c.inv;
+        inv.style.color = c.inv ? "var(--ambar)" : "";
+      }
+
+      // ---------- Campo controlado (imita React/Vue) ----------
+      let estadoCtrl = "";
+      const ctrl = $("#ctrl");
+      ctrl.addEventListener("input", (e) => {
+        estadoCtrl = e.target.value; // só o evento nativo atualiza o estado
+        $("#ctrl-estado").textContent = estadoCtrl || "(vazio)";
+        marcarCtrl();
+      });
+      function marcarCtrl() {
+        const selo = $("#sel-ctrl");
+        if (!ctrl.value && !estadoCtrl) {
+          selo.textContent = "aguardando";
+          selo.className = "selo neutro";
+          return;
+        }
+        const sincronizado = ctrl.value === estadoCtrl;
+        selo.textContent = sincronizado ? "sincronizado" : "dessincronizado";
+        selo.className = "selo " + (sincronizado ? "ok" : "ruim");
+      }
+      $("#btn-rerender").addEventListener("click", () => {
+        // É o que um framework faz: reescreve o campo a partir do seu estado.
+        ctrl.value = estadoCtrl;
+        marcarCtrl();
+        anotar(
+          estadoCtrl
+            ? `re-render aplicou o estado "${estadoCtrl}" — valor sobreviveu`
+            : "re-render limpou o campo: o estado estava vazio (inserção não disparou input)",
+          estadoCtrl ? "lg-ok" : "lg-x"
+        );
+      });
+
+      // ---------- Shadow DOM ----------
+      const raiz = $("#host-shadow").attachShadow({ mode: "open" });
+      raiz.innerHTML = `
+        <style>
+          :host { display: block; }
+          label { font: 600 12px "Segoe UI", system-ui; display: block; margin-bottom: 4px; }
+          input { width: 100%; padding: 7px 9px; font: 14px "Segoe UI", system-ui;
+                  border: 1px solid #b9c3ce; border-radius: 7px; }
+          p { font: 11.5px ui-monospace, monospace; color: #7a8694; margin: 4px 0 0; }
+        </style>
+        <label>CPF dentro do Shadow DOM
+          <input name="cpf" type="text" id="sombra" />
+        </label>
+        <p>shadowRoot mode="open"</p>
+      `;
+
+      // ---------- Observação dos campos ----------
+      /** Todos os campos observáveis, incluindo os do shadow root. */
+      function campos() {
+        return [...document.querySelectorAll("input, textarea"), ...raiz.querySelectorAll("input")];
+      }
+
+      function observar(el) {
+        const anterior = { valor: el.value };
+        for (const nome of ["input", "change", "paste"]) {
+          el.addEventListener(nome, () => {
+            placar.eventos++;
+            anotar(`evento ${nome.padEnd(6)} em "${apelido(el)}"`, "lg-ev");
+            pintarPlacar();
+          });
+        }
+        // Alguns preenchimentos escrevem o value sem disparar evento: um
+        // observador periódico pega isso também.
+        setInterval(() => {
+          if (el.value === anterior.valor) return;
+          anterior.valor = el.value;
+          if (el.value !== "") {
+            placar.campos.add(el.id || apelido(el));
+            if (el.dataset.proibido) {
+              placar.proibidos.add(el.dataset.proibido);
+              anotar(`PROIBIDO tocado: ${el.dataset.proibido} = "${el.value}"`, "lg-x");
+            } else {
+              anotar(`"${apelido(el)}" = ${el.value}`);
+            }
+          }
+          if (el.dataset.valida) conferir(el);
+          if (el === ctrl) marcarCtrl();
+          if (el.id === "lim") pintarContagens();
+          pintarPlacar();
+        }, 400);
+      }
+      campos().forEach(observar);
+
+      $("#lim").addEventListener("input", pintarContagens);
+      for (const el of document.querySelectorAll("[data-valida]")) {
+        el.addEventListener("input", () => conferir(el));
+      }
+
+      $("#btn-zerar").addEventListener("click", () => {
+        for (const el of campos()) {
+          if (el.type === "hidden" || el.readOnly || el.disabled || el.type === "file") continue;
+          el.value = "";
+        }
+        estadoCtrl = "";
+        $("#ctrl-estado").textContent = "(vazio)";
+        placar.campos.clear();
+        placar.proibidos.clear();
+        placar.eventos = placar.validos = placar.invalidos = 0;
+        for (const s of document.querySelectorAll(".selo")) {
+          if (s.id && s.id.startsWith("sel-")) { s.textContent = "aguardando"; s.className = "selo neutro"; }
+        }
+        log.textContent = "";
+        pintarContagens();
+        pintarPlacar();
+        anotar("placar zerado");
+      });
+
+      pintarPlacar();
+      pintarContagens();
+    </script>
+  </body>
+</html>
