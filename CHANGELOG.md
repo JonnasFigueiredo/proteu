@@ -10,6 +10,30 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   arquivo em `core/paises/`).
 - Inscrição Estadual das demais UFs (hoje só SP).
 
+## [0.24.0] — 2026-07-29
+
+### Adicionado
+- **Licença: Apache License 2.0.** Até aqui o projeto não tinha arquivo de
+  licença — o que, juridicamente, significa "todos os direitos reservados",
+  contradizendo o README e a descrição da loja, que prometiam código aberto.
+  - `LICENSE`: texto oficial da Apache 2.0, baixado da fonte (11.358 bytes).
+  - `NOTICE`: titular do copyright (Jonnas Figueiredo, 2026), **reserva da
+    marca** ("Proteu QA" e o ícone não são licenciados — uma versão
+    redistribuída deve usar identidade própria), aviso de que **todos os dados
+    são fictícios** e o aviso de **uso defensivo** dos payloads.
+  - `package.json`: campos `license`, `author` e `repository`; nome e versão
+    alinhados ao manifest.
+  - Por que Apache e não MIT: além de preservar o crédito, ela exige **declarar
+    as mudanças** feitas e concede expressamente os **direitos de patente** dos
+    contribuidores.
+
+### Corrigido
+- **O pacote da loja não incluía a licença**, o que descumpriria a seção 4(a) da
+  própria Apache 2.0 — ela exige que a licença acompanhe cada cópia distribuída.
+  `LICENSE` e `NOTICE` agora entram no zip.
+- Backlog do README listava como "não previstos" dois recursos **já entregues**:
+  exportar fixtures de Playwright e preencher o formulário inteiro.
+
 ## [0.23.3] — 2026-07-29
 
 ### Corrigido

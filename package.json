@@ -1,12 +1,19 @@
 {
-  "name": "reproduzivel",
-  "version": "0.1.0",
+  "name": "proteu-qa",
+  "version": "0.24.0",
   "private": true,
   "description": "Extensão de navegador para geração de massa de dados de teste com seed determinística. Sem dependências em runtime.",
+  "license": "Apache-2.0",
+  "author": "Jonnas Figueiredo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JonnasFigueiredo/proteu.git"
+  },
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "empacotar": "node empacotar.mjs"
   },
   "devDependencies": {
     "vitest": "^3.2.0"

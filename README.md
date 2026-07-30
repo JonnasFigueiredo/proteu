@@ -228,13 +228,27 @@ nenhum ataque: apenas coloca strings em campos que você mesmo escolhe.
 
 Ainda **não** implementado:
 
+- **Chile, Uruguai e Paraguai** (aparecem como "em breve" no modal; a
+  arquitetura já suporta — cada país é um arquivo em `core/paises/`).
 - **Inscrição Estadual das demais UFs** (hoje só SP; cada UF tem algoritmo de DV
   próprio).
-- **Não previstos para a v1:** vocabulário customizado por clique direito;
-  configs por domínio compartilháveis; export para fixtures de
-  Playwright/Selenium; preencher formulário inteiro de uma vez; pacote npm que
-  consome o mesmo formato.
+- **Casos-limite customizados pela equipe**, exportáveis como JSON.
+- **Snippet de relatório de bug** pronto para colar no Jira, com a seed.
 
 ## Licença
 
-A definir (código aberto, nunca ofuscado).
+**Apache License 2.0** — veja [LICENSE](LICENSE) e [NOTICE](NOTICE).
+
+Você pode usar, modificar e distribuir, inclusive comercialmente. Em troca, a
+licença pede o de sempre em Apache: **preservar o aviso de copyright**,
+**declarar as mudanças** que fez nos arquivos alterados e incluir uma cópia da
+licença na distribuição. Ela também concede expressamente os direitos de patente
+dos contribuidores — é o que a diferencia da MIT.
+
+O que a licença **não** cobre é a marca: o nome "Proteu QA" e o ícone da
+joaninha não são licenciados por ela. Se você redistribuir uma versão
+modificada, use nome e identidade próprios para não confundir quem instala —
+dizer que ela deriva da Proteu QA é permitido e bem-vindo.
+
+O código nunca é ofuscado: cada gerador e cada dígito verificador podem ser
+auditados.
