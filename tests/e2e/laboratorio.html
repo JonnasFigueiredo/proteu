@@ -5,123 +5,371 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Laboratório de teste — Proteu QA</title>
     <style>
+      /* ===================================================================
+         Estética "Aero Edition" — fusão das três ondas dos anos 2000:
+           · Y2K futurism  (1998-2004): cromado, metálico, prata e azul
+           · Web 2.0 gloss (2004-2010): botão brilhante, reflexo, bisel
+           · Frutiger Aero (2004-2013): céu, vidro, bolha, lens flare
+         Tudo em CSS puro: nenhuma imagem, nenhuma fonte externa, nenhuma
+         requisição de rede — a mesma regra que vale para a extensão.
+         =================================================================== */
       :root {
-        --tinta: #14181f; --papel: #f6f8fa; --painel: #fff; --linha: #dce3ea;
-        --fraco: #6b7684; --azul: #1565c0; --azul-fraco: #e8f0fe;
-        --verde: #1e7d32; --verde-fraco: #e7f4e8;
-        --vermelho: #c62828; --vermelho-fraco: #fdecec;
-        --ambar: #8a6100; --ambar-fraco: #fdf3e0;
+        /* Céu Frutiger Aero */
+        --ceu-1: #3f9fdc; --ceu-2: #86cfee; --ceu-3: #c8ecf9; --ceu-4: #eaf8fd;
+        /* Tinta */
+        --tinta: #0d2c42; --fraco: #35586f; --papel: #eaf8fd; --painel: #fff;
+        --linha: rgba(255, 255, 255, 0.9); --borda: rgba(120, 170, 205, 0.55);
+        /* Web 2.0 gloss */
+        --gloss-1: #7fccf7; --gloss-2: #1f86cd; --gloss-borda: #14669f;
+        --gloss-sombra: #0d5285;
+        --azul: #075581; --azul-fraco: rgba(255, 255, 255, 0.75);
+        --verde: #2b7a1e; --verde-fraco: #ddf3d4;
+        --vermelho: #b5231f; --vermelho-fraco: #ffe0de;
+        --ambar: #8a5a00; --ambar-fraco: #ffeec9;
+        --vidro: rgba(255, 255, 255, 0.62);
+        --vidro-forte: rgba(255, 255, 255, 0.86);
+        --campo-fundo: #fff;
         --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
       }
+      /* Modo escuro = fundo do mar, o outro clima clássico do Aero. */
       @media (prefers-color-scheme: dark) {
         :root {
-          --tinta: #e6eaf1; --papel: #0f1319; --painel: #171c24; --linha: #262e3a;
-          --fraco: #94a0b0; --azul: #5b9bf3; --azul-fraco: #172740;
-          --verde: #6bbf70; --verde-fraco: #14261a;
-          --vermelho: #ef5350; --vermelho-fraco: #2c1a1b;
-          --ambar: #e0aa3e; --ambar-fraco: #2a2113;
+          --ceu-1: #03263f; --ceu-2: #064b76; --ceu-3: #0a6f9e; --ceu-4: #0d2438;
+          --tinta: #e9f6ff; --fraco: #bcdcef; --papel: #0a1e2e; --painel: #10293c;
+          --linha: rgba(255, 255, 255, 0.16); --borda: rgba(140, 205, 240, 0.3);
+          --azul: #7fd0ff; --azul-fraco: rgba(255, 255, 255, 0.1);
+          --verde: #8fe08a; --verde-fraco: rgba(60, 160, 80, 0.22);
+          --vermelho: #ff8f88; --vermelho-fraco: rgba(200, 60, 60, 0.25);
+          --ambar: #ffd07a; --ambar-fraco: rgba(200, 150, 40, 0.22);
+          --vidro: rgba(255, 255, 255, 0.09);
+          --vidro-forte: rgba(255, 255, 255, 0.14);
+          --campo-fundo: rgba(255, 255, 255, 0.1);
         }
       }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0; padding: 0 20px 80px; background: var(--papel); color: var(--tinta);
-        font: 15px/1.6 "Segoe UI", system-ui, sans-serif;
-      }
-      .larg { max-width: 940px; margin: 0 auto; }
 
-      /* Painel fixo com o placar */
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0; padding: 0 20px 90px; color: var(--tinta);
+        font: 15px/1.6 "Segoe UI", Frutiger, "Myriad Pro", system-ui, sans-serif;
+        background: linear-gradient(180deg, var(--ceu-1) 0%, var(--ceu-2) 32%,
+                                             var(--ceu-3) 62%, var(--ceu-4) 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+      }
+
+      /* --- Cenário: lens flare + bolhas subindo ------------------------- */
+      .cenario { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+      .flare {
+        position: absolute; top: -190px; right: -140px; width: 620px; height: 620px;
+        background: radial-gradient(circle, rgba(255,255,255,.92) 0%,
+                    rgba(255,255,255,.42) 26%, rgba(180,235,255,.16) 48%, transparent 70%);
+      }
+      .flare::after {
+        content: ""; position: absolute; left: 12%; top: 46%; width: 46%; height: 46%;
+        background: radial-gradient(circle, rgba(190,255,235,.5), transparent 68%);
+      }
+      .bolha {
+        position: absolute; bottom: -140px; border-radius: 50%;
+        background: radial-gradient(circle at 30% 26%,
+                    rgba(255,255,255,.95), rgba(255,255,255,.32) 38%,
+                    rgba(140,205,240,.16) 60%, rgba(255,255,255,.06) 100%);
+        box-shadow: inset 0 -6px 10px rgba(255,255,255,.5), 0 0 14px rgba(255,255,255,.28);
+        animation: subir linear infinite;
+      }
+      @keyframes subir {
+        from { transform: translateY(0) translateX(0); opacity: 0; }
+        12%  { opacity: .85; }
+        88%  { opacity: .7; }
+        to   { transform: translateY(-118vh) translateX(34px); opacity: 0; }
+      }
+      @media (prefers-reduced-motion: reduce) { .bolha { animation: none; opacity: .35; } }
+
+      .larg { max-width: 960px; margin: 0 auto; position: relative; z-index: 1; }
+
+      /* --- Cromado Y2K --------------------------------------------------- */
+      .chrome {
+        /* A faixa escura no meio é o que faz cromado ler sobre fundo claro:
+           topo brilhante, "linha do horizonte" quase preta, e brilho de novo
+           embaixo. Sem ela o título some no céu. */
+        background: linear-gradient(180deg,
+                    #fff 0%, #dcebf9 14%, #8fb2cf 31%, #2b4f6e 46%,
+                    #14304a 49.5%, #fff 51%, #cfe3f5 63%, #6e91b0 84%, #fff 100%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        -webkit-text-stroke: 1px rgba(10, 46, 76, 0.45);
+        paint-order: stroke fill;
+        filter: drop-shadow(0 1px 0 rgba(255,255,255,.85))
+                drop-shadow(0 4px 12px rgba(6, 52, 88, 0.5));
+        letter-spacing: -0.025em;
+      }
+      @media (prefers-color-scheme: dark) {
+        .chrome { -webkit-text-stroke-color: rgba(180, 220, 245, 0.4); }
+      }
+
+      /* --- Placar: barra de vidro fosco ---------------------------------- */
       .placar {
         position: sticky; top: 0; z-index: 20;
-        background: var(--painel); border-bottom: 1px solid var(--linha);
-        margin: 0 -20px 26px; padding: 12px 20px;
+        margin: 0 -20px 26px; padding: 13px 20px;
         display: flex; flex-wrap: wrap; gap: 18px; align-items: center;
+        background: linear-gradient(180deg, var(--vidro-forte), var(--vidro));
+        backdrop-filter: blur(16px) saturate(1.6);
+        -webkit-backdrop-filter: blur(16px) saturate(1.6);
+        border-bottom: 1px solid var(--borda);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 6px 22px rgba(6,52,88,.22);
       }
-      .placar b { font-family: var(--mono); font-size: 19px; }
-      .placar span { font-size: 11px; color: var(--fraco); display: block; text-transform: uppercase; letter-spacing: .06em; }
-      .placar .item { min-width: 84px; }
-      .placar button {
-        margin-left: auto; padding: 7px 14px; font: inherit; font-size: 13px; cursor: pointer;
-        background: var(--painel); color: var(--tinta); border: 1px solid var(--linha); border-radius: 7px;
+      .placar .item { min-width: 88px; }
+      .placar b {
+        font-family: var(--mono); font-size: 21px; line-height: 1.1;
+        display: block; color: var(--azul);
+        text-shadow: 0 1px 0 rgba(255,255,255,.9);
       }
-      .placar button:hover { border-color: var(--azul); color: var(--azul); }
+      .placar span {
+        font-size: 10.5px; color: var(--fraco); display: block;
+        text-transform: uppercase; letter-spacing: .07em; font-weight: 600;
+      }
 
-      h1 { font-size: 26px; margin: 22px 0 6px; letter-spacing: -.02em; }
-      .intro { color: var(--fraco); margin: 0 0 8px; max-width: 68ch; }
+      /* --- Botão Web 2.0: gradiente + meia-elipse de brilho + bisel ------ */
+      .placar button, #btn-rerender {
+        position: relative; overflow: hidden; margin-left: auto;
+        padding: 9px 20px; font: 600 13px "Segoe UI", system-ui, sans-serif;
+        cursor: pointer; color: #fff; text-shadow: 0 -1px 0 rgba(0, 40, 80, 0.55);
+        background: linear-gradient(180deg, var(--gloss-1), var(--gloss-2));
+        border: 1px solid var(--gloss-borda); border-radius: 999px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.95),
+                    inset 0 -9px 14px rgba(0, 45, 85, 0.22),
+                    0 3px 0 var(--gloss-sombra), 0 7px 16px rgba(6, 52, 88, 0.4);
+        transition: transform .07s, box-shadow .07s, filter .15s;
+      }
+      /* O brilho: metade de cima, cantos arredondados como uma gota. */
+      .placar button::before, #btn-rerender::before {
+        content: ""; position: absolute; left: 2px; right: 2px; top: 1px; height: 46%;
+        border-radius: 999px 999px 55% 55% / 999px 999px 24% 24%;
+        background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.14));
+        pointer-events: none;
+      }
+      .placar button:hover, #btn-rerender:hover { filter: brightness(1.09); }
+      .placar button:active, #btn-rerender:active {
+        transform: translateY(3px);
+        box-shadow: inset 0 2px 6px rgba(0, 45, 85, 0.45), 0 1px 3px rgba(6, 52, 88, 0.4);
+      }
+      #btn-rerender { margin-left: 0; width: 100%; }
 
+      /* --- Cabeçalho: a barra azul-marinho onde o cromado finalmente lê ---
+         Cromado claro sobre céu claro some. Em 2006 a solução era sempre a
+         mesma: logo cromado sobre uma faixa escura e envernizada. */
+      .cabeca {
+        display: flex; align-items: center; gap: 26px;
+        margin: 28px 0 20px; padding: 26px 32px;
+        position: relative; overflow: hidden; border-radius: 22px;
+        background: linear-gradient(180deg, #093f6b 0%, #0d5f95 52%, #1b83bf 100%);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55),
+                    inset 0 -20px 40px rgba(0, 20, 45, 0.35),
+                    0 14px 34px rgba(6, 52, 88, 0.4);
+      }
+      /* Verniz atravessando a metade de cima — o "gloss" da barra. */
+      .cabeca::before {
+        content: ""; position: absolute; left: 0; right: 0; top: 0; height: 52%;
+        background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.03));
+        border-radius: 22px 22px 60% 60% / 22px 22px 22% 22%;
+        pointer-events: none;
+      }
+      /* Listras finas de "aqua", direto do Mac OS X de 2001. */
+      .cabeca::after {
+        content: ""; position: absolute; inset: 0; pointer-events: none;
+        background: repeating-linear-gradient(180deg,
+                    rgba(255,255,255,.05) 0 1px, transparent 1px 4px);
+      }
+      .cabeca > * { position: relative; }
+      h1 {
+        font-size: 40px; margin: 0; font-weight: 800; line-height: 1.06;
+        /* O reflexo espelhado: a assinatura visual de 2006. */
+        -webkit-box-reflect: below 1px
+          linear-gradient(transparent 58%, rgba(255, 255, 255, 0.32));
+      }
+      h1 .marca { font-size: 46px; display: block; }
+
+      /* Selo estrelado: sunburst em conic-gradient, inclinado. */
+      .selo-estrela {
+        flex: 0 0 auto; width: 112px; height: 112px; border-radius: 50%;
+        display: grid; place-content: center; text-align: center;
+        transform: rotate(-13deg); position: relative; color: #fff;
+        background:
+          repeating-conic-gradient(#ff9c1a 0deg 9deg, #ff7a00 9deg 18deg);
+        box-shadow: inset 0 3px 10px rgba(255,255,255,.75),
+                    inset 0 -12px 20px rgba(150, 60, 0, 0.45),
+                    0 6px 18px rgba(6, 52, 88, 0.45);
+        text-shadow: 0 -1px 0 rgba(140, 55, 0, 0.7);
+      }
+      .selo-estrela::before {
+        content: ""; position: absolute; inset: 7px; border-radius: 50%;
+        background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 55%);
+        border: 2px solid rgba(255, 255, 255, 0.6);
+      }
+      .selo-estrela b { font-size: 27px; font-weight: 800; position: relative; }
+      .selo-estrela span {
+        font-size: 11.5px; font-weight: 700; letter-spacing: .13em;
+        display: block; position: relative;
+      }
+
+      .intro { color: var(--tinta); margin: 0 0 10px; max-width: 68ch;
+               text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55); }
+
+      /* --- Painéis de vidro ---------------------------------------------- */
       section {
-        background: var(--painel); border: 1px solid var(--linha);
-        border-radius: 12px; padding: 18px 20px; margin: 16px 0;
+        position: relative; overflow: hidden;
+        background: linear-gradient(180deg, var(--vidro-forte), var(--vidro));
+        backdrop-filter: blur(14px) saturate(1.5);
+        -webkit-backdrop-filter: blur(14px) saturate(1.5);
+        border: 1px solid var(--borda); border-radius: 20px;
+        padding: 20px 22px; margin: 18px 0;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.95),
+                    inset 0 -30px 50px rgba(255, 255, 255, 0.14),
+                    0 12px 30px rgba(6, 52, 88, 0.2);
       }
-      h2 {
-        font-size: 16px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px;
+      /* Reflexo de vidro atravessando o topo do painel. */
+      section::before {
+        content: ""; position: absolute; left: 0; right: 0; top: 0; height: 42%;
+        background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0));
+        pointer-events: none; border-radius: 20px 20px 50% 50% / 20px 20px 14% 14%;
       }
-      h2 .n {
-        font-family: var(--mono); font-size: 12px; color: var(--azul);
-        background: var(--azul-fraco); border-radius: 6px; padding: 2px 8px;
-      }
-      .dica { font-size: 13.5px; color: var(--fraco); margin: 0 0 14px; max-width: 72ch; }
+      section > * { position: relative; }
 
-      .grade { display: grid; gap: 12px; }
+      h2 { font-size: 17px; margin: 0 0 6px; display: flex; align-items: center; gap: 12px; }
+      /* Número em esfera 3D — o "orb" que estava em todo lugar em 2006. */
+      h2 .n {
+        flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%;
+        display: grid; place-content: center; position: relative;
+        font: 700 13px var(--mono); color: #fff;
+        background: radial-gradient(circle at 34% 26%, #c9edff 0%, #45a9e4 44%, #10618f 100%);
+        box-shadow: inset 0 -5px 9px rgba(0, 40, 70, 0.55),
+                    inset 0 3px 7px rgba(255, 255, 255, 0.7),
+                    0 3px 7px rgba(6, 52, 88, 0.45);
+        text-shadow: 0 -1px 0 rgba(0, 45, 80, 0.6);
+      }
+      h2 .n::after {
+        content: ""; position: absolute; left: 22%; top: 11%; width: 56%; height: 34%;
+        border-radius: 50%;
+        background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,0));
+      }
+      .dica { font-size: 13.5px; color: var(--fraco); margin: 0 0 15px; max-width: 72ch; }
+
+      .grade { display: grid; gap: 13px; }
       @media (min-width: 640px) { .grade--2 { grid-template-columns: 1fr 1fr; } }
 
-      label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+      label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; }
+      /* Campo "aqua": fundo claro com sombra interna, como o Mac OS X. */
       input, textarea, select {
-        width: 100%; padding: 7px 9px; font: inherit; font-size: 14px;
-        color: var(--tinta); background: var(--papel);
-        border: 1px solid var(--linha); border-radius: 7px;
+        width: 100%; padding: 8px 11px; font: inherit; font-size: 14px;
+        color: var(--tinta); background: var(--campo-fundo);
+        border: 1px solid var(--borda); border-radius: 9px;
+        box-shadow: inset 0 2px 4px rgba(10, 60, 100, 0.16),
+                    0 1px 0 rgba(255, 255, 255, 0.75);
       }
-      input:focus, textarea:focus { outline: 2px solid var(--azul); outline-offset: 1px; }
-      input[readonly], input:disabled { background: var(--linha); color: var(--fraco); }
+      input:focus, textarea:focus {
+        outline: none;
+        border-color: #37a3e0;
+        box-shadow: inset 0 2px 4px rgba(10,60,100,.12),
+                    0 0 0 3px rgba(90, 190, 245, 0.55), 0 0 14px rgba(80, 190, 250, 0.6);
+      }
+      input[readonly], input:disabled { background: rgba(150, 180, 205, 0.28); color: var(--fraco); }
       .campo { min-width: 0; }
-      .obs { font-size: 11.5px; color: var(--fraco); margin-top: 3px; font-family: var(--mono); }
+      .obs { font-size: 11.5px; color: var(--fraco); margin-top: 4px; font-family: var(--mono); }
 
+      /* --- Selos: pílulas glossy ----------------------------------------- */
       .selo {
-        display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px;
-        border-radius: 5px; font-family: var(--mono);
+        display: inline-block; font: 700 11px var(--mono); padding: 3px 9px;
+        border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 1px 3px rgba(6,52,88,.25);
       }
-      .ok { background: var(--verde-fraco); color: var(--verde); }
-      .ruim { background: var(--vermelho-fraco); color: var(--vermelho); }
-      .neutro { background: var(--linha); color: var(--fraco); }
-      .aviso { background: var(--ambar-fraco); color: var(--ambar); }
+      .ok { background: linear-gradient(180deg, #b7f0a4, var(--verde-fraco)); color: var(--verde); }
+      .ruim { background: linear-gradient(180deg, #ffc4c0, var(--vermelho-fraco)); color: var(--vermelho); }
+      .neutro { background: linear-gradient(180deg, rgba(255,255,255,.8), rgba(210,230,245,.6)); color: var(--fraco); }
+      .aviso { background: linear-gradient(180deg, #ffe6ab, var(--ambar-fraco)); color: var(--ambar); }
 
-      .proibido { border-color: var(--vermelho); }
-      .proibido h2 .n { background: var(--vermelho-fraco); color: var(--vermelho); }
+      .proibido { border-color: rgba(200, 60, 55, 0.6); }
+      .proibido h2 .n {
+        background: radial-gradient(circle at 34% 26%, #ffd0cc 0%, #e4564d 44%, #8f1a14 100%);
+      }
 
-      /* Monitor de eventos */
+      /* --- Monitor: painel de LCD ---------------------------------------- */
       #log {
-        font-family: var(--mono); font-size: 12px; line-height: 1.55;
-        max-height: 190px; overflow-y: auto; background: var(--papel);
-        border: 1px solid var(--linha); border-radius: 8px; padding: 10px;
-        margin: 0; white-space: pre-wrap; word-break: break-all;
+        font-family: var(--mono); font-size: 12px; line-height: 1.6;
+        max-height: 200px; overflow-y: auto; margin: 0; padding: 12px;
+        white-space: pre-wrap; word-break: break-all;
+        color: #b9f6d0; background: linear-gradient(180deg, #06283d, #041a29);
+        border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 12px;
+        box-shadow: inset 0 3px 12px rgba(0, 0, 0, 0.7),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+                    0 2px 5px rgba(6, 52, 88, 0.35);
+        text-shadow: 0 0 7px rgba(120, 255, 190, 0.4);
       }
-      #log:empty::after { content: "Nada ainda. Insira um valor em qualquer campo."; color: var(--fraco); }
-      .lg-ev { color: var(--azul); }
-      .lg-ok { color: var(--verde); }
-      .lg-x { color: var(--vermelho); }
+      #log:empty::after { content: "Nada ainda. Insira um valor em qualquer campo."; color: #5d8ba3; }
+      .lg-ev { color: #86d2ff; }
+      .lg-ok { color: #7dfba6; }
+      .lg-x { color: #ff9a90; }
 
       table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-      th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--linha); }
-      th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--fraco); }
+      th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--borda); }
+      th {
+        font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em;
+        color: var(--fraco); font-weight: 700;
+      }
       td.mono { font-family: var(--mono); }
       tbody tr:last-child td { border-bottom: 0; }
+      tbody tr:hover { background: rgba(255, 255, 255, 0.35); }
 
-      .contagens { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; }
+      .contagens { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; }
       .cont { font-family: var(--mono); font-size: 13px; }
-      .cont b { font-size: 17px; display: block; }
-      .cont span { font-size: 11px; color: var(--fraco); }
+      .cont b {
+        font-size: 19px; display: block; color: var(--azul);
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+      }
+      .cont span { font-size: 10.5px; color: var(--fraco); }
 
       kbd {
-        font-family: var(--mono); font-size: 12px; padding: 2px 6px;
-        border: 1px solid var(--linha); border-bottom-width: 2px; border-radius: 5px;
-        background: var(--papel);
+        font-family: var(--mono); font-size: 12px; padding: 3px 8px;
+        background: linear-gradient(180deg, #fff, #d9e7f2);
+        border: 1px solid var(--borda); border-radius: 6px;
+        box-shadow: inset 0 1px 0 #fff, 0 2px 0 rgba(150, 180, 205, 0.9),
+                    0 3px 5px rgba(6, 52, 88, 0.25);
+        color: #0d2c42;
       }
-      ol.passos { padding-left: 20px; margin: 0; }
-      ol.passos li { margin-bottom: 7px; }
-      iframe.filho { width: 100%; height: 190px; border: 1px solid var(--linha); border-radius: 8px; }
-      .rodape { color: var(--fraco); font-size: 13px; text-align: center; margin-top: 34px; }
+      ol.passos { padding-left: 22px; margin: 0; }
+      ol.passos li { margin-bottom: 8px; }
+
+      iframe.filho {
+        width: 100%; height: 190px; border: 1px solid var(--borda); border-radius: 12px;
+        background: #fff;
+        box-shadow: inset 0 2px 6px rgba(10, 60, 100, 0.2);
+      }
+      .rodape {
+        color: var(--tinta); font-size: 13px; text-align: center; margin-top: 36px;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+      }
+
+      /* Precisa vir por último: no fundo do mar, sombra branca atrás de texto
+         claro vira borrão. Antes das regras acima, a cascata engolia isto. */
+      @media (prefers-color-scheme: dark) {
+        .intro, .rodape, .placar b, .cont b { text-shadow: none; }
+      }
     </style>
   </head>
   <body>
+    <!-- Cenário puramente decorativo: lens flare + bolhas subindo. -->
+    <div class="cenario" aria-hidden="true">
+      <div class="flare"></div>
+        <div class="bolha" style="left:4%;width:19px;height:19px;animation-duration:54s;animation-delay:-0s"></div>
+        <div class="bolha" style="left:13%;width:25px;height:25px;animation-duration:22s;animation-delay:-3.5s"></div>
+        <div class="bolha" style="left:24%;width:14px;height:14px;animation-duration:78s;animation-delay:-7s"></div>
+        <div class="bolha" style="left:33%;width:30px;height:30px;animation-duration:34s;animation-delay:-1.5s"></div>
+        <div class="bolha" style="left:46%;width:17px;height:17px;animation-duration:60s;animation-delay:-9s"></div>
+        <div class="bolha" style="left:57%;width:23px;height:23px;animation-duration:26s;animation-delay:-5s"></div>
+        <div class="bolha" style="left:68%;width:13px;height:13px;animation-duration:88s;animation-delay:-12s"></div>
+        <div class="bolha" style="left:76%;width:27px;height:27px;animation-duration:42s;animation-delay:-2.5s"></div>
+        <div class="bolha" style="left:86%;width:18px;height:18px;animation-duration:30s;animation-delay:-8s"></div>
+        <div class="bolha" style="left:93%;width:22px;height:22px;animation-duration:66s;animation-delay:-11s"></div>
+    </div>
     <div class="larg">
       <div class="placar">
         <div class="item"><b id="p-campos">0</b><span>campos escritos</span></div>
@@ -132,7 +380,10 @@
         <button id="btn-zerar" type="button">Zerar</button>
       </div>
 
-      <h1>Laboratório de teste — Proteu QA</h1>
+      <div class="cabeca">
+        <h1 class="chrome">Laboratório de teste<span class="marca">Proteu QA</span></h1>
+        <div class="selo-estrela"><b>100%</b><span>LOCAL</span></div>
+      </div>
       <p class="intro">
         Cada seção exercita uma funcionalidade da extensão. A página observa os
         campos e valida os documentos com <strong>código próprio</strong>, sem
