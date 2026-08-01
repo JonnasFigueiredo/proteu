@@ -224,3 +224,27 @@ describe("manifest — a página do DevTools mora na raiz", () => {
     }
   });
 });
+
+describe("pacote — ferramenta de desenvolvimento não vaza", () => {
+  // O gerador de ícones é uma página HTML dentro de icons/. O filtro antigo
+  // excluía por extensão (.ps1, .md), e por isso ele entrou no zip quando o
+  // gerador deixou de ser PowerShell — a extensão também é feita de HTML.
+  const zip = fs.readFileSync(
+    path.join(RAIZ, "dist", `proteu-qa-${manifest.version}.zip`),
+    "latin1"
+  );
+
+  it("o gerador de ícones fica fora do pacote", () => {
+    expect(zip.includes("gerar-icones")).toBe(false);
+  });
+
+  it("os quatro ícones do manifest estão no pacote", () => {
+    for (const rel of Object.values(manifest.icons)) {
+      expect(zip.includes(rel), `${rel} não está no zip`).toBe(true);
+    }
+  });
+
+  it("a página do DevTools está no pacote", () => {
+    expect(zip.includes(manifest.devtools_page)).toBe(true);
+  });
+});
