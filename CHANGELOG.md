@@ -3,6 +3,46 @@
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/);
 o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.25.0] — 2026-07-31
+
+### Adicionado
+- **Painel no DevTools (F12 → "Proteu QA"), com duas abas.** Sem permissão
+  nova: `devtools_page` é entrada de manifesto, não permissão, e
+  `inspectedWindow.eval` já é escopado à aba inspecionada. Um overlay injetado
+  na página exigiria `<all_urls>` — continuam sendo quatro permissões.
+- **Aba Inspecionar.** Para o elemento selecionado (no painel Elements ou pela
+  mira), lista as estratégias de seletor com **a contagem real de matches**,
+  conferida na página. Casar com exatamente 1 elemento vale mais que qualquer
+  heurística: um caminho CSS feio que é único vence um `id` que aparece três
+  vezes. Classe gerada por ferramenta (`css-1a2b3c`, `sc-bdVaJa`,
+  `_ngcontent-*`) e id com hash são rebaixados, sem serem descartados. O
+  caminho CSS é cortado no primeiro ancestral com id único. Cadeias de Shadow
+  DOM e de iframe aparecem separadas, porque mudam o código gerado. Tem campo
+  para testar seletor à mão, com destaque na página.
+- **Aba Gravador.** Grava a navegação e exporta **Selenium (Java e Python)** e
+  **Playwright (JavaScript e Python)**. O roteiro é limpo, não um despejo de
+  eventos: a digitação vira um `fill` com o valor final, o clique que só focou o
+  campo é descartado, o clique que abriu o `<select>` some. Cada passo deixa
+  trocar o seletor por outro candidato. Modo verificação: clicar cria uma
+  asserção em vez de acionar a página.
+- **Shadow DOM e iframe no código gerado.** Selenium recebe `getShadowRoot()`
+  encadeado e `switchTo().frame(...)` com volta ao `defaultContent()`;
+  Playwright recebe `frameLocator()` (e atravessa shadow aberto sozinho). É o
+  que separa script que roda de script que estoura `NoSuchElementException` num
+  elemento visível na tela.
+- `tests/e2e/painel-runner.html` — roda o painel fora do DevTools, com um
+  `chrome.devtools` dublê e o agente de verdade.
+
+### Alterado
+- O motor de seletores (`core/seletores.js`) é injetado na página junto com o
+  agente, com os `export` removidos. Uma implementação só, compartilhada entre
+  painel e página, em vez de uma cópia de cada lado.
+- A checagem de higiene "o core não toca em API de navegador" passou a ignorar
+  o conteúdo das strings, pelo mesmo motivo que já ignorava comentários: os
+  geradores carregam código Java e Python como dado, e
+  `import org.openqa.selenium.chrome.ChromeDriver` contém `chrome.` sem ser
+  chamada de API nenhuma.
+
 ## [Não lançado]
 
 ### Planejado

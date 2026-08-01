@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Proteu QA</title>
+    <link rel="stylesheet" href="painel.css" />
+  </head>
+  <body>
+    <nav class="abas" role="tablist">
+      <button id="aba-inspecionar" class="aba ativa" role="tab" aria-selected="true" aria-controls="painel-inspecionar">
+        Inspecionar
+      </button>
+      <button id="aba-gravador" class="aba" role="tab" aria-selected="false" aria-controls="painel-gravador">
+        Gravador
+      </button>
+      <span class="crescer"></span>
+      <span id="estado-conexao" class="estado">conectando…</span>
+    </nav>
+
+    <!-- ================= Inspecionar ================= -->
+    <section id="painel-inspecionar" class="painel" role="tabpanel">
+      <div class="barra">
+        <button id="btn-mira" class="botao primario" type="button">
+          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+            <path d="M8 1v3M8 12v3M1 8h3M12 8h3" stroke="currentColor" stroke-width="1.4" fill="none" />
+            <circle cx="8" cy="8" r="3.4" stroke="currentColor" stroke-width="1.4" fill="none" />
+          </svg>
+          Selecionar na página
+        </button>
+        <label class="check">
+          <input id="sinc-elements" type="checkbox" checked />
+          Seguir a seleção do painel Elements
+        </label>
+      </div>
+
+      <div id="alvo-vazio" class="vazio">
+        Escolha um elemento na página, ou selecione um no painel
+        <strong>Elements</strong> — os seletores aparecem aqui.
+      </div>
+
+      <div id="alvo-info" hidden>
+        <div class="alvo">
+          <code id="alvo-resumo"></code>
+          <div id="alvo-contexto" class="contexto"></div>
+        </div>
+
+        <table class="tabela">
+          <thead>
+            <tr>
+              <th class="col-tipo">Estratégia</th>
+              <th>Seletor</th>
+              <th class="col-match">Casa com</th>
+              <th class="col-acao"></th>
+            </tr>
+          </thead>
+          <tbody id="lista-seletores"></tbody>
+        </table>
+      </div>
+
+      <div class="teste">
+        <label for="campo-teste">Testar um seletor</label>
+        <div class="linha-teste">
+          <select id="sintaxe-teste" aria-label="Sintaxe do seletor">
+            <option value="css">CSS</option>
+            <option value="xpath">XPath</option>
+          </select>
+          <input id="campo-teste" type="text" placeholder="input[name=&quot;email&quot;]" spellcheck="false" />
+          <span id="resultado-teste" class="selo neutro">—</span>
+        </div>
+        <div id="amostra-teste" class="amostra"></div>
+      </div>
+    </section>
+
+    <!-- ================= Gravador ================= -->
+    <section id="painel-gravador" class="painel" role="tabpanel" hidden>
+      <div class="barra">
+        <button id="btn-gravar" class="botao gravar" type="button">
+          <span class="ponto"></span> Gravar
+        </button>
+        <button id="btn-parar" class="botao" type="button" disabled>Parar</button>
+        <button id="btn-limpar" class="botao" type="button">Limpar</button>
+        <label class="check">
+          <input id="modo-verificar" type="checkbox" />
+          Modo verificação — clicar cria uma asserção
+        </label>
+      </div>
+
+      <div class="colunas">
+        <div class="coluna">
+          <div class="titulo-coluna">
+            <span>Roteiro</span>
+            <span id="contagem-acoes" class="selo neutro">0 ações</span>
+          </div>
+          <ol id="lista-acoes" class="acoes"></ol>
+          <div id="acoes-vazio" class="vazio">
+            Clique em <strong>Gravar</strong> e use a página normalmente. Cada
+            clique, preenchimento e navegação vira um passo aqui.
+          </div>
+        </div>
+
+        <div class="coluna">
+          <div class="titulo-coluna">
+            <select id="formato" aria-label="Formato do script"></select>
+            <span class="crescer"></span>
+            <button id="btn-copiar-codigo" class="botao pequeno" type="button">Copiar</button>
+            <button id="btn-baixar-codigo" class="botao pequeno" type="button">Baixar</button>
+          </div>
+          <pre id="codigo" class="codigo"></pre>
+        </div>
+      </div>
+    </section>
+
+    <div id="aviso" class="aviso" hidden></div>
+
+    <script type="module" src="painel.js"></script>
+  </body>
+</html>
