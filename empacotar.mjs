@@ -24,8 +24,10 @@ const NOME = `proteu-qa-${manifest.version}.zip`;
 // Apache 2.0 exige que a licença acompanhe cada cópia distribuída, e o pacote
 // da loja é uma distribuição.
 const INCLUIR = ["manifest.json", "devtools.html", "icons", "src", "LICENSE", "NOTICE"];
-// Ferramentas de desenvolvimento que moram nessas pastas mas não são da extensão.
-const EXCLUIR = [/\.ps1$/i, /\.md$/i];
+// Ferramentas de desenvolvimento que moram nessas pastas mas não são da
+// extensão. O gerador de ícones é uma página HTML, e a extensão também é feita
+// de HTML: aqui não dá para filtrar só por extensão, tem que ser pelo nome.
+const EXCLUIR = [/\.ps1$/i, /\.md$/i, /(^|\/)gerar-icones\.html$/i];
 
 function listar(rel, acc = []) {
   const abs = path.join(RAIZ, rel);
