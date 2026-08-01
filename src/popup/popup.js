@@ -1227,15 +1227,18 @@ async function atualizarBotaoPermissao() {
  * solução. Aparece só quando algo está faltando: com tudo certo, é ruído.
  */
 async function mostrarDiagnostico() {
+  const aviso = $("#aviso-seletor");
   const lista = $("#diagnostico-seletor");
   const estado = await chrome.runtime
     .sendMessage({ app: "proteu", tipo: "DIAGNOSTICO" })
     .catch(() => null);
 
+  lista.textContent = "";
+
   if (!estado) {
-    lista.hidden = false;
-    lista.textContent = "";
-    lista.appendChild(linhaDiagnostico(false, "service worker não respondeu"));
+    aviso.hidden = false;
+    lista.appendChild(linhaDiagnostico(false, "o service worker não respondeu"));
+    lista.appendChild(saidaDiagnostico("Recarregue a extensão em chrome://extensions."));
     return;
   }
 
@@ -1244,20 +1247,33 @@ async function mostrarDiagnostico() {
     [estado.script, "leitor de clique instalado"],
     [estado.menu, "itens no menu do botão direito"],
   ];
-  const tudoCerto = linhas.every(([ok]) => ok);
 
-  lista.hidden = tudoCerto;
-  if (tudoCerto) return;
+  // Tudo certo: o aviso some por inteiro. Ele existe para resolver um
+  // problema, não para virar mais um enfeite permanente na interface.
+  if (linhas.every(([ok]) => ok)) {
+    aviso.hidden = true;
+    return;
+  }
 
-  lista.textContent = "";
+  aviso.hidden = false;
+  // A explicação do pedido some depois de concedido: aí o que falta é outra
+  // coisa, e repetir "precisa de acesso" só confunde.
+  $("#ajuda-seletor").hidden = estado.permissao;
   for (const [ok, rotulo] of linhas) lista.appendChild(linhaDiagnostico(ok, rotulo));
+  lista.appendChild(
+    saidaDiagnostico(
+      estado.permissao
+        ? "Recarregue a extensão em chrome://extensions."
+        : "Clique em Ativar aqui em cima."
+    )
+  );
+}
 
-  const saida = document.createElement("li");
-  saida.className = "saida";
-  saida.textContent = estado.permissao
-    ? "Recarregue a extensão em chrome://extensions."
-    : "Clique em Ativar acima.";
-  lista.appendChild(saida);
+function saidaDiagnostico(texto) {
+  const li = document.createElement("li");
+  li.className = "saida";
+  li.textContent = texto;
+  return li;
 }
 
 function linhaDiagnostico(ok, rotulo) {
