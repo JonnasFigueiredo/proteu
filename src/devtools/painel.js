@@ -44,9 +44,18 @@ const MODULOS_DO_AGENTE = [
   "src/devtools/agente.js",
 ];
 
-/** Transforma um módulo ES em declarações soltas, para concatenar. */
+/**
+ * Transforma um módulo ES em declarações soltas, para concatenar.
+ *
+ * O `[\s\S]` cobre import multilinha. Um stripper de uma linha só deixaria o
+ * `} from "..."` solto, e o pacote inteiro deixaria de parsear — o agente não
+ * instalaria e o painel ficaria preso em "conectando…".
+ */
 function semModulo(fonte) {
-  return fonte.replace(/^export\s+/gm, "").replace(/^import\s[^\n]*\n/gm, "");
+  return fonte
+    .replace(/^import\b[\s\S]*?from\s*["'][^"']+["'];?[ \t]*\r?\n/gm, "")
+    .replace(/^import\s+["'][^"']+["'];?[ \t]*\r?\n/gm, "")
+    .replace(/^export\s+/gm, "");
 }
 
 /**
