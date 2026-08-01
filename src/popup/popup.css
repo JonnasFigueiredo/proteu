@@ -596,6 +596,57 @@ input:focus-visible {
   line-height: 1.45;
 }
 
+/* ---------- Opção que depende de permissão ---------- */
+/* Separada das outras por uma linha: as demais são preferências locais, esta
+   pede acesso às páginas e merece ser lida antes de ser ligada. */
+.permissao {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--borda);
+}
+
+.permissao__linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.permissao__rot {
+  flex: 1 1 auto;
+  font-size: 13px;
+}
+
+.permissao__ajuda {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--texto-fraco);
+  line-height: 1.45;
+}
+
+.btn-mini {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--azul);
+  background: var(--azul-suave);
+  border: 1px solid transparent;
+  border-radius: var(--raio-sm);
+  cursor: pointer;
+}
+
+.btn-mini:hover:not(:disabled) {
+  border-color: var(--azul);
+}
+
+.btn-mini[data-ativo="1"] {
+  color: var(--verde);
+  background: transparent;
+  border-color: var(--verde);
+  cursor: default;
+}
+
 /* ---------- Resultado ---------- */
 .resultado {
   margin-top: 14px;

@@ -92,6 +92,20 @@
                 <input type="checkbox" id="opt-ambiguas" /> <span data-i18n="excluir_ambiguas">Excluir ambíguas (I, O, U, Q, F)</span>
               </label>
             </div>
+
+            <!-- Depende de permissão de host, então não é um switch comum: só
+                 fica ligado depois que o Chrome confirma a concessão. -->
+            <div class="permissao">
+              <div class="permissao__linha">
+                <span class="permissao__rot" data-i18n="opt_menu_seletor">Copiar seletores pelo botão direito</span>
+                <!-- Sem data-i18n: o texto alterna entre "Ativar" e "Ativo"
+                     conforme a permissão, então quem o traduz é o JS. -->
+                <button id="btn-permissao-seletor" class="btn-mini" type="button">Ativar</button>
+              </div>
+              <p class="permissao__ajuda" data-i18n="opt_menu_seletor_ajuda">
+                Precisa de acesso às páginas para saber em qual elemento você clicou. Nada é enviado para lugar nenhum.
+              </p>
+            </div>
           </div>
         </details>
 

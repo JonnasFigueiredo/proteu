@@ -122,6 +122,29 @@ describe("seletores — geração de candidatos", () => {
     expect(caminho.valor).not.toContain("body");
   });
 
+  it("desempata por posição quando a classe se repete entre irmãos", () => {
+    // Numa grade de campos, todo irmão é `div.campo`: o caminho parece preciso
+    // e casa com todos eles. O número de irmãos que a classe não distingue vem
+    // do DOM, medido na hora da leitura.
+    const c = gerarCandidatos(contexto([
+      no("input"),
+      no("div", { classes: ["campo"], nth: 3, irmaosMesmaTag: 8, irmaosMesmasClasses: 8 }),
+      no("form", { id: "cadastro", idUnico: true }),
+    ]));
+    const caminho = c.find((x) => x.tipo === "css-caminho");
+    expect(caminho.valor).toBe("#cadastro > div.campo:nth-of-type(3) > input");
+  });
+
+  it("classe que já distingue o irmão dispensa a posição", () => {
+    const c = gerarCandidatos(contexto([
+      no("input"),
+      no("div", { classes: ["campo"], nth: 3, irmaosMesmaTag: 8, irmaosMesmasClasses: 1 }),
+      no("form", { id: "cadastro", idUnico: true }),
+    ]));
+    const caminho = c.find((x) => x.tipo === "css-caminho");
+    expect(caminho.valor).toBe("#cadastro > div.campo > input");
+  });
+
   it("usa nth-of-type quando não há classe estável", () => {
     const c = gerarCandidatos(contexto([
       no("td", { classes: ["css-1a2b3c"], nth: 3, irmaosMesmaTag: 5 }),
@@ -157,6 +180,34 @@ describe("seletores — geração de candidatos", () => {
   it("devolve lista vazia para contexto inválido", () => {
     expect(gerarCandidatos(null)).toEqual([]);
     expect(gerarCandidatos({ cadeia: [] })).toEqual([]);
+  });
+});
+
+describe("seletores — fronteiras de Shadow DOM", () => {
+  const dentroDeShadow = contexto(
+    [no("input", { id: "cpf", attrs: { name: "cpf" } }), no("label")],
+    { caminhoShadow: ["#host"] }
+  );
+
+  it("não oferece XPath para elemento dentro de shadow root", () => {
+    // document.evaluate() não atravessa a fronteira, e o ShadowRoot do
+    // Selenium 4 só aceita CSS — By.xpath ali estoura. Oferecer seria
+    // entregar um seletor que não roda.
+    const c = gerarCandidatos(dentroDeShadow);
+    expect(c.length).toBeGreaterThan(0);
+    expect(c.filter((x) => x.sintaxe === "xpath")).toEqual([]);
+  });
+
+  it("continua oferecendo CSS, que é o que funciona lá", () => {
+    const c = gerarCandidatos(dentroDeShadow);
+    const valores = c.map((x) => x.valor);
+    expect(valores).toContain("#cpf");
+    expect(valores).toContain('[name="cpf"]');
+  });
+
+  it("fora de shadow root, o XPath volta", () => {
+    const c = gerarCandidatos(contexto([no("input", { id: "cpf" }), no("body")]));
+    expect(c.some((x) => x.sintaxe === "xpath")).toBe(true);
   });
 });
 
