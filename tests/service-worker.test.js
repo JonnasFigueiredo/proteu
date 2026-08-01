@@ -374,3 +374,40 @@ describe("service worker — menu sem ids duplicados", () => {
     expect(ctx.menusCriados.map((m) => m.id)).toContain("proteu:sel:melhor");
   });
 });
+
+describe("service worker — diagnóstico do menu", () => {
+  // "Não aparece nada" é indistinguível de três causas com soluções
+  // diferentes: permissão não concedida, content script não registrado, menu
+  // não montado. O popup mostra qual dos três falhou.
+
+  const perguntar = () =>
+    new Promise((r) => ctx.listeners.mensagem({ app: "proteu", tipo: "DIAGNOSTICO" }, {}, r));
+
+  it("sem permissão, aponta os três como faltando", async () => {
+    ctx.estado.permissao = false;
+    await ctx.listeners.permissaoRemovida();
+    await flush();
+    expect(await perguntar()).toMatchObject({ permissao: false, script: false, menu: false });
+  });
+
+  it("com tudo pronto, aponta os três como ok", async () => {
+    ctx.estado.permissao = true;
+    await ctx.listeners.permissaoAdicionada();
+    await flush();
+    expect(await perguntar()).toMatchObject({ permissao: true, script: true, menu: true });
+  });
+
+  it("distingue permissão concedida de menu montado", async () => {
+    // É o estado exato do bug de `onAdded` perdido: acesso liberado, nada
+    // montado. Sem essa distinção, a saída seria "ative a permissão" — que já
+    // está ativa, e o QA fica em looping.
+    ctx.estado.permissao = false;
+    await ctx.listeners.permissaoRemovida();
+    await flush();
+    ctx.estado.permissao = true; // concedida por fora, sem evento
+
+    const antes = await perguntar();
+    expect(antes.permissao).toBe(true);
+    expect(antes.menu).toBe(false);
+  });
+});

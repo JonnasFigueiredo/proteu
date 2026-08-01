@@ -1214,8 +1214,60 @@ async function atualizarBotaoPermissao() {
   // Chrome mostra o diálogo, e o evento que monta o menu pode não alcançar um
   // service worker dormindo. Reconfirmar aqui é barato e conserta sozinho.
   if (concedida) {
-    chrome.runtime.sendMessage({ app: "proteu", tipo: "SINCRONIZAR" }).catch(() => {});
+    await chrome.runtime.sendMessage({ app: "proteu", tipo: "SINCRONIZAR" }).catch(() => {});
   }
+  await mostrarDiagnostico();
+}
+
+/**
+ * Mostra os três estados que precisam ser verdade para o menu existir.
+ *
+ * Sem isso, "não aparece nada" é indistinguível de permissão não concedida,
+ * content script não registrado e menu não montado — e cada um tem outra
+ * solução. Aparece só quando algo está faltando: com tudo certo, é ruído.
+ */
+async function mostrarDiagnostico() {
+  const lista = $("#diagnostico-seletor");
+  const estado = await chrome.runtime
+    .sendMessage({ app: "proteu", tipo: "DIAGNOSTICO" })
+    .catch(() => null);
+
+  if (!estado) {
+    lista.hidden = false;
+    lista.textContent = "";
+    lista.appendChild(linhaDiagnostico(false, "service worker não respondeu"));
+    return;
+  }
+
+  const linhas = [
+    [estado.permissao, "acesso às páginas"],
+    [estado.script, "leitor de clique instalado"],
+    [estado.menu, "itens no menu do botão direito"],
+  ];
+  const tudoCerto = linhas.every(([ok]) => ok);
+
+  lista.hidden = tudoCerto;
+  if (tudoCerto) return;
+
+  lista.textContent = "";
+  for (const [ok, rotulo] of linhas) lista.appendChild(linhaDiagnostico(ok, rotulo));
+
+  const saida = document.createElement("li");
+  saida.className = "saida";
+  saida.textContent = estado.permissao
+    ? "Recarregue a extensão em chrome://extensions."
+    : "Clique em Ativar acima.";
+  lista.appendChild(saida);
+}
+
+function linhaDiagnostico(ok, rotulo) {
+  const li = document.createElement("li");
+  li.dataset.ok = ok ? "1" : "0";
+  const marca = document.createElement("span");
+  marca.className = "marca";
+  marca.textContent = ok ? "✓" : "✕";
+  li.append(marca, document.createTextNode(rotulo));
+  return li;
 }
 
 async function aoPedirPermissaoSeletor() {

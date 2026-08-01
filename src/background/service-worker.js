@@ -45,9 +45,14 @@ function temPermissao() {
   return chrome.permissions.contains({ origins: ORIGENS });
 }
 
+// Só o diagnóstico lê isto: não existe API para perguntar ao Chrome quais
+// itens de menu estão montados, então guardamos o resultado da última tentativa.
+let menuMontado = false;
+
 /** Constrói o menu conforme o idioma efetivo da interface. */
 async function construirMenu() {
   await chrome.contextMenus.removeAll();
+  menuMontado = false;
   // Menu que não faz nada confunde mais do que menu nenhum.
   if (!(await temPermissao())) return;
 
@@ -71,6 +76,7 @@ async function construirMenu() {
           }
     );
   });
+  menuMontado = true;
 }
 
 // Fila de uma posição: as reconstruções nunca se sobrepõem.
@@ -185,11 +191,39 @@ chrome.permissions.onRemoved.addListener(sincronizarComPermissao);
 // MV3 pode estar dormindo —, a permissão fica concedida e o menu não existe:
 // para o QA, "ativei e não apareceu nada". O popup reconfirma a cada abertura.
 chrome.runtime.onMessage.addListener((msg, _remetente, responder) => {
-  if (!msg || msg.app !== "proteu" || msg.tipo !== "SINCRONIZAR") return false;
-  sincronizarComPermissao()
-    .then(() => responder({ ok: true }))
-    .catch((e) => responder({ ok: false, erro: e.message }));
-  return true; // resposta assíncrona
+  if (!msg || msg.app !== "proteu") return false;
+
+  if (msg.tipo === "SINCRONIZAR") {
+    sincronizarComPermissao()
+      .then(() => responder({ ok: true }))
+      .catch((e) => responder({ ok: false, erro: e.message }));
+    return true; // resposta assíncrona
+  }
+
+  // Diagnóstico: os três estados que precisam ser verdade para o menu existir.
+  //
+  // Sem isto, "não aparece nada" é indistinguível de permissão não concedida,
+  // content script não registrado ou menu não montado — e cada um tem uma
+  // solução diferente. O popup mostra qual dos três está faltando.
+  if (msg.tipo === "DIAGNOSTICO") {
+    (async () => {
+      const estado = { permissao: false, script: false, menu: false, erro: null };
+      try {
+        estado.permissao = await temPermissao();
+        const registrados = await chrome.scripting
+          .getRegisteredContentScripts({ ids: [ID_SCRIPT_SELETOR] })
+          .catch(() => []);
+        estado.script = registrados.length > 0;
+        estado.menu = menuMontado;
+      } catch (e) {
+        estado.erro = e.message;
+      }
+      responder(estado);
+    })();
+    return true;
+  }
+
+  return false;
 });
 
 // Troca de país ou de idioma da interface → refaz os rótulos do menu.

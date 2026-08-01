@@ -647,6 +647,50 @@ input:focus-visible {
   cursor: default;
 }
 
+/* ---------- Diagnóstico do menu de contexto ---------- */
+.diagnostico {
+  list-style: none;
+  margin: 7px 0 0;
+  padding: 7px 9px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.diagnostico li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.diagnostico .marca {
+  font-weight: 700;
+  flex: 0 0 auto;
+  width: 12px;
+}
+
+.diagnostico li[data-ok="1"] .marca {
+  color: var(--verde);
+}
+
+.diagnostico li[data-ok="0"] {
+  color: var(--vermelho);
+}
+
+.diagnostico li[data-ok="0"] .marca {
+  color: var(--vermelho);
+}
+
+.diagnostico .saida {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid var(--borda);
+  color: var(--texto-fraco);
+  display: block;
+}
+
 /* ---------- Resultado ---------- */
 .resultado {
   margin-top: 14px;
