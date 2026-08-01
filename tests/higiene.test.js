@@ -69,8 +69,10 @@ function semLiterais(txt) {
 }
 
 // Chaves de tradução também são referidas fora do popup: `rotuloKey` nos
-// registros de país e `tituloKey` nas famílias de casos-limite.
+// registros de país, `tituloKey` nas famílias de casos-limite, e os rótulos do
+// menu de contexto, que só o service worker conhece.
 const usoChaves =
+  ler("src/background/service-worker.js") + "\n" +
   usoUI + "\n" + arquivosJs("src/core").filter((f) => !f.endsWith("i18n.js")).map(ler).join("\n");
 
 describe("higiene — traduções", () => {

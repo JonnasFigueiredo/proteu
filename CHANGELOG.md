@@ -6,6 +6,20 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ## [0.25.0] — 2026-07-31
 
 ### Adicionado
+- **Menu de botão direito: copiar o seletor de qualquer elemento.** Sete itens
+  — melhor seletor, id, CSS, XPath relativo, XPath absoluto, XPath por texto e
+  "copiar todos". Um balão confirma o que foi copiado e **avisa quando o
+  seletor casa com mais de um elemento**: copiar um seletor ambíguo em silêncio
+  é entregar um teste que passa hoje e quebra quando a tela ganhar mais um item
+  igual. O "copiar todos" sai como relatório, com a contagem de cada estratégia.
+- **`<all_urls>` como `optional_host_permissions`.** Não é pedido na instalação
+  e não aparece na listagem da store; a extensão inteira funciona sem ele. Só o
+  menu de seletores depende dessa permissão, pedida por um botão em *Opções*.
+  O motivo é uma limitação do Chrome, não uma escolha: `contextMenus.onClicked`
+  não informa em qual elemento o menu foi aberto, e quem sabe disso é um
+  listener de `contextmenu` que já estava ouvindo — `activeTab` só concede
+  acesso *depois* do clique. Revogar em `chrome://extensions` desliga o menu e
+  desregistra o content script na hora.
 - **Painel no DevTools (F12 → "Proteu QA"), com duas abas.** Sem permissão
   nova: `devtools_page` é entrada de manifesto, não permissão, e
   `inspectedWindow.eval` já é escopado à aba inspecionada. Um overlay injetado
@@ -34,9 +48,32 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   `chrome.devtools` dublê e o agente de verdade.
 
 ### Alterado
+- **O menu de botão direito não gera mais documento.** Agora ele copia
+  seletores. Gerar CPF/CNPJ continua no popup e no `Ctrl+Shift+8`, que agem no
+  campo focado — o menu não precisa de campo nenhum, e é por isso que ele rende
+  mais como inspetor de elemento.
+- A leitura do DOM saiu do agente do DevTools para `src/content/leitura-dom.js`,
+  usada pelos dois consumidores: o content script a carrega por `import()`
+  dinâmico, o painel a concatena. Sem isso, o menu de contexto precisaria de uma
+  segunda cópia de "como descrever um elemento".
 - O motor de seletores (`core/seletores.js`) é injetado na página junto com o
   agente, com os `export` removidos. Uma implementação só, compartilhada entre
   painel e página, em vez de uma cópia de cada lado.
+
+### Corrigido
+- **A cadeia de ancestrais atravessava fronteiras de Shadow DOM e de iframe.**
+  Um elemento dentro de shadow root recebia um XPath absoluto montado com o
+  host no meio, que resolvia no documento de fora; dentro de iframe, a cadeia
+  chegava a ter `body` e `html` duas vezes. Agora ela para na fronteira, e as
+  travessias continuam registradas à parte — que é o que o driver precisa.
+- **XPath deixou de ser oferecido dentro de shadow root.** `document.evaluate()`
+  não atravessa a fronteira e o `ShadowRoot` do Selenium 4 só aceita CSS: o
+  seletor era gerado e não rodava.
+- **Caminho CSS por classe não distinguia irmãos.** Numa grade de campos, todos
+  os irmãos são `div.campo`, e o caminho parecia preciso enquanto casava com os
+  oito. Agora a leitura mede quantos irmãos a classe não distingue e a posição
+  só entra quando faz falta. Numa varredura de 103 elementos da página de
+  laboratório, o caminho CSS passou de ambíguo a único em todos.
 - A checagem de higiene "o core não toca em API de navegador" passou a ignorar
   o conteúdo das strings, pelo mesmo motivo que já ignorava comentários: os
   geradores carregam código Java e Python como dado, e

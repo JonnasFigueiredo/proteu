@@ -106,7 +106,14 @@ function textoUtil(texto) {
 function fragmentoCss(no) {
   const boas = (no.classes || []).filter((c) => !classeSuspeita(c));
   if (boas.length) {
-    return no.tag + boas.slice(0, 2).map((c) => "." + CSS_escapaClasse(c)).join("");
+    const comClasses = no.tag + boas.slice(0, 2).map((c) => "." + CSS_escapaClasse(c)).join("");
+    // A classe só basta se ela realmente distingue este irmão dos outros. Numa
+    // grade de campos, `div.campo > input` parece preciso e casa com todos.
+    // `irmaosMesmasClasses` indefinido = descritor antigo: mantém o otimismo.
+    if (no.irmaosMesmasClasses === undefined || no.irmaosMesmasClasses <= 1) {
+      return comClasses;
+    }
+    return `${comClasses}:nth-of-type(${no.nth})`;
   }
   if (no.irmaosMesmaTag > 1) return `${no.tag}:nth-of-type(${no.nth})`;
   return no.tag;
@@ -132,8 +139,16 @@ export function gerarCandidatos(contexto) {
   const cadeia = contexto.cadeia;
   const alvo = cadeia[0];
   const out = [];
+
+  // Dentro de shadow root, XPath simplesmente não existe: document.evaluate()
+  // não atravessa a fronteira, e o ShadowRoot do Selenium 4 só aceita CSS —
+  // By.xpath ali estoura. Ofertar seria entregar um seletor que não roda.
+  const dentroDeShadow =
+    Array.isArray(contexto.caminhoShadow) && contexto.caminhoShadow.length > 0;
+
   const add = (tipo, sintaxe, valor, rotulo, pontos) => {
     if (!valor) return;
+    if (sintaxe === "xpath" && dentroDeShadow) return;
     if (out.some((c) => c.valor === valor && c.sintaxe === sintaxe)) return;
     out.push({ chave: `${sintaxe}:${valor}`, tipo, sintaxe, valor, rotulo, pontos });
   };

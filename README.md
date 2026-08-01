@@ -8,7 +8,7 @@ seed reproduz exatamente a mesma massa, então um bug encontrado com dados gerad
 deixa de ser "não reproduzível".
 
 **100% local** · sem requisições de rede · sem coleta de dados · sem dependências
-em runtime · apenas 4 permissões · Vanilla JS (sem build).
+em runtime · 4 permissões na instalação · Vanilla JS (sem build).
 
 **Multi-país:** um seletor de país (bandeira no cabeçalho) define de qual país os
 dados gerados são equivalentes, e a interface acompanha o idioma (Brasil → pt;
@@ -60,8 +60,7 @@ Mais: **interface em pt/es/en/zh/ar/hi/de** (segue o país por padrão, mas o QA
 pode **fixar um idioma** na aba Config — assim dá para gerar dados da China e ler
 os rótulos dos campos em português, sem precisar de mandarim), **histórico** da
 sessão, cópia com um clique, **tema** claro/escuro/automático, menu de contexto
-(um item por tipo de documento) e
-atalho de teclado.
+para copiar seletores e atalhos de teclado.
 
 > Os **nomes dos documentos brasileiros** (CPF, CNPJ, RG…) não são traduzidos —
 > são os nomes próprios dos documentos; um QA de fora testando um sistema BR
@@ -89,12 +88,36 @@ atalho de teclado.
 - **Seed** no rodapé (editável); o botão ao lado sorteia uma nova (e reinicia a
   sequência). Selo **100% local** sempre à vista.
 
-### Menu de contexto e atalhos
+### Menu de contexto — copiar o seletor de qualquer elemento
 
-- Clique com o **botão direito** num campo editável → *Proteu QA* → *Gerar …*.
-- Atalhos (ajustáveis em `chrome://extensions/shortcuts`):
-  - `Ctrl+Shift+9` — abrir o Proteu QA.
-  - `Ctrl+Shift+8` — inserir a última geração no campo focado.
+Clique com o **botão direito** em qualquer elemento da página → *Proteu QA*:
+
+| Item | O que copia |
+|------|-------------|
+| Copiar melhor seletor | o mais estável entre os que casam com **um só** elemento |
+| Copiar id | `#email` |
+| Copiar seletor CSS | o melhor CSS disponível |
+| Copiar XPath relativo | `//*[@name='email']` |
+| Copiar XPath absoluto | `/html/body/form/input[2]` |
+| Copiar XPath por texto | `//button[normalize-space()='Salvar']` |
+| Copiar todos os seletores | relatório com todos, com a contagem de matches |
+
+Um balão confirma o que foi copiado. Se o seletor escolhido casar com mais de
+um elemento, o balão avisa — copiar um seletor ambíguo em silêncio é entregar
+um teste que passa hoje e quebra quando a tela ganhar mais um item igual.
+
+Este item **precisa ser ativado** no popup (*Opções → Copiar seletores pelo
+botão direito*), porque depende de acesso às páginas: o Chrome não informa em
+qual elemento o menu foi aberto, então só um listener que já estava ouvindo
+sabe disso — e `activeTab` só concede acesso *depois* do clique. Veja
+[Permissões](#permissões).
+
+### Atalhos
+
+Ajustáveis em `chrome://extensions/shortcuts`:
+
+- `Ctrl+Shift+9` — abrir o Proteu QA.
+- `Ctrl+Shift+8` — inserir a última geração no campo focado.
 
 ### Prévia sem instalar
 
@@ -139,7 +162,7 @@ reproduzivel/
 │   │   └── invalid/                  # casos-limite, unicode, payloads, valores-limite
 │   ├── storage.js                    # adaptador chrome.storage (ponte p/ core/config)
 │   ├── content/content.js            # detecção do campo + inserção robusta (injetado sob demanda)
-│   ├── background/service-worker.js  # menu de contexto, atalhos, roteamento da inserção
+│   ├── background/service-worker.js  # menu de seletores, atalhos, roteamento da inserção
 │   ├── devtools/                     # painel do DevTools: abas Inspecionar e Gravador
 │   │   ├── devtools.html/.js         # registra o painel (não tem interface)
 │   │   ├── painel.html/.css/.js      # a interface das duas abas
@@ -178,16 +201,40 @@ reproduzivel/
   content script é um arquivo plano. Carrega direto em *Load unpacked*. O
   `package.json` existe só para o Vitest (devDependency).
 
-### Permissões (só estas quatro)
+### Permissões
+
+Na instalação, só estas quatro:
 
 | Permissão | Por quê |
 |-----------|---------|
-| `contextMenus` | menu de botão direito para gerar direto no campo |
+| `contextMenus` | menu de botão direito |
 | `storage` | persistir configurações e histórico |
 | `activeTab` | acesso pontual à aba ativa quando o usuário aciona a extensão |
 | `scripting` | injetar o content script sob demanda |
 
-Nenhuma host permission (`<all_urls>` etc.). Nenhum acesso de rede.
+Nenhum acesso de rede, nunca.
+
+#### A única permissão opcional
+
+`<all_urls>` está declarado como **`optional_host_permissions`**: não é pedido
+na instalação, não aparece na listagem da store, e a extensão funciona inteira
+sem ele. Só o item *copiar seletor pelo botão direito* depende dessa permissão,
+e ela é pedida por um botão em *Opções* — com a explicação ao lado.
+
+O motivo é uma limitação real do Chrome: `chrome.contextMenus.onClicked` não
+informa em qual elemento o menu foi aberto. Quem sabe disso é um listener de
+`contextmenu` na página, que precisa **já estar ouvindo** quando o clique
+acontece. E `activeTab` só concede acesso *depois* que o usuário aciona a
+extensão — quando o clique já passou. Não existe caminho sem essa permissão;
+o que dá para escolher é se ela é cobrada de todo mundo ou só de quem usa o
+recurso. Aqui é a segunda.
+
+Revogar em `chrome://extensions` desliga o menu e desregistra o content script
+na mesma hora.
+
+O painel do DevTools, esse, **não custou permissão nenhuma**: `devtools_page` é
+entrada de manifesto, não permissão, e `inspectedWindow.eval` já é escopado à
+aba inspecionada.
 
 O painel do DevTools **não custou permissão nenhuma**: `devtools_page` é uma
 entrada de manifesto, não uma permissão, e `chrome.devtools.inspectedWindow.eval`

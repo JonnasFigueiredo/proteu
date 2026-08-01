@@ -552,6 +552,9 @@ function aplicarIdioma(idioma) {
 
   // Recontagem já exibida usa rótulos traduzidos.
   if (ultimoTexto !== null) renderContagens(ultimoTexto);
+
+  // O rótulo deste botão depende da permissão, não só do idioma.
+  atualizarBotaoPermissao();
 }
 
 // --- Eventos ----------------------------------------------------------------
@@ -597,6 +600,7 @@ function ligarEventos() {
 
   $("#btn-nova-persona").addEventListener("click", aoNovaPersona);
   $("#btn-preencher-form").addEventListener("click", aoPreencherFormulario);
+  $("#btn-permissao-seletor").addEventListener("click", aoPedirPermissaoSeletor);
   $("#btn-exp-copiar").addEventListener("click", aoExportarCopiar);
   $("#btn-exp-baixar").addEventListener("click", aoExportarBaixar);
 
@@ -1183,6 +1187,35 @@ async function copiarTexto(texto) {
   } catch {
     /* ignora */
   }
+}
+
+// --- Permissão do menu de contexto ------------------------------------------
+//
+// O menu de "copiar seletor" precisa de um listener ouvindo a página ANTES do
+// clique com o botão direito — o Chrome não diz em qual elemento o menu foi
+// aberto. Isso exige acesso de host, que fica opcional de propósito: quem só
+// usa a extensão para gerar massa de dados nunca precisa concedê-lo, e a
+// instalação padrão continua sem o aviso de "ler todos os seus dados".
+
+const PERMISSAO_SELETOR = { origins: ["<all_urls>"] };
+
+/** Reflete no botão se a permissão já foi concedida. */
+async function atualizarBotaoPermissao() {
+  const btn = $("#btn-permissao-seletor");
+  const concedida = await chrome.permissions.contains(PERMISSAO_SELETOR);
+  btn.textContent = t(idiomaAtual, concedida ? "opt_menu_seletor_ativo" : "opt_menu_seletor_pedir");
+  btn.dataset.ativo = concedida ? "1" : "0";
+  btn.disabled = concedida;
+}
+
+async function aoPedirPermissaoSeletor() {
+  // request() só funciona dentro de um gesto do usuário — daí ser um botão, e
+  // não algo que a extensão pede sozinha ao abrir.
+  const concedida = await chrome.permissions.request(PERMISSAO_SELETOR);
+  if (!concedida) {
+    mostrarFeedback(t(idiomaAtual, "opt_menu_seletor_negado"), "erro", "#feedback-persona");
+  }
+  await atualizarBotaoPermissao();
 }
 
 // --- Utilitários de UI ------------------------------------------------------
