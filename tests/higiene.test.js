@@ -32,6 +32,42 @@ function semComentarios(txt) {
   return txt.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 }
 
+/**
+ * Esvazia o conteúdo de todas as strings, preservando as aspas.
+ *
+ * Os geradores de script carregam código Java e Python como dado — e a linha
+ * `import org.openqa.selenium.chrome.ChromeDriver;` contém "chrome." sem ser
+ * chamada de API nenhuma. Pelo mesmo motivo que a checagem já ignora
+ * comentários, ela precisa ignorar o miolo das strings.
+ */
+function semLiterais(txt) {
+  let saida = "";
+  let aspa = null;
+  for (let i = 0; i < txt.length; i++) {
+    const c = txt[i];
+    if (aspa) {
+      if (c === "\\") {
+        i++; // pula o caractere escapado
+        continue;
+      }
+      if (c === aspa) {
+        aspa = null;
+        saida += c;
+        continue;
+      }
+      if (c === "\n") saida += c; // mantém as linhas alinhadas
+      continue;
+    }
+    if (c === '"' || c === "'" || c === "`") {
+      aspa = c;
+      saida += c;
+      continue;
+    }
+    saida += c;
+  }
+  return saida;
+}
+
 // Chaves de tradução também são referidas fora do popup: `rotuloKey` nos
 // registros de país e `tituloKey` nas famílias de casos-limite.
 const usoChaves =
@@ -141,10 +177,10 @@ describe("higiene — JavaScript", () => {
   });
 
   it("o core não toca em DOM nem em chrome.* (precisa rodar no Node)", () => {
-    // É a regra que mantém 100% do core testável sem navegador. Comentários
-    // podem citar chrome.storage; só o código conta.
+    // É a regra que mantém 100% do core testável sem navegador. Comentários e
+    // strings podem citar chrome.storage; só o código executável conta.
     for (const f of arquivosJs("src/core")) {
-      const codigo = semComentarios(ler(f));
+      const codigo = semLiterais(semComentarios(ler(f)));
       expect(
         /\bdocument\.|\bwindow\.|\bchrome\./.test(codigo),
         `${f} usa API de navegador`

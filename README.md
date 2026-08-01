@@ -32,6 +32,14 @@ cada país é um arquivo em `src/core/paises/`).
 3. **Inserção robusta** — funciona em campos controlados por frameworks
    (React/Vue/Angular), **Shadow DOM aberto** e **iframes de mesma origem** —
    onde as concorrentes costumam falhar.
+4. **Seletor conferido, não chutado** — o painel do DevTools lista várias
+   estratégias para o elemento e mostra **com quantos elementos cada uma casa**,
+   conferido na página de verdade. Seletor que parece bonito mas pega 4
+   elementos é um teste que falha amanhã, e aqui isso fica visível antes.
+5. **Gravador que gera script rodável** — o roteiro sai em Selenium (Java e
+   Python) e Playwright (JavaScript e Python), já com o salto de **Shadow DOM**
+   e a troca de **iframe** que gravador comum esquece — e por isso cospe script
+   que estoura `NoSuchElementException` num elemento visível na tela.
 
 ## Recursos
 
@@ -45,6 +53,8 @@ cada país é um arquivo em `src/core/paises/`).
 | **Texto** | 9 idiomas (pt, es, ar, tr, ru, zh, hi, ja, he — cada um cobrindo um problema real de i18n) · geração **por tamanho exata** nas 4 unidades de contagem · **pseudolocale** (`Save` → `Šávé`) com expansão, marcadores `⟦…⟧`, preservação de placeholders e modo `fakebidi`. |
 | **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. |
 | **Casos-limite** | Arsenal de entradas que quebram sistemas, cada uma com o **porquê**: fronteiras Unicode (contagens inline), payloads XSS/SQLi/formato (**uso defensivo**), números & datas de borda, espaços/controle invisíveis, formatos inválidos e overflow. Busca + "copiar todos"; 1 clique insere no campo. |
+| **Inspecionar** (DevTools) | Para o elemento selecionado, várias estratégias de seletor — `data-testid`, id, name, aria-label, texto, caminho CSS, XPath relativo e absoluto — **cada uma com a contagem real de matches**. Classe gerada por ferramenta (`css-1a2b3c`, `sc-bdVaJa`, `_ngcontent-*`) e id com hash são **rebaixados**, porque quebram no próximo build. Mostra a cadeia de **Shadow DOM** e de **iframe**, e tem um campo para testar seletor à mão com destaque na página. |
+| **Gravador** (DevTools) | Grava a navegação e exporta **Selenium (Java/Python)** e **Playwright (JS/Python)**. A digitação vira um `fill` com o valor final, o clique que só focou o campo some, e cada passo deixa **trocar o seletor** por outro candidato. Modo verificação: clicar em algo cria uma asserção em vez de acionar a página. |
 
 Mais: **interface em pt/es/en/zh/ar/hi/de** (segue o país por padrão, mas o QA
 pode **fixar um idioma** na aba Config — assim dá para gerar dados da China e ler
@@ -118,6 +128,9 @@ reproduzivel/
 │   │   ├── persona.js                # pessoa coerente (e-mail derivado do nome)
 │   │   ├── mapeamento.js             # campo do form → slot da persona
 │   │   ├── exportar.js               # N personas → CSV / JSON / fixture
+│   │   ├── seletores.js              # elemento → candidatos de seletor + ranking
+│   │   ├── gravador/                 # acoes.js (normalização), selenium.js,
+│   │   │                             #   playwright.js, codigo.js (despacho)
 │   │   ├── paises/                   # um arquivo por país (br, us, ca, ar, cn, sa, mx, in, de)
 │   │   ├── field.js                  # descritor do campo → set de fronteira
 │   │   ├── documents/                # nome, datas, cpf, cnpj (+raiz), rg, cnh, ie,
@@ -127,6 +140,10 @@ reproduzivel/
 │   ├── storage.js                    # adaptador chrome.storage (ponte p/ core/config)
 │   ├── content/content.js            # detecção do campo + inserção robusta (injetado sob demanda)
 │   ├── background/service-worker.js  # menu de contexto, atalhos, roteamento da inserção
+│   ├── devtools/                     # painel do DevTools: abas Inspecionar e Gravador
+│   │   ├── devtools.html/.js         # registra o painel (não tem interface)
+│   │   ├── painel.html/.css/.js      # a interface das duas abas
+│   │   └── agente.js                 # roda NA página via inspectedWindow.eval
 │   └── popup/                        # popup.html / .css / .js (Vanilla JS, sem framework)
 └── tests/                            # Vitest (unitário) + e2e no navegador
     ├── *.test.js                     # espelha src/core + storage + service-worker
@@ -171,6 +188,56 @@ reproduzivel/
 | `scripting` | injetar o content script sob demanda |
 
 Nenhuma host permission (`<all_urls>` etc.). Nenhum acesso de rede.
+
+O painel do DevTools **não custou permissão nenhuma**: `devtools_page` é uma
+entrada de manifesto, não uma permissão, e `chrome.devtools.inspectedWindow.eval`
+já é escopado à aba que está sendo inspecionada. Foi por isso que o painel virou
+a casa do inspetor e do gravador, em vez de um overlay injetado na página — este
+exigiria `<all_urls>`, que é justamente o que as concorrentes pedem.
+
+## Painel do DevTools — como funciona
+
+Abra o DevTools (F12) e vá na aba **Proteu QA**.
+
+### Inspecionar
+
+Selecione um elemento no painel **Elements** (ou use *Selecionar na página*) e o
+painel lista as estratégias de seletor daquele elemento, cada uma com **quantos
+elementos ela casa de verdade** — conferido na página, não estimado.
+
+A ordem não é fixa: casar com **exatamente 1 elemento** vale mais que qualquer
+heurística. Um caminho CSS feio que é único vence um `id` bonito que aparece
+três vezes, porque é ele que a QA deve usar. Além disso:
+
+- classe que parece gerada por ferramenta (`css-1a2b3c`, `sc-bdVaJa`,
+  `_ngcontent-*`, `svelte-1x2y3z`) e id com hash (`react-aria-8837261`) são
+  **rebaixados** — quebram no próximo build, mas continuam ofertados, porque às
+  vezes são a única coisa que existe;
+- o caminho CSS é **cortado no primeiro ancestral com id único**, o que evita
+  seletor de doze níveis arrastando `body`;
+- **Shadow DOM** e **iframe** aparecem como cadeia própria, porque mudam o
+  código que o driver precisa executar.
+
+### Gravador
+
+Grava a navegação e gera o script em **Selenium (Java/Python)** e **Playwright
+(JavaScript/Python)**. O que sai é um roteiro limpo, não um despejo de eventos:
+
+- a digitação vira **um** `fill` com o valor final (o navegador dispara um
+  `input` por tecla);
+- o clique que só serviu para focar o campo antes de digitar é descartado;
+- o clique que abriu o `<select>` some, porque nenhum driver precisa abrir a
+  lista para selecionar;
+- cada passo deixa **trocar o seletor** por outro candidato — quem conhece a
+  tela sabe qual atributo o time considera estável.
+
+O **modo verificação** inverte o clique: em vez de acionar a página, ele cria
+uma asserção sobre o texto ou o valor do elemento.
+
+O agente que roda na página é injetado junto com `core/seletores.js` — os
+`export` são removidos e os dois viram uma IIFE só. Assim o motor de seletores
+tem **uma implementação**, compartilhada entre o painel e a página, em vez de uma
+cópia de cada lado que sai de sincronia na primeira mudança.
 
 ## Inserção robusta — como funciona
 

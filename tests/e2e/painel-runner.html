@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Runner do painel DevTools — Proteu QA</title>
+    <style>
+      body {
+        margin: 0;
+        font: 13px/1.5 "Segoe UI", system-ui, sans-serif;
+        background: #22262c;
+        color: #dde2e8;
+      }
+      header { padding: 12px 16px; }
+      h1 { font-size: 14px; margin: 0 0 4px; }
+      p { margin: 0; color: #98a2b0; font-size: 12px; max-width: 90ch; }
+      .palco { display: grid; grid-template-columns: 300px 1fr; height: calc(100vh - 68px); }
+      .amostra {
+        background: #fff; color: #1a1d21; padding: 14px; overflow: auto;
+        border-right: 2px solid #11141a;
+      }
+      .amostra h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #667085; margin: 0 0 8px; }
+      .amostra label { display: block; font-size: 11px; font-weight: 700; margin: 10px 0 3px; }
+      .amostra input, .amostra select {
+        width: 100%; padding: 5px 7px; font: inherit; font-size: 13px;
+        border: 1px solid #ccd3dc; border-radius: 6px;
+      }
+      .amostra button {
+        margin-top: 12px; padding: 6px 14px; font: inherit; cursor: pointer;
+        background: #1565c0; color: #fff; border: 0; border-radius: 6px;
+      }
+      .amostra .escolher {
+        margin-top: 14px; width: 100%; background: #eef1f6; color: #1a1d21;
+        border: 1px solid #ccd3dc;
+      }
+      #quadro { width: 100%; height: 100%; border: 0; background: #fff; }
+      code { font-family: ui-monospace, Consolas, monospace; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Painel da Proteu QA, fora do DevTools</h1>
+      <p>
+        Roda <code>src/devtools/painel.html</code> com um <code>chrome.devtools</code>
+        dublê. O agente é o de verdade e o alvo é o formulário à esquerda, então
+        dá para conferir layout e comportamento sem abrir o DevTools.
+      </p>
+    </header>
+
+    <div class="palco">
+      <div class="amostra">
+        <h2>Página inspecionada</h2>
+        <label for="email">E-mail</label>
+        <input id="email" name="email" type="email" data-testid="campo-email" />
+
+        <label for="senha">Senha</label>
+        <input id="senha" name="senha" type="password" />
+
+        <label for="uf">Estado</label>
+        <select id="uf" name="uf">
+          <option value="sp">São Paulo</option>
+          <option value="rj">Rio de Janeiro</option>
+        </select>
+
+        <label>Sem id, sem name, com classe gerada</label>
+        <input type="text" placeholder="Apelido" class="css-1a2b3c" />
+
+        <button type="button" class="entrar">Entrar</button>
+        <button class="escolher" type="button" id="btn-alvo">
+          Trocar o alvo (faz o papel do $0)
+        </button>
+      </div>
+      <iframe id="quadro" title="Painel da Proteu QA"></iframe>
+    </div>
+
+    <script>
+      // --- Alvo corrente: faz o papel do $0 do DevTools ----------------------
+      const alvos = [
+        ...document.querySelectorAll(".amostra input, .amostra select, .amostra button.entrar"),
+      ];
+      let indiceAlvo = 0;
+      window.__alvoFalso = alvos[0];
+      alvos[0].style.outline = "2px solid #1565c0";
+
+      const ouvintesSelecao = [];
+
+      document.getElementById("btn-alvo").addEventListener("click", () => {
+        indiceAlvo = (indiceAlvo + 1) % alvos.length;
+        window.__alvoFalso = alvos[indiceAlvo];
+        for (const el of alvos) el.style.outline = "";
+        window.__alvoFalso.style.outline = "2px solid #1565c0";
+        for (const fn of ouvintesSelecao) fn();
+      });
+
+      // --- Dublê do chrome.devtools -------------------------------------------
+      const chromeFalso = {
+        runtime: {
+          // O painel busca os fontes por URL da extensão; aqui vêm do servidor
+          // de teste, que serve a raiz do repositório.
+          getURL: (caminho) => "/" + caminho,
+        },
+        devtools: {
+          inspectedWindow: {
+            eval(expressao, callback) {
+              try {
+                // $0 não existe fora do DevTools: trocamos pelo alvo corrente.
+                // O eval roda AQUI, na página de fora, que é quem tem o
+                // formulário — é o mesmo arranjo do DevTools de verdade, onde a
+                // expressão roda na página e não no painel.
+                const codigo = expressao.replace(/\$0/g, "window.__alvoFalso");
+                callback((0, eval)(codigo), null);
+              } catch (e) {
+                callback(null, { isException: true, value: e.message });
+              }
+            },
+          },
+          panels: {
+            elements: {
+              onSelectionChanged: { addListener: (fn) => ouvintesSelecao.push(fn) },
+            },
+          },
+          network: { onNavigated: { addListener: () => {} } },
+        },
+      };
+
+      // --- Monta o painel dentro do iframe -------------------------------------
+      // Tem que ser por document.write: o `chrome` dublê precisa existir no
+      // contexto do iframe ANTES do módulo do painel rodar, e um src normal não
+      // dá essa janela.
+      (async () => {
+        const html = await fetch("/src/devtools/painel.html").then((r) => r.text());
+        const quadro = document.getElementById("quadro");
+        quadro.contentWindow.chrome = chromeFalso;
+        const doc = quadro.contentDocument;
+        doc.open();
+        doc.write(html.replace("<head>", '<head><base href="/src/devtools/">'));
+        doc.close();
+      })();
+    </script>
+  </body>
+</html>
