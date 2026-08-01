@@ -128,3 +128,33 @@ describe("manifest — recursos acessíveis pela página", () => {
     expect(manifest.permissions).toEqual(["contextMenus", "storage", "activeTab", "scripting"]);
   });
 });
+
+describe("manifest — painel do DevTools", () => {
+  it("declara a página do DevTools e ela existe", () => {
+    expect(manifest.devtools_page).toBe("src/devtools/devtools.html");
+    expect(fs.existsSync(path.join(RAIZ, manifest.devtools_page))).toBe(true);
+  });
+
+  it("os caminhos de panels.create() valem a partir da raiz da extensão", () => {
+    // O Chrome monta a URL do painel como origem + "/" + caminho. Escrevê-los
+    // relativos ao devtools.html cria o painel apontando para um endereço
+    // inexistente: a aba aparece no DevTools e abre em branco, sem erro.
+    const js = fs.readFileSync(path.join(RAIZ, "src/devtools/devtools.js"), "utf8");
+    const args = [...js.matchAll(/["']([^"']+\.(?:html|png))["']/g)].map((m) => m[1]);
+    expect(args.length, "nenhum caminho encontrado em panels.create()").toBeGreaterThan(0);
+    for (const rel of args) {
+      expect(rel.startsWith("."), `${rel} é relativo ao arquivo, não à raiz`).toBe(false);
+      expect(fs.existsSync(path.join(RAIZ, rel)), `${rel} não existe a partir da raiz`).toBe(true);
+    }
+  });
+
+  it("o painel carrega CSS e JS que existem", () => {
+    const html = fs.readFileSync(path.join(RAIZ, "src/devtools/painel.html"), "utf8");
+    const refs = [...html.matchAll(/(?:href|src)="([^"]+)"/g)].map((m) => m[1]);
+    for (const rel of refs) {
+      // Estes são relativos ao próprio painel.html, e não à raiz.
+      const alvo = path.join(RAIZ, "src/devtools", rel);
+      expect(fs.existsSync(alvo), `${rel} não existe ao lado do painel.html`).toBe(true);
+    }
+  });
+});
