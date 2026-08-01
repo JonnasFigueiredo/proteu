@@ -33,6 +33,22 @@
       <button class="aba" data-view="invalidos" role="tab" data-i18n="tab_invalidos">Casos-limite</button>
     </nav>
 
+    <!-- Fica no topo, fora de qualquer aba, e some quando está tudo certo.
+         Enterrado dentro de "Opções" ninguém achava — e o sintoma de não achar
+         era o menu do botão direito parecer quebrado. -->
+    <section id="aviso-seletor" class="aviso-seletor" hidden>
+      <div class="aviso-seletor__linha">
+        <span class="aviso-seletor__rot" data-i18n="opt_menu_seletor">Copiar seletores pelo botão direito</span>
+        <button id="btn-permissao-seletor" class="btn-mini" type="button">Ativar</button>
+      </div>
+      <!-- Pedir acesso a todas as páginas merece explicação ao lado do botão,
+           não escondida numa ajuda. Some assim que a permissão é concedida. -->
+      <p id="ajuda-seletor" class="aviso-seletor__ajuda" data-i18n="opt_menu_seletor_ajuda">
+        Precisa de acesso às páginas para saber em qual elemento você clicou. Nada é enviado para lugar nenhum.
+      </p>
+      <ul id="diagnostico-seletor" class="diagnostico"></ul>
+    </section>
+
     <section id="secao-campo" class="banner-campo" hidden>
       <div class="banner-campo__cab">
         <span class="banner-campo__rot" data-i18n="campo_detectado">Campo detectado</span>
@@ -93,23 +109,6 @@
               </label>
             </div>
 
-            <!-- Depende de permissão de host, então não é um switch comum: só
-                 fica ligado depois que o Chrome confirma a concessão. -->
-            <div class="permissao">
-              <div class="permissao__linha">
-                <span class="permissao__rot" data-i18n="opt_menu_seletor">Copiar seletores pelo botão direito</span>
-                <!-- Sem data-i18n: o texto alterna entre "Ativar" e "Ativo"
-                     conforme a permissão, então quem o traduz é o JS. -->
-                <button id="btn-permissao-seletor" class="btn-mini" type="button">Ativar</button>
-              </div>
-              <p class="permissao__ajuda" data-i18n="opt_menu_seletor_ajuda">
-                Precisa de acesso às páginas para saber em qual elemento você clicou. Nada é enviado para lugar nenhum.
-              </p>
-              <!-- Três estados que precisam ser verdade para o menu existir.
-                   Mostrá-los evita que "não aparece nada" seja indistinguível
-                   de três problemas diferentes, cada um com outra solução. -->
-              <ul id="diagnostico-seletor" class="diagnostico" hidden></ul>
-            </div>
           </div>
         </details>
 

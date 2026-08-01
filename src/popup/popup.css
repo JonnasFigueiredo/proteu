@@ -596,31 +596,27 @@ input:focus-visible {
   line-height: 1.45;
 }
 
-/* ---------- Opção que depende de permissão ---------- */
-/* Separada das outras por uma linha: as demais são preferências locais, esta
-   pede acesso às páginas e merece ser lida antes de ser ligada. */
-.permissao {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--borda);
+/* ---------- Aviso do menu de seletores ---------- */
+/* No topo e fora das abas: é o único controle da extensão que depende de
+   permissão, e escondê-lo faz o recurso parecer quebrado em vez de desligado. */
+.aviso-seletor {
+  margin: 0 12px 10px;
+  padding: 9px 11px;
+  background: var(--azul-suave);
+  border: 1px solid var(--azul);
+  border-radius: var(--raio);
 }
 
-.permissao__linha {
+.aviso-seletor__linha {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.permissao__rot {
+.aviso-seletor__rot {
   flex: 1 1 auto;
-  font-size: 13px;
-}
-
-.permissao__ajuda {
-  margin: 5px 0 0;
-  font-size: 11px;
-  color: var(--texto-fraco);
-  line-height: 1.45;
+  font-size: 12.5px;
+  font-weight: 600;
 }
 
 .btn-mini {
@@ -648,15 +644,23 @@ input:focus-visible {
 }
 
 /* ---------- Diagnóstico do menu de contexto ---------- */
+.aviso-seletor__ajuda {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--texto-fraco);
+  line-height: 1.45;
+}
+
 .diagnostico {
   list-style: none;
   margin: 7px 0 0;
-  padding: 7px 9px;
-  background: var(--superficie);
-  border: 1px solid var(--borda);
-  border-radius: var(--raio-sm);
+  padding: 0;
   font-size: 11px;
   line-height: 1.6;
+}
+
+.diagnostico:empty {
+  display: none;
 }
 
 .diagnostico li {
