@@ -1206,6 +1206,13 @@ async function atualizarBotaoPermissao() {
   btn.textContent = t(idiomaAtual, concedida ? "opt_menu_seletor_ativo" : "opt_menu_seletor_pedir");
   btn.dataset.ativo = concedida ? "1" : "0";
   btn.disabled = concedida;
+
+  // Permissão concedida não garante menu montado: o popup fecha assim que o
+  // Chrome mostra o diálogo, e o evento que monta o menu pode não alcançar um
+  // service worker dormindo. Reconfirmar aqui é barato e conserta sozinho.
+  if (concedida) {
+    chrome.runtime.sendMessage({ app: "proteu", tipo: "SINCRONIZAR" }).catch(() => {});
+  }
 }
 
 async function aoPedirPermissaoSeletor() {
