@@ -9,6 +9,15 @@ import { t } from "../core/i18n.js";
 const PREFIXO_MENU = "proteu:sel:";
 const ID_SCRIPT_SELETOR = "proteu-seletor";
 
+// Padrões pedidos ao usuário, e conferidos depois.
+//
+// Não usamos `<all_urls>` de propósito. Ele engloba `file://`, `ftp://` e
+// outros esquemas que o Chrome concede separadamente: ao escolher "Em todos os
+// sites" na tela de extensões, o usuário libera só http e https. Checar por
+// `<all_urls>` devolveria `false` com a permissão visivelmente ligada, e o
+// menu nunca seria montado. Pedir exatamente o que se usa evita a assimetria.
+const ORIGENS = ["http://*/*", "https://*/*"];
+
 // --- Menu de contexto: copiar o seletor do elemento clicado -----------------
 //
 // O botão direito é o gesto natural para "me dá o seletor disto". Antes daqui
@@ -33,7 +42,7 @@ const ITENS = [
 
 /** Temos acesso de host? Sem ele o listener não chega antes do clique. */
 function temPermissao() {
-  return chrome.permissions.contains({ origins: ["<all_urls>"] });
+  return chrome.permissions.contains({ origins: ORIGENS });
 }
 
 /** Constrói o menu conforme o idioma efetivo da interface. */
@@ -105,7 +114,7 @@ async function registrarSeletor() {
       {
         id: ID_SCRIPT_SELETOR,
         js: ["src/content/seletor.js"],
-        matches: ["<all_urls>"],
+        matches: ORIGENS,
         allFrames: true,
         runAt: "document_idle",
         persistAcrossSessions: true,
