@@ -105,6 +105,10 @@
               <p class="permissao__ajuda" data-i18n="opt_menu_seletor_ajuda">
                 Precisa de acesso às páginas para saber em qual elemento você clicou. Nada é enviado para lugar nenhum.
               </p>
+              <!-- Três estados que precisam ser verdade para o menu existir.
+                   Mostrá-los evita que "não aparece nada" seja indistinguível
+                   de três problemas diferentes, cada um com outra solução. -->
+              <ul id="diagnostico-seletor" class="diagnostico" hidden></ul>
             </div>
           </div>
         </details>
