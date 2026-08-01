@@ -69,3 +69,62 @@ describe("pacote — exigências da loja", () => {
     expect(manifest.background.type).toBe("module");
   });
 });
+
+describe("manifest — recursos acessíveis pela página", () => {
+  // O content script do menu de contexto carrega o motor de seletores por
+  // import() dinâmico. Módulo que não está em web_accessible_resources não
+  // carrega, e o import falha em silêncio: clicar no menu não faz nada.
+  //
+  // Já aconteceu — `leitura-dom.js` era importado e não estava declarado.
+
+  const acessiveis = new Set(
+    (manifest.web_accessible_resources || []).flatMap((r) => r.resources || [])
+  );
+
+  /** Resolve um caminho relativo entre módulos, no estilo do navegador. */
+  function resolver(deArquivo, relativo) {
+    const base = path.posix.dirname(deArquivo);
+    return path.posix.normalize(path.posix.join(base, relativo));
+  }
+
+  it("todo módulo carregado por getURL() está declarado", () => {
+    const faltando = [];
+    for (const arquivo of ["src/content/seletor.js", "src/content/content.js"]) {
+      const txt = fs.readFileSync(path.join(RAIZ, arquivo), "utf8");
+      for (const m of txt.matchAll(/getURL\(\s*["'`]([^"'`]+)["'`]/g)) {
+        if (!acessiveis.has(m[1])) faltando.push(`${m[1]} (usado em ${arquivo})`);
+      }
+    }
+    expect(faltando, `faltam em web_accessible_resources: ${faltando.join(", ")}`).toEqual([]);
+  });
+
+  it("os imports desses módulos também estão declarados", () => {
+    // Um módulo acessível que importa outro arrasta o segundo junto: o
+    // navegador vai buscá-lo, e ele precisa ser acessível também.
+    const faltando = [];
+    for (const rel of acessiveis) {
+      if (!rel.endsWith(".js")) continue;
+      const txt = fs.readFileSync(path.join(RAIZ, rel), "utf8");
+      for (const m of txt.matchAll(/^import\s[^"']*["']([^"']+)["']/gm)) {
+        if (!m[1].startsWith(".")) continue; // pacote externo: não existe aqui
+        const alvo = resolver(rel, m[1]);
+        if (!acessiveis.has(alvo)) faltando.push(`${alvo} (importado por ${rel})`);
+      }
+    }
+    expect(faltando, `imports em cadeia não declarados: ${faltando.join(", ")}`).toEqual([]);
+  });
+
+  it("todo recurso declarado existe de verdade", () => {
+    for (const rel of acessiveis) {
+      expect(fs.existsSync(path.join(RAIZ, rel)), `${rel} não existe`).toBe(true);
+    }
+  });
+
+  it("a permissão de host é opcional, não obrigatória", () => {
+    // É o que mantém a instalação padrão sem o aviso de "ler todos os seus
+    // dados". Promovê-la para `host_permissions` mudaria a listagem na loja.
+    expect(manifest.host_permissions).toBeUndefined();
+    expect(manifest.optional_host_permissions).toEqual(["<all_urls>"]);
+    expect(manifest.permissions).toEqual(["contextMenus", "storage", "activeTab", "scripting"]);
+  });
+});
