@@ -22,7 +22,11 @@ export const ATRIBUTOS_DE_TESTE = [
 
 // Atributos descritivos: estáveis o bastante, mas podem mudar numa tradução ou
 // numa troca de copy. Vêm depois dos de teste, antes de qualquer caminho.
-const ATRIBUTOS_DESCRITIVOS = [
+//
+// Exportado porque a leitura de DOM precisa ler exatamente estes — os dois
+// arquivos acabam concatenados no mesmo escopo, e duas listas com o mesmo nome
+// nem chegam a parsear.
+export const ATRIBUTOS_DESCRITIVOS = [
   "name", "aria-label", "placeholder", "title", "alt", "for", "href", "role", "type",
 ];
 

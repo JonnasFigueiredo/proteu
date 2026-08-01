@@ -34,17 +34,35 @@ function chamar(metodo, ...args) {
 
 let injetando = null;
 
+// Módulos que entram na página junto com o agente, nesta ordem. O agente usa
+// tudo que eles definem sem importar nada: dentro da IIFE, as declarações são
+// só escopo compartilhado. É o que permite ao painel e ao content script do
+// menu de contexto usarem a MESMA leitura de DOM e o MESMO motor de seletores.
+const MODULOS_DO_AGENTE = [
+  "src/core/seletores.js",
+  "src/content/leitura-dom.js",
+  "src/devtools/agente.js",
+];
+
+/** Transforma um módulo ES em declarações soltas, para concatenar. */
+function semModulo(fonte) {
+  return fonte.replace(/^export\s+/gm, "").replace(/^import\s[^\n]*\n/gm, "");
+}
+
 /**
- * Injeta o agente na página. O motor de seletores entra junto: removemos os
- * `export` do módulo e embrulhamos os dois numa IIFE, para que o agente use
- * gerarCandidatos/classificar sem que exista uma segunda cópia dessa lógica.
+ * Injeta o agente na página, com os módulos de que ele depende.
+ *
+ * A alternativa seria o agente carregar tudo por import() — mas ele roda no
+ * mundo da página, onde chrome.runtime não existe, então não há URL de
+ * extensão para importar. Daí a concatenação.
  */
 async function injetar() {
-  const [motor, agente] = await Promise.all([
-    fetch(chrome.runtime.getURL("src/core/seletores.js")).then((r) => r.text()),
-    fetch(chrome.runtime.getURL("src/devtools/agente.js")).then((r) => r.text()),
-  ]);
-  const fonte = `(() => {\n${motor.replace(/^export\s+/gm, "")}\n${agente}\n})()`;
+  const partes = await Promise.all(
+    MODULOS_DO_AGENTE.map((rel) =>
+      fetch(chrome.runtime.getURL(rel)).then((r) => r.text())
+    )
+  );
+  const fonte = `(() => {\n${partes.map(semModulo).join("\n")}\n})()`;
   await avaliar(fonte);
 }
 

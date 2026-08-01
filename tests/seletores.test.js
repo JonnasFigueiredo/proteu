@@ -256,24 +256,79 @@ describe("seletores — classificação pela contagem real", () => {
   });
 });
 
-describe("seletores — contrato com o agente", () => {
-  // O painel injeta este módulo na página removendo os `export` do início da
-  // linha. Se alguém usar outra forma de export, o agente quebra em silêncio.
-  const fonte = readFileSync(new URL("../src/core/seletores.js", import.meta.url), "utf8");
+describe("seletores — contrato de injeção do agente", () => {
+  // O painel concatena estes arquivos numa IIFE e avalia na página, removendo
+  // os `import`/`export` do início da linha. Qualquer outra forma quebra em
+  // silêncio: o agente não instala e o painel fica em "conectando…".
+  const ler = (rel) => readFileSync(new URL(rel, import.meta.url), "utf8");
+  const MODULOS = [
+    "../src/core/seletores.js",
+    "../src/content/leitura-dom.js",
+    "../src/devtools/agente.js",
+  ];
+  const semModulo = (f) =>
+    f.replace(/^export\s+/gm, "").replace(/^import\s[^\n]*\n/gm, "");
 
-  it("só usa `export` no início da linha", () => {
-    const foraDePadrao = fonte
+  it("a lista de módulos do painel é exatamente esta, nesta ordem", () => {
+    // Ordem importa: cada arquivo usa o que o anterior declarou.
+    const painel = ler("../src/devtools/painel.js");
+    const bloco = painel.slice(
+      painel.indexOf("const MODULOS_DO_AGENTE"),
+      painel.indexOf("];", painel.indexOf("const MODULOS_DO_AGENTE"))
+    );
+    const listados = [...bloco.matchAll(/"([^"]+\.js)"/g)].map((m) => m[1]);
+    expect(listados).toEqual(MODULOS.map((m) => m.replace("../", "")));
+  });
+
+  it.each(MODULOS)("%s só usa import/export no início da linha", (rel) => {
+    // Comentários citam "import" e "export" ao explicar justamente esta regra;
+    // só o código conta.
+    const fora = ler(rel)
+      .replace(/\/\*[\s\S]*?\*\//g, "")
       .split("\n")
-      .filter((l) => l.includes("export") && !/^export\s+(const|function)\s/.test(l));
-    expect(foraDePadrao, `formas não suportadas pela injeção: ${foraDePadrao.join(" | ")}`).toEqual([]);
+      .filter((l) => !/^\s*\/\//.test(l))
+      .filter(
+        (l) =>
+          (/\bexport\b/.test(l) && !/^export\s+(const|function)\s/.test(l)) ||
+          (/^\s+import\s/.test(l) && !/import\(/.test(l))
+      );
+    expect(fora, `formas não suportadas pela injeção: ${fora.join(" | ")}`).toEqual([]);
   });
 
-  it("continua válido depois de remover os export", () => {
-    const semExport = fonte.replace(/^export\s+/gm, "");
-    expect(() => new Function(semExport)).not.toThrow();
+  it("nenhum identificador de topo colide entre os módulos", () => {
+    // Eles acabam no mesmo escopo. Duas `const` com o mesmo nome nem chegam a
+    // parsear, e o agente não instala — já aconteceu com ATRIBUTOS_DESCRITIVOS.
+    const vistos = new Map();
+    const colisoes = [];
+    for (const rel of MODULOS) {
+      const fonte = semModulo(ler(rel)).replace(/\/\*[\s\S]*?\*\//g, "");
+      for (const m of fonte.matchAll(/^(?:const|let|function|class)\s+([\w$]+)/gm)) {
+        const nome = m[1];
+        if (vistos.has(nome) && vistos.get(nome) !== rel) {
+          colisoes.push(`${nome} (${vistos.get(nome)} e ${rel})`);
+        }
+        vistos.set(nome, rel);
+      }
+    }
+    expect(colisoes, `identificadores duplicados: ${colisoes.join(", ")}`).toEqual([]);
   });
 
-  it("não importa nada — o agente não tem resolvedor de módulos", () => {
-    expect(fonte).not.toMatch(/^\s*import\s/m);
+  it("o pacote concatenado é sintaticamente válido", () => {
+    const fonte = `(() => {\n${MODULOS.map((m) => semModulo(ler(m))).join("\n")}\n})()`;
+    expect(() => new Function(fonte)).not.toThrow();
+  });
+
+  it("o agente não redefine o que os módulos anteriores já dão", () => {
+    // Duplicar aqui já custou caro: uma correção de fronteira de iframe foi
+    // parar só no content script, e o painel continuou com o bug.
+    const agente = ler("../src/devtools/agente.js");
+    const compartilhadas = [
+      "contextoDe", "descreverNo", "resumir", "contar", "acharTodos",
+      "resolverRaiz", "seletorDoHost", "textoProprio", "alvoDoEvento",
+    ];
+    const redefinidas = compartilhadas.filter((n) =>
+      new RegExp(`function\\s+${n}\\s*\\(`).test(agente)
+    );
+    expect(redefinidas, `cópias locais no agente: ${redefinidas.join(", ")}`).toEqual([]);
   });
 });
