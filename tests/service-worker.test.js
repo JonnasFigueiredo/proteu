@@ -27,6 +27,7 @@ function instalarChromeFake() {
     runtime: {
       onInstalled: capturar("instalado"),
       onStartup: capturar("iniciado"),
+      onMessage: capturar("mensagem"),
     },
     permissions: {
       async contains() {
@@ -192,6 +193,43 @@ describe("service worker — menu de contexto de seletores", () => {
     await flush();
     const quantos = ctx.registrados.filter((r) => r.id === "proteu-seletor").length;
     expect(quantos).toBe(1);
+  });
+});
+
+describe("service worker — sincronização pedida pelo popup", () => {
+  // `permissions.request()` sai do popup, e o popup fecha no instante em que o
+  // Chrome mostra o diálogo. Se `onAdded` não alcançar o service worker — que
+  // em MV3 pode estar dormindo —, a permissão fica concedida e o menu não
+  // existe. Para o QA isso aparece como "ativei e não apareceu nada".
+
+  it("monta o que faltava quando o popup reconfirma", async () => {
+    // Cenário exato da falha: permissão concedida, mas onAdded se perdeu.
+    ctx.estado.permissao = false;
+    await ctx.listeners.permissaoRemovida();
+    await flush();
+    expect(ctx.menusCriados).toEqual([]);
+
+    ctx.estado.permissao = true; // concedida "por fora", sem evento
+    const resposta = await new Promise((r) => {
+      ctx.listeners.mensagem({ app: "proteu", tipo: "SINCRONIZAR" }, {}, r);
+    });
+
+    expect(resposta.ok).toBe(true);
+    expect(ctx.menusCriados.map((m) => m.id)).toContain("proteu:sel:melhor");
+    expect(ctx.registrados.map((r) => r.id)).toContain("proteu-seletor");
+  });
+
+  it("ignora mensagem de outra origem", () => {
+    const retorno = ctx.listeners.mensagem({ tipo: "SINCRONIZAR" }, {}, () => {});
+    expect(retorno).toBe(false);
+  });
+
+  it("reconfirmar sem permissão não cria menu", async () => {
+    ctx.estado.permissao = false;
+    await new Promise((r) => {
+      ctx.listeners.mensagem({ app: "proteu", tipo: "SINCRONIZAR" }, {}, r);
+    });
+    expect(ctx.menusCriados).toEqual([]);
   });
 });
 

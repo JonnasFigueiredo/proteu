@@ -169,6 +169,20 @@ chrome.runtime.onStartup.addListener(sincronizarComPermissao);
 chrome.permissions.onAdded.addListener(sincronizarComPermissao);
 chrome.permissions.onRemoved.addListener(sincronizarComPermissao);
 
+// Rede de segurança para o caminho mais frágil desta funcionalidade.
+//
+// `permissions.request()` sai do popup, e o popup fecha no instante em que o
+// Chrome mostra o diálogo. Se `onAdded` não alcançar o service worker — que em
+// MV3 pode estar dormindo —, a permissão fica concedida e o menu não existe:
+// para o QA, "ativei e não apareceu nada". O popup reconfirma a cada abertura.
+chrome.runtime.onMessage.addListener((msg, _remetente, responder) => {
+  if (!msg || msg.app !== "proteu" || msg.tipo !== "SINCRONIZAR") return false;
+  sincronizarComPermissao()
+    .then(() => responder({ ok: true }))
+    .catch((e) => responder({ ok: false, erro: e.message }));
+  return true; // resposta assíncrona
+});
+
 // Troca de país ou de idioma da interface → refaz os rótulos do menu.
 chrome.storage.onChanged.addListener((mudancas, area) => {
   if (area === "sync" && mudancas.config) {
