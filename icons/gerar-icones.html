@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Gerador de ícones — Proteu QA</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #10141a;
+        color: #e8eaed;
+        font: 14px/1.6 "Segoe UI", system-ui, sans-serif;
+      }
+      h1 { font-size: 18px; margin: 0 0 4px; }
+      p { color: #96a2b3; max-width: 70ch; margin: 0 0 18px; }
+      .tiras { display: flex; gap: 28px; align-items: flex-end; flex-wrap: wrap; }
+      .item { text-align: center; }
+      .item canvas {
+        display: block;
+        image-rendering: pixelated;
+        background: #1c222b;
+        border: 1px solid #2b3340;
+        border-radius: 6px;
+      }
+      .item span { display: block; font-size: 11px; color: #96a2b3; margin-top: 6px; }
+      .barra {
+        margin-top: 26px;
+        padding-top: 18px;
+        border-top: 1px solid #2b3340;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      button {
+        font: inherit;
+        font-weight: 600;
+        padding: 7px 14px;
+        color: #fff;
+        background: #1565c0;
+        border: 0;
+        border-radius: 7px;
+        cursor: pointer;
+      }
+      .real { background: #fff; padding: 10px; border-radius: 8px; display: inline-flex; gap: 14px; align-items: center; }
+      .real.escuro { background: #202124; }
+    </style>
+  </head>
+  <body>
+    <h1>Ícones do Proteu QA</h1>
+    <p>
+      A cabeça e as duas antenas da mosca formam as três pontas de um tridente.
+      Em 16&nbsp;px lê-se um tridente; em 128&nbsp;px, uma mosca. A troca de
+      forma conforme o tamanho é o próprio mito de Proteu, o deus que muda de
+      forma — e a mosca é o bug.
+    </p>
+
+    <div class="tiras" id="tiras"></div>
+
+    <div class="barra">
+      <button id="baixar" type="button">Gravar os quatro PNG em icons/</button>
+      <span>Grava pelo servidor de e2e (<code>node tests/e2e/servir.mjs</code>).</span>
+    </div>
+
+    <p style="margin-top: 22px">Como fica na barra do navegador:</p>
+    <div class="real"><span id="prev-claro"></span></div>
+    <div class="real escuro" style="margin-top: 8px"><span id="prev-escuro"></span></div>
+
+    <script>
+      "use strict";
+
+      // Níveis de detalhe por tamanho. Em 16 px sobra pouco mais de 12 px úteis:
+      // asa translúcida vira sujeira e olho vira um pixel cinza. Cada tamanho
+      // recebe só o que ainda se lê nele.
+      const DETALHE = {
+        16: { asas: false, olhos: false, veias: false, onda: false },
+        32: { asas: false, olhos: true, veias: false, onda: false },
+        48: { asas: true, olhos: true, veias: false, onda: false },
+        128: { asas: true, olhos: true, veias: true, onda: true },
+      };
+
+      /**
+       * SVG do ícone num tamanho. Desenhado num viewBox de 128 e escalado pelo
+       * atributo width/height, para a geometria ser idêntica em todos.
+       */
+      function svgDoIcone(tamanho) {
+        const d = DETALHE[tamanho] || DETALHE[128];
+        const asas = d.asas
+          ? `
+          <g opacity="0.30">
+            <ellipse cx="30" cy="76" rx="29" ry="13" fill="#ffffff" transform="rotate(-24 30 76)"/>
+            <ellipse cx="98" cy="76" rx="29" ry="13" fill="#ffffff" transform="rotate(24 98 76)"/>
+          </g>
+          <g opacity="0.45" fill="none" stroke="#ffffff" stroke-width="1.6">
+            <ellipse cx="30" cy="76" rx="29" ry="13" transform="rotate(-24 30 76)"/>
+            <ellipse cx="98" cy="76" rx="29" ry="13" transform="rotate(24 98 76)"/>
+          </g>`
+          : "";
+
+        const veias = d.veias
+          ? `
+          <g opacity="0.35" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round">
+            <path d="M18 68 L52 78"/>
+            <path d="M20 78 L50 82"/>
+            <path d="M110 68 L76 78"/>
+            <path d="M108 78 L78 82"/>
+          </g>`
+          : "";
+
+        const onda = d.onda
+          ? `
+          <path d="M6 119 q 13 -7 26 0 t 26 0 t 26 0 t 26 0"
+                fill="none" stroke="#7fd4ff" stroke-width="4"
+                stroke-linecap="round" opacity="0.5"/>`
+          : "";
+
+        const olhos = d.olhos
+          ? `
+          <circle cx="55" cy="40" r="7" fill="#0a2d52"/>
+          <circle cx="73" cy="40" r="7" fill="#0a2d52"/>
+          <circle cx="56.8" cy="37.8" r="2.4" fill="#ffffff" opacity="0.85"/>
+          <circle cx="74.8" cy="37.8" r="2.4" fill="#ffffff" opacity="0.85"/>`
+          : "";
+
+        // Espessura das antenas cresce nos tamanhos pequenos: fio fino some.
+        const traco = tamanho <= 16 ? 11 : tamanho <= 32 ? 9 : 7.5;
+
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${tamanho}" height="${tamanho}" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="mar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e7fd4"/>
+      <stop offset="1" stop-color="#08315e"/>
+    </linearGradient>
+    <linearGradient id="ouro" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe082"/>
+      <stop offset="0.55" stop-color="#ffc107"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="128" height="128" rx="28" fill="url(#mar)"/>
+  ${onda}
+  ${asas}
+  ${veias}
+
+  <g stroke="url(#ouro)" stroke-width="${traco}" stroke-linecap="round" fill="none">
+    <path d="M38 58 C 30 38, 26 26, 26 15"/>
+    <path d="M90 58 C 98 38, 102 26, 102 15"/>
+  </g>
+
+  <path d="M64 11 C 75 11, 82 20, 82 33 L82 45 C 82 55, 75 61, 64 61
+           C 53 61, 46 55, 46 45 L46 33 C 46 20, 53 11, 64 11 Z"
+        fill="url(#ouro)"/>
+  ${olhos}
+
+  <path d="M39 63 L89 63 C 89 63, 87 74, 84 83
+           C 80 99, 73 111, 64 118
+           C 55 111, 48 99, 44 83
+           C 41 74, 39 63, 39 63 Z"
+        fill="url(#ouro)"/>
+  <g opacity="0.28" stroke="#5a3a00" stroke-width="3.4" stroke-linecap="round">
+    <path d="M48 80 L80 80"/>
+    <path d="M52 94 L76 94"/>
+  </g>
+</svg>`;
+      }
+
+      const TAMANHOS = [16, 32, 48, 128];
+      const prontos = {};
+
+      /** Rasteriza o SVG num canvas do tamanho pedido. */
+      function desenhar(tamanho) {
+        return new Promise((resolve, reject) => {
+          const svg = svgDoIcone(tamanho);
+          const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+          const img = new Image();
+          img.onload = () => {
+            const c = document.createElement("canvas");
+            c.width = tamanho;
+            c.height = tamanho;
+            const ctx = c.getContext("2d");
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, 0, 0, tamanho, tamanho);
+            resolve(c);
+          };
+          img.onerror = () => reject(new Error("SVG inválido em " + tamanho));
+          img.src = url;
+        });
+      }
+
+      async function montar() {
+        const tiras = document.getElementById("tiras");
+        tiras.textContent = "";
+        for (const t of TAMANHOS) {
+          const c = await desenhar(t);
+          prontos[t] = c.toDataURL("image/png");
+
+          const item = document.createElement("div");
+          item.className = "item";
+          // Mostra ampliado para inspeção, mantendo o pixel real.
+          const vista = document.createElement("canvas");
+          const escala = Math.max(1, Math.round(96 / t));
+          vista.width = t * escala;
+          vista.height = t * escala;
+          const vc = vista.getContext("2d");
+          vc.imageSmoothingEnabled = false;
+          vc.drawImage(c, 0, 0, vista.width, vista.height);
+          item.appendChild(vista);
+          const rot = document.createElement("span");
+          rot.textContent = `${t}×${t}`;
+          item.appendChild(rot);
+          tiras.appendChild(item);
+        }
+
+        // Prévia no tamanho real, sobre fundo claro e escuro.
+        for (const [id, _] of [["prev-claro"], ["prev-escuro"]]) {
+          const alvo = document.getElementById(id);
+          alvo.textContent = "";
+          for (const t of [16, 32]) {
+            const img = new Image();
+            img.src = prontos[t];
+            img.width = t;
+            img.height = t;
+            img.style.marginRight = "12px";
+            alvo.appendChild(img);
+          }
+        }
+
+        // Exposto para o gerador em Node ler os bytes.
+        window.__icones = prontos;
+      }
+
+      /** Grava os quatro PNG direto em icons/, via o servidor de e2e. */
+      async function gravar() {
+        const saida = [];
+        for (const t of TAMANHOS) {
+          const r = await fetch("/gravar-icone", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              nome: `${t}.png`,
+              base64: prontos[t].split(",")[1],
+            }),
+          });
+          saida.push(r.ok ? `${t}.png ok` : `${t}.png FALHOU`);
+        }
+        window.__gravou = saida.join(" · ");
+        return window.__gravou;
+      }
+      window.gravarIcones = gravar;
+
+      document.getElementById("baixar").addEventListener("click", async () => {
+        const btn = document.getElementById("baixar");
+        btn.disabled = true;
+        btn.textContent = "gravando…";
+        btn.textContent = await gravar();
+        btn.disabled = false;
+      });
+
+      montar();
+    </script>
+  </body>
+</html>
