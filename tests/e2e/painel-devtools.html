@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Runner do painel DevTools — Proteu QA</title>
+    <style>
+      body {
+        margin: 0;
+        font: 13px/1.5 "Segoe UI", system-ui, sans-serif;
+        background: #12151a;
+        color: #e8eaed;
+        display: grid;
+        grid-template-columns: 1fr 560px;
+        height: 100vh;
+      }
+      .lado { display: flex; flex-direction: column; min-width: 0; }
+      .cab {
+        padding: 7px 12px;
+        background: #1c2027;
+        border-bottom: 1px solid #2a2f38;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #8b98a8;
+        font-weight: 700;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .cab b { color: #6cc46c; text-transform: none; letter-spacing: 0; }
+      iframe { flex: 1 1 auto; width: 100%; border: 0; background: #fff; }
+      #painel { border-left: 1px solid #2a2f38; }
+    </style>
+  </head>
+  <body>
+    <div class="lado">
+      <div class="cab">Página inspecionada <b id="estado-pagina">carregando…</b></div>
+      <iframe id="pagina" src="/tests/e2e/laboratorio.html"></iframe>
+    </div>
+
+    <div class="lado">
+      <div class="cab">Painel Proteu QA (o mesmo do DevTools) <b id="estado-painel">carregando…</b></div>
+      <iframe id="painel"></iframe>
+    </div>
+
+    <script>
+      "use strict";
+      // Runner do painel do DevTools.
+      //
+      // NÃO faz parte da extensão (tests/ fica fora do pacote). Existe para
+      // exercitar o painel de verdade — mesmo HTML, mesmo CSS, mesmo JS —
+      // contra uma página real, sem depender de abrir o F12.
+      //
+      // O painel carrega painel.js como módulo, que roda antes do evento
+      // `load` do iframe. Definir `chrome` no load seria tarde demais: o
+      // painel já teria falhado. Por isso montamos o HTML com o stub embutido
+      // ANTES do módulo, e servimos por srcdoc com um <base> para os caminhos
+      // relativos continuarem resolvendo.
+
+      const pagina = document.getElementById("pagina");
+      const painel = document.getElementById("painel");
+      const ouvintes = { selecao: [], navegou: [] };
+
+      window.__apiFalsa = {
+        devtools: {
+          inspectedWindow: {
+            eval(expressao, retorno) {
+              try {
+                const janela = pagina.contentWindow;
+                // $0 do DevTools: o elemento selecionado no painel Elements.
+                janela.$0 = janela.__proteuSelecionado || null;
+                const r = janela.eval(expressao);
+                // O eval real serializa por JSON; aqui idem, senão o painel
+                // receberia nós do DOM que ele nunca receberia de verdade.
+                retorno(r === undefined ? undefined : JSON.parse(JSON.stringify(r ?? null)));
+              } catch (e) {
+                retorno(undefined, { isException: true, value: e.message });
+              }
+            },
+          },
+          panels: {
+            elements: {
+              onSelectionChanged: { addListener: (fn) => ouvintes.selecao.push(fn) },
+            },
+          },
+          network: { onNavigated: { addListener: (fn) => ouvintes.navegou.push(fn) } },
+        },
+        runtime: { getURL: (caminho) => "/" + caminho },
+      };
+
+      async function montarPainel() {
+        const html = await fetch("/src/devtools/painel.html").then((r) => r.text());
+        const comStub = html
+          .replace("<head>", '<head><base href="/src/devtools/">')
+          .replace(
+            '<script type="module"',
+            '<' + 'script>window.chrome = parent.__apiFalsa;<' + '/script>\n<script type="module"'
+          );
+        painel.srcdoc = comStub;
+      }
+
+      painel.addEventListener("load", () => {
+        if (painel.contentDocument && painel.contentDocument.getElementById("estado-conexao")) {
+          document.getElementById("estado-painel").textContent = "pronto";
+        }
+      });
+      pagina.addEventListener("load", () => {
+        document.getElementById("estado-pagina").textContent = "pronta";
+      });
+
+      montarPainel();
+
+      // Ponte de teste: seleciona um elemento e avisa o painel, como faria o
+      // painel Elements do DevTools.
+      window.selecionar = (seletor) => {
+        const janela = pagina.contentWindow;
+        janela.__proteuSelecionado = janela.document.querySelector(seletor);
+        ouvintes.selecao.forEach((fn) => fn());
+        return !!janela.__proteuSelecionado;
+      };
+      window.selecionarNo = (el) => {
+        pagina.contentWindow.__proteuSelecionado = el;
+        ouvintes.selecao.forEach((fn) => fn());
+        return !!el;
+      };
+      window.painelDoc = () => painel.contentDocument;
+      window.paginaJanela = () => pagina.contentWindow;
+    </script>
+  </body>
+</html>

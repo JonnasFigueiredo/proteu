@@ -10,14 +10,12 @@
 //   - src/devtools/agente.js  → concatenação, com os import/export removidos
 // Por isso todo import e todo export precisam ficar no início da linha.
 
-import { ATRIBUTOS_DE_TESTE } from "../core/seletores.js";
+import { ATRIBUTOS_DE_TESTE, ATRIBUTOS_DESCRITIVOS } from "../core/seletores.js";
 
-// Além dos atributos de teste, estes descrevem o elemento bem o bastante para
-// virar seletor. `value` entra por último: muda com o que o usuário digita.
-const ATRIBUTOS_DESCRITIVOS = [
-  "name", "aria-label", "placeholder", "title", "alt", "for",
-  "href", "role", "type", "value",
-];
+// Lemos exatamente o que o motor sabe transformar em seletor, mais `value`,
+// que ele não usa (muda com o que o usuário digita) mas ajuda a descrever o
+// elemento na interface.
+const ATRIBUTOS_LIDOS = [...ATRIBUTOS_DE_TESTE, ...ATRIBUTOS_DESCRITIVOS, "value"];
 
 /** Escapa um valor para caber dentro de aspas duplas num seletor. */
 export function cssEscapa(v) {
@@ -50,7 +48,7 @@ export function textoProprio(el) {
 export function descreverNo(el) {
   const raiz = el.getRootNode ? el.getRootNode() : document;
   const attrs = {};
-  for (const nome of [...ATRIBUTOS_DE_TESTE, ...ATRIBUTOS_DESCRITIVOS]) {
+  for (const nome of ATRIBUTOS_LIDOS) {
     const v = el.getAttribute && el.getAttribute(nome);
     if (v) attrs[nome] = v;
   }
@@ -137,7 +135,13 @@ export function contextoDe(el) {
       naRaizDoAlvo = false;
       continue;
     }
-    if (raiz && raiz.defaultView && raiz.defaultView.frameElement) {
+    // `raiz !== document` é o que impede a cadeia de sair do documento em que
+    // este código está rodando. Sem essa guarda, o content script do clique
+    // direito — que roda NO frame clicado — montaria um caminho de iframe
+    // relativo ao documento de cima, e `resolverRaiz` procuraria esse iframe
+    // dentro do próprio frame, onde ele não existe: toda contagem virava
+    // "sem acesso" e todo seletor saía marcado como ambíguo.
+    if (raiz && raiz !== document && raiz.defaultView && raiz.defaultView.frameElement) {
       const quadro = raiz.defaultView.frameElement;
       caminhoFrame.unshift(seletorDoHost(quadro));
       atual = quadro;
