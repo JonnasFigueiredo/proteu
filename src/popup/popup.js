@@ -1197,7 +1197,10 @@ async function copiarTexto(texto) {
 // usa a extensão para gerar massa de dados nunca precisa concedê-lo, e a
 // instalação padrão continua sem o aviso de "ler todos os seus dados".
 
-const PERMISSAO_SELETOR = { origins: ["<all_urls>"] };
+// Não usamos `<all_urls>`: ele engloba `file://` e outros esquemas que o Chrome
+// concede à parte, então `permissions.contains` devolveria `false` com a
+// permissão visivelmente ligada. Pedimos exatamente o que a extensão usa.
+const PERMISSAO_SELETOR = { origins: ["http://*/*", "https://*/*"] };
 
 /** Reflete no botão se a permissão já foi concedida. */
 async function atualizarBotaoPermissao() {

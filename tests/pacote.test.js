@@ -124,7 +124,11 @@ describe("manifest — recursos acessíveis pela página", () => {
     // É o que mantém a instalação padrão sem o aviso de "ler todos os seus
     // dados". Promovê-la para `host_permissions` mudaria a listagem na loja.
     expect(manifest.host_permissions).toBeUndefined();
-    expect(manifest.optional_host_permissions).toEqual(["<all_urls>"]);
+    // Sem <all_urls>: ele engloba file:// e outros esquemas que o Chrome
+    // concede separadamente, e a checagem daria falso-negativo com a
+    // permissao ligada. O menu nunca seria montado.
+    expect(manifest.optional_host_permissions).toEqual(["http://*/*", "https://*/*"]);
+    expect(manifest.optional_host_permissions).not.toContain("<all_urls>");
     expect(manifest.permissions).toEqual(["contextMenus", "storage", "activeTab", "scripting"]);
   });
 });
@@ -155,6 +159,43 @@ describe("manifest — painel do DevTools", () => {
       // Estes são relativos ao próprio painel.html, e não à raiz.
       const alvo = path.join(RAIZ, "src/devtools", rel);
       expect(fs.existsSync(alvo), `${rel} não existe ao lado do painel.html`).toBe(true);
+    }
+  });
+});
+
+describe("manifest — origens pedidas e conferidas batem", () => {
+  // O popup pede um conjunto de origens, o service worker confere outro e o
+  // manifest declara um terceiro. Se os três divergirem, `request()` é
+  // recusado ou `contains()` nunca casa — e o menu não aparece, sem erro.
+  //
+  // Foi assim com `<all_urls>`: declarado e conferido, mas o Chrome concede
+  // http e https à parte, então a checagem dava falso-negativo com a permissão
+  // visivelmente ligada na tela de extensões.
+
+  const origensDe = (arquivo, ancora) => {
+    const txt = fs.readFileSync(path.join(RAIZ, arquivo), "utf8");
+    const i = txt.indexOf(ancora);
+    expect(i, `âncora "${ancora}" sumiu de ${arquivo}`).toBeGreaterThan(-1);
+    const bloco = txt.slice(i, txt.indexOf("]", i));
+    return [...bloco.matchAll(/"([^"]*:\/\/[^"]*|<all_urls>)"/g)].map((m) => m[1]);
+  };
+
+  it("popup, service worker e manifest pedem as mesmas origens", () => {
+    const doManifest = manifest.optional_host_permissions;
+    const doWorker = origensDe("src/background/service-worker.js", "const ORIGENS = [");
+    const doPopup = origensDe("src/popup/popup.js", "const PERMISSAO_SELETOR = { origins: [");
+
+    expect(doWorker).toEqual(doManifest);
+    expect(doPopup).toEqual(doManifest);
+  });
+
+  it("nenhum deles usa <all_urls>", () => {
+    for (const [onde, lista] of [
+      ["manifest", manifest.optional_host_permissions],
+      ["service worker", origensDe("src/background/service-worker.js", "const ORIGENS = [")],
+      ["popup", origensDe("src/popup/popup.js", "const PERMISSAO_SELETOR = { origins: [")],
+    ]) {
+      expect(lista, `${onde} voltou a usar <all_urls>`).not.toContain("<all_urls>");
     }
   });
 });
