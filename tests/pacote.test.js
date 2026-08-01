@@ -12,7 +12,7 @@ const RAIZ = path.resolve(import.meta.dirname, "..");
 const empacotador = fs.readFileSync(path.join(RAIZ, "empacotar.mjs"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(RAIZ, "manifest.json"), "utf8"));
 
-const ESPERADO_NO_PACOTE = ["manifest.json", "icons", "src", "LICENSE", "NOTICE"];
+const ESPERADO_NO_PACOTE = ["manifest.json", "devtools.html", "icons", "src", "LICENSE", "NOTICE"];
 
 describe("pacote — o que entra no zip", () => {
   it("inclui o que a extensão roda, mais LICENSE e NOTICE", () => {
@@ -135,7 +135,7 @@ describe("manifest — recursos acessíveis pela página", () => {
 
 describe("manifest — painel do DevTools", () => {
   it("declara a página do DevTools e ela existe", () => {
-    expect(manifest.devtools_page).toBe("src/devtools/devtools.html");
+    expect(manifest.devtools_page).toBe("devtools.html");
     expect(fs.existsSync(path.join(RAIZ, manifest.devtools_page))).toBe(true);
   });
 
@@ -196,6 +196,31 @@ describe("manifest — origens pedidas e conferidas batem", () => {
       ["popup", origensDe("src/popup/popup.js", "const PERMISSAO_SELETOR = { origins: [")],
     ]) {
       expect(lista, `${onde} voltou a usar <all_urls>`).not.toContain("<all_urls>");
+    }
+  });
+});
+
+describe("manifest — a página do DevTools mora na raiz", () => {
+  it("devtools_page está na raiz, não dentro de src/", () => {
+    // chrome.devtools.panels.create() recebe caminhos que a documentação diz
+    // serem relativos à raiz da extensão, mas há versões que os resolvem
+    // relativos à própria página do DevTools. Com o devtools.html na raiz, as
+    // duas leituras coincidem e o painel para de depender dessa aposta.
+    //
+    // Errar a aposta custa caro: a aba aparece no DevTools e abre em branco.
+    expect(manifest.devtools_page).toBe("devtools.html");
+    expect(manifest.devtools_page).not.toContain("/");
+  });
+
+  it("os caminhos de panels.create() resolvem igual das duas formas", () => {
+    const js = fs.readFileSync(path.join(RAIZ, "src/devtools/devtools.js"), "utf8");
+    const dirDevtools = path.posix.dirname(manifest.devtools_page);
+    for (const m of js.matchAll(/["']([^"']+\.(?:html|png))["']/g)) {
+      const rel = m[1];
+      const daRaiz = rel;
+      const daPagina = path.posix.normalize(path.posix.join(dirDevtools, rel));
+      expect(daPagina, `${rel} resolve diferente conforme a interpretação`).toBe(daRaiz);
+      expect(fs.existsSync(path.join(RAIZ, rel)), `${rel} não existe`).toBe(true);
     }
   });
 });

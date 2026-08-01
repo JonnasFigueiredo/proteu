@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Proteu QA — DevTools</title>
+  </head>
+  <body>
+    <!--
+      Este arquivo fica na RAIZ de proposito.
+
+      chrome.devtools.panels.create() recebe caminhos que a documentacao diz
+      serem relativos a raiz da extensao, mas ha implementacoes e versoes que
+      os resolvem relativos a esta pagina. Com o devtools.html na raiz, as
+      duas leituras coincidem — e o painel deixa de depender de qual delas o
+      navegador segue. O sintoma de errar essa aposta e cruel: a aba aparece
+      no DevTools e abre em branco, sem erro em lugar nenhum.
+    -->
+    <script src="src/devtools/devtools.js"></script>
+  </body>
+</html>

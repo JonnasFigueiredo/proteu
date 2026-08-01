@@ -3,30 +3,47 @@
   "name": "Proteu QA",
   "version": "0.25.0",
   "description": "Massa de dados de teste com seed determinística. 100% local, sem rede, sem coleta de dados.",
-  "permissions": ["contextMenus", "storage", "activeTab", "scripting"],
-  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
   "web_accessible_resources": [
     {
-      "resources": ["src/core/seletores.js", "src/content/leitura-dom.js"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "src/core/seletores.js",
+        "src/content/leitura-dom.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "background": {
     "service_worker": "src/background/service-worker.js",
     "type": "module"
   },
-  "devtools_page": "src/devtools/devtools.html",
+  "devtools_page": "devtools.html",
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "Proteu QA — massa de dados de teste"
   },
   "commands": {
     "_execute_action": {
-      "suggested_key": { "default": "Ctrl+Shift+9" },
+      "suggested_key": {
+        "default": "Ctrl+Shift+9"
+      },
       "description": "Abrir o Proteu QA"
     },
     "repetir-ultima-geracao": {
-      "suggested_key": { "default": "Ctrl+Shift+8" },
+      "suggested_key": {
+        "default": "Ctrl+Shift+8"
+      },
       "description": "Inserir a última geração no campo focado"
     }
   },
