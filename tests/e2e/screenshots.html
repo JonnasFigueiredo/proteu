@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Proteu QA — Screenshots para a Chrome Web Store</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: #fff; }
+
+.instrucao {
+  text-align: center;
+  padding: 30px;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.slide {
+  width: 1280px;
+  height: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin: 20px auto;
+  background: #1a1a2e;
+}
+
+.slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 40%, rgba(59, 130, 246, 0.15) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 60%, rgba(147, 51, 234, 0.1) 0%, transparent 60%);
+}
+
+.conteudo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  padding: 0 80px;
+}
+
+.texto-lado {
+  flex: 1;
+  max-width: 480px;
+}
+
+.texto-lado h2 {
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.texto-lado p {
+  font-size: 20px;
+  line-height: 1.5;
+  color: #94a3b8;
+}
+
+.popup-frame {
+  flex-shrink: 0;
+  width: 380px;
+  height: 600px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+.popup-frame iframe {
+  width: 380px;
+  height: 600px;
+  border: none;
+}
+
+.slide.centro .conteudo {
+  flex-direction: column;
+  gap: 30px;
+}
+.slide.centro .texto-lado {
+  text-align: center;
+  max-width: 700px;
+}
+.slide.centro .texto-lado h2 { font-size: 48px; }
+
+.badges {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 15px;
+  font-weight: 500;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #e2e8f0;
+}
+
+.marca {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 14px;
+  color: #475569;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.num {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  font-size: 13px;
+  color: #475569;
+  font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<p class="instrucao">
+  Screenshots para a Chrome Web Store (1280x800).<br>
+  Use <b>Win+Shift+S</b> para capturar cada card, ou clique direito no slide &rarr; "Inspecionar" &rarr; "Capture node screenshot".
+</p>
+
+<!-- Slide 1: Aba Perfil -->
+<div class="slide" id="slide1">
+  <div class="conteudo">
+    <div class="texto-lado">
+      <h2>Personas realistas com documentos v&aacute;lidos</h2>
+      <p>CPF, CNPJ, RG, CNH, SSN, DNI e mais &mdash; para 10 pa&iacute;ses. Mesma seed, mesma pessoa. Sempre.</p>
+      <div class="badges">
+        <span class="badge">BR Brasil</span>
+        <span class="badge">US EUA</span>
+        <span class="badge">AR Argentina</span>
+        <span class="badge">DE Alemanha</span>
+        <span class="badge">+6 pa&iacute;ses</span>
+      </div>
+    </div>
+    <div class="popup-frame">
+      <iframe src="/previa/popup" id="iframe-perfil"></iframe>
+    </div>
+  </div>
+  <div class="marca">Proteu QA</div>
+  <span class="num">1/5</span>
+</div>
+
+<!-- Slide 2: Aba Texto -->
+<div class="slide" id="slide2">
+  <div class="conteudo">
+    <div class="texto-lado">
+      <h2>Texto com tamanho exato</h2>
+      <p>Grafemas, code points, code units ou bytes UTF-8. Perfeito para testar limites de campo e valida&ccedil;&otilde;es de tamanho.</p>
+      <div class="badges">
+        <span class="badge">5 unidades de medida</span>
+        <span class="badge">Pseudolocaliza&ccedil;&atilde;o</span>
+        <span class="badge">Fakebidi RTL</span>
+      </div>
+    </div>
+    <div class="popup-frame">
+      <iframe src="/previa/popup" id="iframe-texto"></iframe>
+    </div>
+  </div>
+  <div class="marca">Proteu QA</div>
+  <span class="num">2/5</span>
+</div>
+
+<!-- Slide 3: Casos-limite -->
+<div class="slide" id="slide3">
+  <div class="conteudo">
+    <div class="texto-lado">
+      <h2>Entradas que quebram sistemas</h2>
+      <p>Unicode ex&oacute;tico, payloads de seguran&ccedil;a, n&uacute;meros extremos, formatos inv&aacute;lidos e strings gigantes. Tudo a um clique.</p>
+      <div class="badges">
+        <span class="badge">XSS / SQL injection</span>
+        <span class="badge">N&uacute;meros extremos</span>
+        <span class="badge">Overflow</span>
+      </div>
+    </div>
+    <div class="popup-frame">
+      <iframe src="/previa/popup" id="iframe-limites"></iframe>
+    </div>
+  </div>
+  <div class="marca">Proteu QA</div>
+  <span class="num">3/5</span>
+</div>
+
+<!-- Slide 4: Seletores -->
+<div class="slide" id="slide4">
+  <div class="conteudo">
+    <div class="texto-lado">
+      <h2>Copie seletores direto da p&aacute;gina</h2>
+      <p>Clique com o bot&atilde;o direito em qualquer elemento &rarr; Proteu QA oferece o melhor seletor autom&aacute;tico. Avisa quando o seletor &eacute; amb&iacute;guo para evitar testes fr&aacute;geis.</p>
+      <div class="badges">
+        <span class="badge">CSS selector</span>
+        <span class="badge">XPath relativo</span>
+        <span class="badge">XPath absoluto</span>
+        <span class="badge">Por texto</span>
+      </div>
+      <div class="badges">
+        <span class="badge">Shadow DOM</span>
+        <span class="badge">iframes</span>
+        <span class="badge">Alerta de ambiguidade</span>
+      </div>
+    </div>
+    <div class="popup-frame" style="display:flex;align-items:center;justify-content:center;background:#1e293b;">
+      <div style="padding:30px 40px;">
+        <!-- Simula&ccedil;&atilde;o visual do menu de contexto -->
+        <div style="background:#2d3748;border-radius:8px;padding:6px 0;box-shadow:0 8px 32px rgba(0,0,0,0.5);width:280px;margin:0 auto 24px;">
+          <div style="padding:8px 16px;color:#e2e8f0;font-size:14px;font-weight:600;border-bottom:1px solid #4a5568;">Proteu QA</div>
+          <div style="padding:8px 16px;color:#60a5fa;font-size:13px;background:rgba(96,165,250,0.1);cursor:default;">&#10003; Copiar melhor seletor</div>
+          <div style="height:1px;background:#4a5568;margin:4px 0;"></div>
+          <div style="padding:7px 16px;color:#cbd5e0;font-size:13px;">Copiar id</div>
+          <div style="padding:7px 16px;color:#cbd5e0;font-size:13px;">Copiar seletor CSS</div>
+          <div style="padding:7px 16px;color:#cbd5e0;font-size:13px;">Copiar XPath relativo</div>
+          <div style="padding:7px 16px;color:#cbd5e0;font-size:13px;">Copiar XPath absoluto</div>
+          <div style="padding:7px 16px;color:#cbd5e0;font-size:13px;">Copiar XPath por texto</div>
+        </div>
+        <!-- Toast de feedback -->
+        <div style="background:#1565c0;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.3);max-width:280px;margin:0 auto;">
+          #login-form &gt; input.email
+        </div>
+        <p style="color:#475569;font-size:12px;text-align:center;margin-top:12px;">&uarr; seletor copiado para a &aacute;rea de transfer&ecirc;ncia</p>
+      </div>
+    </div>
+  </div>
+  <div class="marca">Proteu QA</div>
+  <span class="num">4/7</span>
+</div>
+
+<!-- Slide 5: Seletores — detalhes técnicos -->
+<div class="slide centro" id="slide5">
+  <div class="conteudo">
+    <div class="texto-lado">
+      <h2>Seletores inteligentes para automa&ccedil;&atilde;o</h2>
+      <p>O Proteu QA analisa o elemento e escolhe o seletor mais est&aacute;vel: prefere atributos de teste, depois id, depois CSS com desambigua&ccedil;&atilde;o autom&aacute;tica. Funciona dentro de Shadow DOM e iframes.</p>
+      <div class="badges" style="justify-content:center;">
+        <span class="badge">data-testid priorizado</span>
+        <span class="badge">CSS com :nth-of-type</span>
+        <span class="badge">XPath sem cruzar Shadow DOM</span>
+      </div>
+      <div class="badges" style="justify-content:center;margin-top:0;">
+        <span class="badge">Contagem de matches em tempo real</span>
+        <span class="badge">Selenium / Playwright / Cypress</span>
+      </div>
+    </div>
+  </div>
+  <div class="marca">Proteu QA</div>
+  <span class="num">5/7</span>
+</div>
+
+<!-- Slide 6: 7 idiomas -->
+<div class="slide" id="slide6">
+  <div class="conteudo">
+    <div class="texto-lado">
+      <h2>Interface em 7 idiomas</h2>
+      <p>Teste em portugu&ecirc;s, espanhol, ingl&ecirc;s, chin&ecirc;s, &aacute;rabe (RTL), hindi ou alem&atilde;o. O idioma acompanha o pa&iacute;s ou pode ser fixado manualmente.</p>
+      <div class="badges">
+        <span class="badge">BR Portugu&ecirc;s</span>
+        <span class="badge">ES Espa&ntilde;ol</span>
+        <span class="badge">US English</span>
+        <span class="badge">CN &#20013;&#25991;</span>
+      </div>
+      <div class="badges">
+        <span class="badge">SA &#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577; (RTL)</span>
+        <span class="badge">IN &#2361;&#2367;&#2344;&#2381;&#2342;&#2368;</span>
+        <span class="badge">DE Deutsch</span>
+      </div>
+    </div>
+    <div class="popup-frame">
+      <iframe src="/previa/popup" id="iframe-idioma"></iframe>
+    </div>
+  </div>
+  <div class="marca">Proteu QA</div>
+  <span class="num">6/7</span>
+</div>
+
+<!-- Slide 7: Offline + privacidade -->
+<div class="slide centro" id="slide7">
+  <div class="conteudo">
+    <div class="texto-lado">
+      <h2>100% offline. Zero coleta de dados.</h2>
+      <p>Nenhuma requisi&ccedil;&atilde;o de rede. Nenhuma depend&ecirc;ncia externa. Tudo roda no seu navegador. Seus dados nunca saem da m&aacute;quina.</p>
+      <div class="badges" style="justify-content:center;">
+        <span class="badge">Zero requisi&ccedil;&otilde;es de rede</span>
+        <span class="badge">Zero depend&ecirc;ncias</span>
+        <span class="badge">Zero coleta</span>
+        <span class="badge">Zero telemetria</span>
+      </div>
+    </div>
+  </div>
+  <div class="marca">Proteu QA &mdash; dados de teste, seletores e formul&aacute;rios</div>
+  <span class="num">7/7</span>
+</div>
+
+<script>
+// Depois que os iframes carregarem, clica nas abas corretas
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    try {
+      // iframe 2 (slide 2) → aba Texto → "Por tamanho"
+      const iTexto = document.getElementById('iframe-texto');
+      if (iTexto && iTexto.contentDocument) {
+        const btns = iTexto.contentDocument.querySelectorAll('nav button');
+        if (btns[1]) btns[1].click(); // Texto
+        setTimeout(() => {
+          const porTam = [...iTexto.contentDocument.querySelectorAll('button')]
+            .find(b => b.textContent.includes('tamanho'));
+          if (porTam) porTam.click();
+        }, 500);
+      }
+      // iframe 3 (slide 3) → aba Casos-limite
+      const iLimites = document.getElementById('iframe-limites');
+      if (iLimites && iLimites.contentDocument) {
+        const btns = iLimites.contentDocument.querySelectorAll('nav button');
+        if (btns[2]) btns[2].click(); // Casos-limite
+      }
+      // iframe idioma (slide 6) → aba Configurações para mostrar seletor de idioma
+      const iIdioma = document.getElementById('iframe-idioma');
+      if (iIdioma && iIdioma.contentDocument) {
+        const cfg = iIdioma.contentDocument.querySelector('[data-aba="config"], .icone[aria-label*="onfig"], button[aria-label*="onfig"]');
+        if (cfg) cfg.click();
+        else {
+          // Tenta pelo ícone de engrenagem (último botão do cabeçalho)
+          const icones = iIdioma.contentDocument.querySelectorAll('.cabecalho .icone, header .icone');
+          if (icones.length) icones[icones.length - 1].click();
+        }
+      }
+    } catch(e) { console.warn('Não foi possível clicar nas abas:', e); }
+  }, 2000);
+});
+</script>
+
+</body>
+</html>
