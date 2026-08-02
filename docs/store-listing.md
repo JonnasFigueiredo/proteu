@@ -17,7 +17,7 @@ Dados de teste, seletores e preenchimento de formulários para QA. 100% offline,
 Proteu QA é um toolkit completo para QA que roda inteiramente no navegador — sem rede, sem dependências, sem coleta de dados.
 
 🧑 PERSONAS REALISTAS
-Gere CPF, CNPJ, RG, CNH, SSN, DNI, CUIT e dezenas de outros documentos válidos para 10 países (Brasil, EUA, Argentina, Chile, México, Uruguai, Paraguai, Canadá, China, Índia, Alemanha e Arábia Saudita). Cada persona vem com nome, data de nascimento, telefone e e-mail. Tudo determinístico: a mesma seed gera exatamente a mesma pessoa.
+Gere CPF, CNPJ, RG, CNH, SSN, DNI, CUIT, Aadhaar e dezenas de outros documentos válidos para 9 países (Brasil, Estados Unidos, Canadá, Argentina, México, China, Índia, Alemanha e Arábia Saudita). Cada persona vem com nome, data de nascimento, telefone e e-mail. Tudo determinístico: a mesma seed gera exatamente a mesma pessoa.
 
 📝 PREENCHIMENTO DE FORMULÁRIOS
 Um clique preenche todos os campos que a extensão reconhece (nome, CPF, e-mail, telefone, data, CEP...). Funciona com React, Vue e formulários nativos.
