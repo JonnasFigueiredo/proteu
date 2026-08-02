@@ -206,7 +206,7 @@ function criarCasoLimite(caso, fam) {
 
 /** Copia um valor avulso para a área de transferência com feedback. */
 async function copiar_(valor) {
-  await copiar(valor, "#feedback-invalido");
+  await copiar(valor);
 }
 
 /** Copia todos os valores de uma família, um por linha. */
@@ -214,9 +214,9 @@ async function copiarTodos(fam) {
   const texto = fam.casos.map((c) => c.valor).join("\n");
   try {
     await navigator.clipboard.writeText(texto);
-    mostrarFeedback(t(idiomaAtual, "lim_copiados", { n: fam.casos.length }), "ok", "#feedback-invalido");
+    mostrarFeedback(t(idiomaAtual, "lim_copiados", { n: fam.casos.length }), "ok");
   } catch {
-    mostrarFeedback(t(idiomaAtual, "fb_copiar_erro"), "erro", "#feedback-invalido");
+    mostrarFeedback(t(idiomaAtual, "fb_copiar_erro"), "erro");
   }
 }
 
@@ -331,7 +331,7 @@ function criarLinhaPerfil(campo) {
   const main = document.createElement("button");
   main.className = "pf-linha__main";
   main.title = t(idiomaAtual, "inserir_campo");
-  main.addEventListener("click", () => usarValorAvulso(campo.valor, rotuloDoCampo(campo), "#feedback-persona"));
+  main.addEventListener("click", () => usarValorAvulso(campo.valor, rotuloDoCampo(campo)));
 
   const rot = document.createElement("span");
   rot.className = "pf-linha__rot";
@@ -351,7 +351,7 @@ function criarLinhaPerfil(campo) {
   btnCopiar.innerHTML = ICONE_COPIAR;
   btnCopiar.addEventListener("click", (e) => {
     e.stopPropagation();
-    copiar(campo.valor, "#feedback-persona");
+    copiar(campo.valor);
   });
 
   linha.append(main, btnCopiar);
@@ -612,7 +612,7 @@ function ligarEventos() {
     $("#wrap-bidi").hidden = !e.target.checked;
   });
   $("#btn-gerar-texto").addEventListener("click", aoGerarTexto);
-  $("#btn-copiar-texto").addEventListener("click", () => copiar(ultimoTexto, "#feedback-texto"));
+  $("#btn-copiar-texto").addEventListener("click", () => copiar(ultimoTexto));
   $("#btn-inserir-texto").addEventListener("click", aoInserirTexto);
 
   $("#btn-config").addEventListener("click", () => alternarView("config"));
@@ -689,7 +689,7 @@ async function aoGerarCnpjRaiz(tipo) {
   // dá conta: antes, um mostrarFeedback logo depois sobrescrevia o resultado
   // da inserção e escondia falhas.
   const rotulo = t(idiomaAtual, chaveFb, { ordem: String(ordem).padStart(4, "0") });
-  await usarValorAvulso(valor, rotulo, "#feedback-persona");
+  await usarValorAvulso(valor, rotulo);
 
   await adicionarHistorico({
     tipo,
@@ -736,7 +736,7 @@ async function aoGerarTexto() {
     const unidade = $("#tam-unidade").value;
     const alvo = parseInt($("#tam-alvo").value, 10);
     if (!Number.isInteger(alvo) || alvo < 0) {
-      mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro", "#feedback-texto");
+      mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro");
       return;
     }
     // Usa as palavras do idioma como filler → a divergência de bytes fica real.
@@ -778,7 +778,7 @@ function mostrarTexto(texto, idioma) {
   out.dir = idioma && RTL.has(idioma) ? "rtl" : "ltr";
   renderContagens(texto);
   $("#resultado-texto").hidden = false;
-  limparFeedback("#feedback-texto");
+  limparFeedback();
 }
 
 function renderContagens(texto) {
@@ -819,7 +819,7 @@ async function aoInserirTexto() {
   if (!ultimoTexto) return;
   const r = await inserirNoCampoAtivo(ultimoTexto, config.insercao.modo);
   const f = feedbackInsercao(r);
-  mostrarFeedback(f.texto, f.tipo, "#feedback-texto");
+  mostrarFeedback(f.texto, f.tipo);
 }
 
 // --- Persona (pessoa coerente + preencher o formulário inteiro) -------------
@@ -864,7 +864,7 @@ async function aoNovaPersona() {
   if (historicoVisivel()) await renderizarHistorico();
 
   renderizarPerfil();
-  limparFeedback("#feedback-persona");
+  limparFeedback();
 }
 
 /**
@@ -886,7 +886,7 @@ async function aoPreencherFormulario() {
       files: ["src/content/content.js"],
     });
   } catch {
-    mostrarFeedback(t(idiomaAtual, "fb_pagina_bloqueada"), "erro", "#feedback-persona");
+    mostrarFeedback(t(idiomaAtual, "fb_pagina_bloqueada"), "erro");
     return;
   }
 
@@ -923,13 +923,12 @@ async function aoPreencherFormulario() {
   }
 
   if (preenchidos === 0) {
-    mostrarFeedback(t(idiomaAtual, "fb_sem_campos_form"), "erro", "#feedback-persona");
+    mostrarFeedback(t(idiomaAtual, "fb_sem_campos_form"), "erro");
     return;
   }
   mostrarFeedback(
     t(idiomaAtual, "fb_form_preenchido", { n: preenchidos, ignorados }),
-    "ok",
-    "#feedback-persona"
+    "ok"
   );
 }
 
@@ -947,7 +946,7 @@ async function montarExportacao() {
   try {
     lote = gerarLote(config, qtd);
   } catch {
-    mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro", "#feedback-persona");
+    mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro");
     return null;
   }
   // O lote consome contadores: persistir mantém a sequência sem repetir dados.
@@ -963,11 +962,10 @@ async function aoExportarCopiar() {
     await navigator.clipboard.writeText(r.texto);
     mostrarFeedback(
       t(idiomaAtual, "fb_exportado", { n: r.lote.personas.length }),
-      "ok",
-      "#feedback-persona"
+      "ok"
     );
   } catch {
-    mostrarFeedback(t(idiomaAtual, "fb_copiar_erro"), "erro", "#feedback-persona");
+    mostrarFeedback(t(idiomaAtual, "fb_copiar_erro"), "erro");
   }
 }
 
@@ -985,8 +983,7 @@ async function aoExportarBaixar() {
   URL.revokeObjectURL(url);
   mostrarFeedback(
     t(idiomaAtual, "fb_exportado", { n: r.lote.personas.length }),
-    "ok",
-    "#feedback-persona"
+    "ok"
   );
 }
 
@@ -995,37 +992,37 @@ async function aoExportarBaixar() {
 async function aoGerarOverflow() {
   const tam = parseInt($("#overflow-tam").value, 10);
   if (!Number.isInteger(tam) || tam < 1) {
-    mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro", "#feedback-invalido");
+    mostrarFeedback(t(idiomaAtual, "fb_tam_invalido"), "erro");
     return;
   }
   const texto = gerarOverflow(tam);
   mostrarTexto(texto, null); // mostra as 4 contagens do overflow
   mostrarView("texto"); // leva o usuário ao painel onde o resultado aparece
-  mostrarFeedback(t(idiomaAtual, "fb_overflow", { n: tam }), "ok", "#feedback-texto");
+  mostrarFeedback(t(idiomaAtual, "fb_overflow", { n: tam }), "ok");
 }
 
 /** Insere um valor avulso (caso-limite) no campo ativo, ou copia. */
-async function usarValorAvulso(valor, rotulo, sel = "#feedback-invalido") {
+async function usarValorAvulso(valor, rotulo) {
   const r = await inserirNoCampoAtivo(valor, config.insercao.modo);
   if (r.ok) {
-    mostrarFeedback(t(idiomaAtual, "fb_chip_inserido", { rotulo }), "ok", sel);
+    mostrarFeedback(t(idiomaAtual, "fb_chip_inserido", { rotulo }), "ok");
   } else if (r.motivo === "sem-campo") {
     // Sem campo focado: cai para a área de transferência.
-    await copiar(valor, sel);
+    await copiar(valor);
   } else {
-    mostrarFeedback(t(idiomaAtual, "fb_nao_inseriu"), "erro", sel);
+    mostrarFeedback(t(idiomaAtual, "fb_nao_inseriu"), "erro");
   }
 }
 
 // --- Copiar -----------------------------------------------------------------
 
-async function copiar(valor, sel = "#feedback") {
+async function copiar(valor) {
   if (!valor) return;
   try {
     await navigator.clipboard.writeText(valor);
-    mostrarFeedback(t(idiomaAtual, "fb_copiado"), "ok", sel);
+    mostrarFeedback(t(idiomaAtual, "fb_copiado"), "ok");
   } catch {
-    mostrarFeedback(t(idiomaAtual, "fb_copiar_erro"), "erro", sel);
+    mostrarFeedback(t(idiomaAtual, "fb_copiar_erro"), "erro");
   }
 }
 
@@ -1118,8 +1115,7 @@ function mostrarCampoDetectado(d) {
       const r = await inserirNoCampoAtivo(item.valor, config.insercao.modo);
       mostrarFeedback(
         r.ok ? t(idiomaAtual, "fb_chip_inserido", { rotulo: item.rotulo }) : t(idiomaAtual, "fb_nao_inseriu"),
-        r.ok ? "ok" : "erro",
-        "#feedback-campo"
+        r.ok ? "ok" : "erro"
       );
     });
     chips.appendChild(chip);
@@ -1311,24 +1307,33 @@ async function aoPedirPermissaoSeletor() {
   // não algo que a extensão pede sozinha ao abrir.
   const concedida = await chrome.permissions.request(PERMISSAO_SELETOR);
   if (!concedida) {
-    mostrarFeedback(t(idiomaAtual, "opt_menu_seletor_negado"), "erro", "#feedback-persona");
+    mostrarFeedback(t(idiomaAtual, "opt_menu_seletor_negado"), "erro");
   }
   await atualizarBotaoPermissao();
 }
 
 // --- Utilitários de UI ------------------------------------------------------
 
-const timersFeedback = {};
-function mostrarFeedback(texto, tipo, sel = "#feedback") {
-  const el = $(sel);
+// Um aviso só para a extensão inteira, ancorado abaixo das abas.
+//
+// Antes cada aba tinha o seu, no rodapé. Como o conteúdo rola e o Perfil é
+// comprido, o "copiado" nascia fora da área visível: a QA copiava e não via
+// confirmação nenhuma. Aqui ele aparece sempre no mesmo lugar, onde o olho já
+// está depois de clicar num botão do topo.
+let timerToast = null;
+
+function mostrarFeedback(texto, tipo) {
+  const el = $("#toast");
   el.textContent = texto;
-  el.className = `feedback ${tipo}`;
-  clearTimeout(timersFeedback[sel]);
-  timersFeedback[sel] = setTimeout(() => limparFeedback(sel), 2500);
+  el.className = `toast ${tipo}`;
+  el.hidden = false;
+  clearTimeout(timerToast);
+  timerToast = setTimeout(limparFeedback, 2500);
 }
 
-function limparFeedback(sel = "#feedback") {
-  const el = $(sel);
+function limparFeedback() {
+  const el = $("#toast");
+  clearTimeout(timerToast);
   el.textContent = "";
-  el.className = "feedback";
+  el.hidden = true;
 }

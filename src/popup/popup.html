@@ -27,11 +27,20 @@
       </div>
     </header>
 
-    <nav class="abas" role="tablist">
-      <button class="aba aba--ativa" data-view="perfil" role="tab" data-i18n="tab_perfil">Perfil</button>
-      <button class="aba" data-view="texto" role="tab" data-i18n="tab_texto">Texto</button>
-      <button class="aba" data-view="invalidos" role="tab" data-i18n="tab_invalidos">Casos-limite</button>
-    </nav>
+    <!-- Ancora o aviso logo abaixo das abas. Preso a este bloco, e não a uma
+         posição fixa em pixels, ele acompanha a altura do cabeçalho. -->
+    <div class="topo">
+      <nav class="abas" role="tablist">
+        <button class="aba aba--ativa" data-view="perfil" role="tab" data-i18n="tab_perfil">Perfil</button>
+        <button class="aba" data-view="texto" role="tab" data-i18n="tab_texto">Texto</button>
+        <button class="aba" data-view="invalidos" role="tab" data-i18n="tab_invalidos">Casos-limite</button>
+      </nav>
+
+      <!-- Um aviso para a extensão inteira, sobreposto ao conteúdo.
+           Antes cada aba tinha o seu, no rodapé: num popup que rola, "copiado"
+           aparecia fora da área visível e a ação parecia não ter acontecido. -->
+      <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    </div>
 
     <!-- Fica no topo, fora de qualquer aba, e some quando está tudo certo.
          Enterrado dentro de "Opções" ninguém achava — e o sintoma de não achar
@@ -55,7 +64,7 @@
         <code id="campo-descricao"></code>
       </div>
       <div id="chips-fronteira" class="chips"></div>
-      <p id="feedback-campo" class="feedback" role="status" aria-live="polite"></p>
+      
     </section>
 
     <main class="conteudo">
@@ -119,7 +128,7 @@
           </div>
         </details>
 
-        <p id="feedback-persona" class="feedback" role="status" aria-live="polite"></p>
+        
       </section>
 
       <!-- Texto -->
@@ -186,7 +195,7 @@
             <button id="btn-copiar-texto" class="secundario" data-i18n="copiar">Copiar</button>
             <button id="btn-inserir-texto" class="primario" data-i18n="inserir">Inserir</button>
           </div>
-          <p id="feedback-texto" class="feedback" role="status" aria-live="polite"></p>
+          
         </div>
       </section>
 
@@ -212,7 +221,7 @@
           </div>
         </div>
 
-        <p id="feedback-invalido" class="feedback" role="status" aria-live="polite"></p>
+        
       </section>
 
       <!-- Configurações -->

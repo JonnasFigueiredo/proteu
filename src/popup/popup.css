@@ -9,6 +9,7 @@
   --texto: #1a1d21;
   --texto-fraco: #667085;
   --verde: #2e7d32;
+  --verde-suave: #e7f4e8;
   --vermelho: #c62828;
   --vermelho-suave: #fdecec;
   --raio: 8px;
@@ -29,6 +30,7 @@
   --texto: #e8eaed;
   --texto-fraco: #9aa3af;
   --verde: #66bb6a;
+  --verde-suave: #1c2e1f;
   --vermelho: #ef5350;
   --vermelho-suave: #3a2526;
 }
@@ -45,6 +47,7 @@
     --texto: #e8eaed;
     --texto-fraco: #9aa3af;
     --verde: #66bb6a;
+    --verde-suave: #1c2e1f;
     --vermelho: #ef5350;
     --vermelho-suave: #3a2526;
   }
@@ -757,23 +760,73 @@ input:focus-visible {
 }
 
 /* ---------- Feedback ---------- */
-.feedback {
-  margin: 10px 0 0;
+/* ---------- Aviso de ação (copiado, inserido, erro) ---------- */
+/* Um só para a extensão inteira, ancorado abaixo das abas e sobreposto ao
+   conteúdo. Antes cada aba tinha o seu, no rodapé: num popup que rola, o
+   "copiado" caía fora da área visível e a ação parecia não ter acontecido. */
+.topo {
+  position: relative;
+}
+
+.toast {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  max-width: calc(100% - 24px);
+  margin-top: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
   font-size: 12px;
-  min-height: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(10, 20, 40, 0.22);
+  animation: toast-entra 0.16s ease-out;
 }
 
-.feedback:empty {
-  margin: 0;
-  min-height: 0;
-}
-
-.feedback.ok {
+/* Sutil de propósito: cor de fundo suave, não um bloco chapado. O aviso
+   confirma uma ação que o usuário acabou de fazer — não precisa gritar. */
+.toast.ok {
   color: var(--verde);
+  background: var(--verde-suave);
+  border: 1px solid currentColor;
 }
 
-.feedback.erro {
+.toast.erro {
   color: var(--vermelho);
+  background: var(--vermelho-suave);
+  border: 1px solid currentColor;
+}
+
+/* No escuro, o vermelho sobre `--vermelho-suave` fica em 4.09 de contraste —
+   abaixo do mínimo, e 12px em negrito não se qualifica como "texto grande".
+   Escurecer só o fundo deste aviso resolve sem mexer no vermelho que o resto
+   da interface usa. */
+:root[data-theme="escuro"] .toast.erro {
+  background: #241617;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="claro"]) .toast.erro {
+    background: #241617;
+  }
+}
+
+@keyframes toast-entra {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
 }
 
 /* ---------- 4 contagens ---------- */
