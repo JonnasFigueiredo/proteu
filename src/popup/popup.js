@@ -566,17 +566,18 @@ function ligarEventos() {
   );
 
 
-  $("#opt-mascara").addEventListener("change", (e) =>
-    atualizarConfig((c) => (c.documentos.mascara = e.target.checked))
-  );
-  $("#opt-alfanumerico").addEventListener("change", (e) => {
-    $("#wrap-ambiguas").hidden = !e.target.checked;
-    grupoRaiz = null; // muda o formato da raiz → novo grupo
-    atualizarConfig((c) => (c.documentos.cnpjAlfanumerico = e.target.checked));
+  $("#opt-mascara").addEventListener("change", async (e) => {
+    await atualizarConfig((c) => (c.documentos.mascara = e.target.checked));
+    await reformatarPerfil();
   });
-  $("#opt-ambiguas").addEventListener("change", (e) => {
-    grupoRaiz = null;
-    atualizarConfig((c) => (c.documentos.cnpjExcluirAmbiguas = e.target.checked));
+  $("#opt-alfanumerico").addEventListener("change", async (e) => {
+    $("#wrap-ambiguas").hidden = !e.target.checked;
+    await atualizarConfig((c) => (c.documentos.cnpjAlfanumerico = e.target.checked));
+    await reformatarPerfil();
+  });
+  $("#opt-ambiguas").addEventListener("change", async (e) => {
+    await atualizarConfig((c) => (c.documentos.cnpjExcluirAmbiguas = e.target.checked));
+    await reformatarPerfil();
   });
   $("#modo-insercao").addEventListener("change", (e) =>
     atualizarConfig((c) => (c.insercao.modo = e.target.value))
@@ -824,6 +825,25 @@ async function aoInserirTexto() {
 // --- Persona (pessoa coerente + preencher o formulário inteiro) -------------
 
 /** Gera uma nova persona, avança o contador e renderiza. */
+/**
+ * Reaplica as opções de formato à persona que já está na tela.
+ *
+ * Máscara e CNPJ alfanumérico mudam a FORMA do dado, não quem é a pessoa.
+ * Regerar com o MESMO contador devolve a mesma persona no formato novo —
+ * avançar o contador aqui trocaria a pessoa que a QA está olhando, e ela não
+ * pediu outra pessoa, pediu outro formato.
+ *
+ * Sem isto, ligar "Com máscara" não mexia no CPF logo abaixo do interruptor.
+ * Passava despercebido enquanto a opção vivia escondida em Opções; agora que
+ * ela fica colada no valor, ficaria com cara de defeito.
+ */
+async function reformatarPerfil() {
+  if (!personaAtual) return;
+  grupoRaiz = null; // o formato da raiz do CNPJ muda junto
+  personaAtual = gerarPersona({ ...config, contador: personaAtual.contador });
+  renderizarPerfil();
+}
+
 async function aoNovaPersona() {
   config = await carregarConfig();
   personaAtual = gerarPersona(config);

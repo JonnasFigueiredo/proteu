@@ -66,6 +66,27 @@
           <button id="btn-preencher-form" class="primario" data-i18n="pers_preencher">Preencher formulário</button>
         </div>
 
+        <!-- As duas opções que mudam o VALOR gerado ficam à vista, junto do
+             resultado que elas afetam. As de Opções mudam comportamento e são
+             mexidas uma vez; estas duas a QA alterna o tempo todo. -->
+        <div class="pf-rapidas">
+          <label class="switch">
+            <input type="checkbox" id="opt-mascara" />
+            <span class="switch__trilho"></span>
+            <span class="switch__rot" data-i18n="com_mascara">Com máscara</span>
+          </label>
+          <div id="opcoes-cnpj" class="pf-rapidas__cnpj">
+            <label class="switch">
+              <input type="checkbox" id="opt-alfanumerico" />
+              <span class="switch__trilho"></span>
+              <span class="switch__rot" data-i18n="cnpj_alfa">CNPJ alfanumérico (novo padrão)</span>
+            </label>
+            <label class="check" id="wrap-ambiguas" hidden>
+              <input type="checkbox" id="opt-ambiguas" /> <span data-i18n="excluir_ambiguas">Excluir ambíguas (I, O, U, Q, F)</span>
+            </label>
+          </div>
+        </div>
+
         <div id="perfil-secoes"></div>
 
         <details class="pf-det">
@@ -91,24 +112,10 @@
           <summary class="pf-det__cab" data-i18n="pf_opcoes">Opções</summary>
           <div class="pf-det__corpo">
             <label class="switch">
-              <input type="checkbox" id="opt-mascara" />
-              <span class="switch__trilho"></span>
-              <span class="switch__rot" data-i18n="com_mascara">Com máscara</span>
-            </label>
-            <label class="switch">
               <input type="checkbox" id="opt-preencher-tudo" />
               <span class="switch__trilho"></span>
               <span class="switch__rot" data-i18n="pers_preencher_tudo">Preencher também os campos que não reconheço</span>
             </label>
-            <div id="opcoes-cnpj">
-              <label class="check">
-                <input type="checkbox" id="opt-alfanumerico" /> <span data-i18n="cnpj_alfa">CNPJ alfanumérico (novo padrão)</span>
-              </label>
-              <label class="check" id="wrap-ambiguas" hidden>
-                <input type="checkbox" id="opt-ambiguas" /> <span data-i18n="excluir_ambiguas">Excluir ambíguas (I, O, U, Q, F)</span>
-              </label>
-            </div>
-
           </div>
         </details>
 

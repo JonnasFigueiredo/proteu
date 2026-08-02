@@ -1113,6 +1113,37 @@ input:focus-visible {
   white-space: nowrap;
 }
 
+/* ---------- Opções rápidas do Perfil ---------- */
+/* Faixa acima do perfil com o que altera o valor gerado. Fica separada por uma
+   linha do resultado, para não se confundir com os campos da persona. */
+.pf-rapidas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--borda);
+}
+
+/* O bloco do CNPJ some inteiro em país sem CNPJ, levando junto "excluir
+   ambíguas" — que sozinha não faria sentido nenhum. */
+.pf-rapidas__cnpj {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  align-items: center;
+}
+
+.pf-rapidas .switch__rot {
+  font-size: 12.5px;
+}
+
+.pf-rapidas .check {
+  margin-top: 0;
+  font-size: 12px;
+  color: var(--texto-fraco);
+}
+
 .pf-secao {
   display: block;
   margin-bottom: 10px;
