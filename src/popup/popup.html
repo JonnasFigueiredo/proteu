@@ -154,6 +154,11 @@
             <div class="col">
               <span class="rot-mini" data-i18n="txt_unidade">Unidade</span>
               <select id="tam-unidade" aria-label="Unidade de contagem">
+                <!-- Primeira porque é o caso comum: "preciso de 100 caracteres
+                     para estourar este maxlength". Sai em ASCII, então as
+                     quatro contagens abaixo do resultado ficam iguais — o que
+                     já serve de explicação, sem texto de ajuda. -->
+                <option value="caracteres" data-i18n="un_caracteres">caracteres (ASCII)</option>
                 <option value="grafemas" data-i18n="un_grafemas">grafemas</option>
                 <option value="codePoints" data-i18n="un_codepoints">code points</option>
                 <option value="codeUnits" data-i18n="un_codeunits">code units</option>
