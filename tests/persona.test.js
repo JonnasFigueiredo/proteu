@@ -82,3 +82,55 @@ describe("persona — funciona em todos os países", () => {
     });
   }
 });
+
+describe("persona — trocar formato não troca a pessoa", () => {
+  // O popup reaplica as opções de formato à persona que já está na tela, sem
+  // avançar o contador. É o que faz "Com máscara" atualizar o CPF logo abaixo
+  // do interruptor sem sortear outra pessoa — a QA pediu outro formato, não
+  // outra pessoa.
+  const base = {
+    pais: "br",
+    seed: "formato",
+    contador: 7,
+    documentos: { mascara: false, cnpjAlfanumerico: false, cnpjExcluirAmbiguas: false },
+  };
+  const com = (opcoes) =>
+    gerarPersona({ ...base, documentos: { ...base.documentos, ...opcoes } });
+
+  const soAlfanumerico = (v) => String(v || "").replace(/[^\dA-Za-z]/g, "");
+  const doc = (p, chave) => p.campos.find((c) => c.rotuloKey === chave)?.valor;
+
+  it("a pessoa é a mesma com e sem máscara", () => {
+    const a = com({ mascara: false });
+    const b = com({ mascara: true });
+    expect(b.porSlot.nome).toBe(a.porSlot.nome);
+    expect(b.porSlot.primeiroNome).toBe(a.porSlot.primeiroNome);
+    expect(doc(b, "doc_nascimento")).toBe(doc(a, "doc_nascimento"));
+  });
+
+  it("o contador não avança ao reformatar", () => {
+    // Avançar aqui trocaria a pessoa exibida a cada clique no interruptor.
+    const a = com({ mascara: false });
+    const b = com({ mascara: true });
+    expect(b.contador).toBe(a.contador);
+    expect(b.contador).toBe(base.contador);
+  });
+
+  it("a máscara muda só a forma: os dígitos por trás são os mesmos", () => {
+    const a = com({ mascara: false });
+    const b = com({ mascara: true });
+    const cpfA = doc(a, "doc_cpf");
+    const cpfB = doc(b, "doc_cpf");
+    expect(cpfA).not.toBe(cpfB); // a forma mudou
+    expect(soAlfanumerico(cpfB)).toBe(soAlfanumerico(cpfA)); // o número não
+    expect(cpfB).toMatch(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/);
+  });
+
+  it("ligar o CNPJ alfanumérico mantém a pessoa e troca só o CNPJ", () => {
+    const a = com({ cnpjAlfanumerico: false });
+    const b = com({ cnpjAlfanumerico: true });
+    expect(b.porSlot.nome).toBe(a.porSlot.nome);
+    expect(soAlfanumerico(doc(b, "doc_cnpj"))).toMatch(/[A-Z]/);
+    expect(soAlfanumerico(doc(a, "doc_cnpj"))).toMatch(/^\d+$/);
+  });
+});
