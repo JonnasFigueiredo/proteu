@@ -54,11 +54,53 @@ function gravarIcone(req, res) {
   });
 }
 
+/**
+ * Entrega o popup real com as APIs do Chrome simuladas, para dar para olhar
+ * (e fotografar) fora da extensão.
+ *
+ * O stub entra ANTES do <script type="module">, porque o módulo roda antes do
+ * `load` — injetar depois seria tarde e o popup já teria falhado. Servir assim,
+ * em vez de gerar um arquivo, evita a prévia envelhecer em relação ao popup.
+ *
+ * O tema fica em "auto": alternar o esquema de cores do navegador mostra os
+ * dois sem precisar de duas páginas.
+ */
+function previaDoPopup(res) {
+  const html = fs.readFileSync(path.join(raiz, "src/popup/popup.html"), "utf8");
+  const stub = `<script>
+    (() => {
+      const mem = { sync: { config: { seed: "16587a", contador: 3, pais: "br",
+        tema: "auto", idiomaFixo: null,
+        documentos: { mascara: false, cnpjAlfanumerico: false, cnpjExcluirAmbiguas: false },
+        insercao: { modo: "valor" } } }, local: {} };
+      const loja = (b) => ({
+        async get(k) { return k in mem[b] ? { [k]: structuredClone(mem[b][k]) } : {}; },
+        async set(o) { Object.assign(mem[b], structuredClone(o)); },
+      });
+      window.chrome = {
+        storage: { sync: loja("sync"), local: loja("local") },
+        tabs: { async query() { return [{ id: 1 }]; },
+                async sendMessage() { return { ok: false, erro: "sem-campo" }; } },
+        scripting: { async executeScript() { return []; } },
+        permissions: { async contains() { return true; }, async request() { return true; } },
+        runtime: { sendMessage: async (m) => (m && m.tipo === "DIAGNOSTICO"
+          ? { permissao: true, script: true, menu: true } : { ok: true }) },
+      };
+    })();
+  </script>`;
+  const saida = html
+    .replace("<head>", '<head><base href="/src/popup/">')
+    .replace('<script type="module"', stub + '\n<script type="module"');
+  res.writeHead(200, { "Content-Type": tipos[".html"] });
+  res.end(saida);
+}
+
 http
   .createServer((req, res) => {
     if (req.method === "POST" && req.url === "/gravar-icone") {
       return gravarIcone(req, res);
     }
+    if (req.url === "/previa/popup") return previaDoPopup(res);
     const rel = decodeURIComponent(req.url.split("?")[0]);
     const arquivo = path.resolve(raiz, "." + rel);
     if (!arquivo.startsWith(raiz)) return res.writeHead(403).end("403");
