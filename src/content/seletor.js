@@ -126,15 +126,6 @@
     }
   }
 
-  /** Linha "estratégia: seletor (n matches)" usada no "copiar todos". */
-  function linha(c) {
-    const quantos =
-      c.matches === 1 ? "único" :
-      c.matches === 0 ? "não encontra nada" :
-      c.matches < 0 ? "não verificável" : `${c.matches} elementos`;
-    return `${c.rotulo}\t${c.valor}\t(${quantos})`;
-  }
-
   chrome.runtime.onMessage.addListener((msg, _remetente, responder) => {
     if (!msg || msg.app !== "proteu" || msg.tipo !== "COPIAR_SELETOR") return false;
 
@@ -142,18 +133,6 @@
       const dados = await candidatosDoAlvo();
       if (!dados) {
         responder({ ok: false, erro: "sem-alvo" });
-        return;
-      }
-
-      if (msg.estrategia === "todos") {
-        const texto =
-          `# ${dados.resumo}\n` +
-          (dados.caminhoShadow.length ? `# Shadow DOM: ${dados.caminhoShadow.join(" » ")}\n` : "") +
-          (dados.caminhoFrame.length ? `# iframe: ${dados.caminhoFrame.join(" » ")}\n` : "") +
-          dados.candidatos.map(linha).join("\n");
-        const ok = await copiar(texto);
-        avisar(ok ? `${dados.candidatos.length} seletores copiados` : "não foi possível copiar", !ok);
-        responder({ ok, quantidade: dados.candidatos.length });
         return;
       }
 
