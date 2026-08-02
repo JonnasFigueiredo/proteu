@@ -53,10 +53,15 @@ Portuguese (Brazil)
 ## Screenshots needed
 
 1. Aba Perfil — persona com documentos brasileiros (1280x800)
-2. Aba Texto — geração por tamanho (1280x800)
-3. Menu de contexto — seletores no botão direito (1280x800)
-4. Aba Casos-limite — entradas que quebram sistemas (1280x800)
-5. Preenchimento de formulário em ação (1280x800)
+2. Aba Texto — geração por tamanho exato (1280x800)
+3. Aba Casos-limite — entradas que quebram sistemas (1280x800)
+4. Seletores — menu de contexto simulado com feedback (1280x800)
+5. Seletores inteligentes — detalhes técnicos (1280x800)
+6. Interface em 7 idiomas — tela de configuração (1280x800)
+7. 100% offline — privacidade total (1280x800)
+
+Gerar em: `node tests/e2e/servir.mjs` → abrir `http://localhost:8791/tests/e2e/screenshots.html`
+Capturar: F12 → clique direito no `<div class="slide">` → "Capture node screenshot"
 
 ## Promotional tile (optional)
 
