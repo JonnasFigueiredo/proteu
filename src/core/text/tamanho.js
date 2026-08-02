@@ -4,6 +4,11 @@
 // uma unidade (grafemas, code points, code units UTF-16 ou bytes UTF-8) e o
 // texto gerado atinge EXATAMENTE o alvo naquela unidade.
 //
+// A unidade "caracteres" existe para o caso em que a QA não quer entrar nesse
+// mérito: ela sai em ASCII puro, onde as quatro contagens dão o mesmo número.
+// Não é uma quinta forma de contar — é a garantia de que, ali, não há o que
+// desambiguar.
+//
 // Estratégia: preenche com grafemas de um "filler" enquanto couberem sem
 // estourar o alvo; completa a diferença com 'x' (ASCII, que soma 1 em todas as
 // unidades) para cravar o número exato. Assim o resultado é exato para qualquer
@@ -18,16 +23,26 @@ import {
   contarBytes,
 } from "./contagem.js";
 
-export const UNIDADES = ["grafemas", "codePoints", "codeUnits", "bytes"];
+export const UNIDADES = ["caracteres", "grafemas", "codePoints", "codeUnits", "bytes"];
 
 // Contador específico de cada unidade — evita computar as 4 (e o Segmenter)
 // a cada grafema testado no loop de preenchimento.
+//
+// "caracteres" não é uma quinta forma de contar: é o caso em que a QA não quer
+// pensar em Unicode e só precisa de N caracteres para bater num maxlength.
+// Para essa promessa valer, o texto sai em ASCII puro — aí as quatro contagens
+// coincidem e "100 caracteres" é 100 em qualquer uma delas. Contar por code
+// units é indiferente aqui, justamente porque todas dão o mesmo número.
 const CONTADOR = {
+  caracteres: contarCodeUnits,
   grafemas: contarGrafemas,
   codePoints: contarCodePoints,
   codeUnits: contarCodeUnits,
   bytes: contarBytes,
 };
+
+/** A unidade que promete texto onde as quatro contagens batem. */
+const UNIDADE_ASCII = "caracteres";
 
 // Filler padrão: palavras latinas neutras (estilo lorem ipsum).
 const FILLER_PADRAO =
@@ -52,7 +67,11 @@ export function gerarPorTamanho(rng, { unidade = "grafemas", alvo, filler = FILL
   if (!UNIDADES.includes(unidade)) throw new Error(`Unidade desconhecida: ${unidade}`);
   if (!Number.isInteger(alvo) || alvo < 0) throw new Error(`Alvo inválido: ${alvo}`);
 
-  const grafemas = paraGrafemas(filler).filter((g) => g.trim() !== "" || g === " ");
+  // Em "caracteres" o filler do idioma é ignorado de propósito: uma palavra em
+  // árabe ou chinês faria as contagens divergirem, e a única coisa que essa
+  // unidade promete é justamente que elas não divergem.
+  const fonte = unidade === UNIDADE_ASCII ? FILLER_PADRAO : filler;
+  const grafemas = paraGrafemas(fonte).filter((g) => g.trim() !== "" || g === " ");
   let texto = "";
 
   if (alvo > 0 && grafemas.length > 0) {
