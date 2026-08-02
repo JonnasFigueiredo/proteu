@@ -30,7 +30,7 @@ export const DIR_ATTR = { ar: "rtl" };
 
 const MENSAGENS = {
   pt: {
-    subtitulo: "massa de dados de teste",
+    subtitulo: "dados de teste, seletores e formulários",
     t_pais: "País dos dados",
     modal_titulo: "Selecionar país dos dados",
     modal_em_breve: "Em breve",
@@ -124,7 +124,6 @@ const MENSAGENS = {
     hist_titulo: "Histórico da sessão",
     limpar: "Limpar",
     hist_vazio: "Nada gerado ainda.",
-    selo_local: "100% local",
     t_historico: "Histórico",
     t_config: "Configurações",
     t_tema: "Tema",
@@ -189,7 +188,7 @@ const MENSAGENS = {
     fb_overflow: "Overflow de {n} chars gerado",
   },
   es: {
-    subtitulo: "masa de datos de prueba",
+    subtitulo: "datos de prueba, selectores y formularios",
     t_pais: "País de los datos",
     modal_titulo: "Seleccionar país de los datos",
     modal_em_breve: "Próximamente",
@@ -283,7 +282,6 @@ const MENSAGENS = {
     hist_titulo: "Historial de la sesión",
     limpar: "Limpiar",
     hist_vazio: "Nada generado aún.",
-    selo_local: "100% local",
     t_historico: "Historial",
     t_config: "Configuración",
     t_tema: "Tema",
@@ -348,7 +346,7 @@ const MENSAGENS = {
     fb_overflow: "Overflow de {n} chars generado",
   },
   en: {
-    subtitulo: "test data generator",
+    subtitulo: "test data, selectors & form filling",
     t_pais: "Data country",
     modal_titulo: "Select data country",
     modal_em_breve: "Coming soon",
@@ -442,7 +440,6 @@ const MENSAGENS = {
     hist_titulo: "Session history",
     limpar: "Clear",
     hist_vazio: "Nothing generated yet.",
-    selo_local: "100% local",
     t_historico: "History",
     t_config: "Settings",
     t_tema: "Theme",
@@ -508,7 +505,7 @@ const MENSAGENS = {
   },
 
   zh: {
-    subtitulo: "测试数据生成器",
+    subtitulo: "测试数据、选择器和表单填充",
     t_pais: "数据国家",
     modal_titulo: "选择数据国家",
     modal_em_breve: "即将推出",
@@ -601,7 +598,6 @@ const MENSAGENS = {
     hist_titulo: "本次会话历史",
     limpar: "清空",
     hist_vazio: "尚未生成任何内容。",
-    selo_local: "100% 本地",
     t_historico: "历史",
     t_config: "设置",
     t_tema: "主题",
@@ -667,7 +663,7 @@ const MENSAGENS = {
   },
 
   ar: {
-    subtitulo: "بيانات اختبار",
+    subtitulo: "بيانات اختبار ومحدِّدات ونماذج",
     t_pais: "دولة البيانات",
     modal_titulo: "اختر دولة البيانات",
     modal_em_breve: "قريباً",
@@ -761,7 +757,6 @@ const MENSAGENS = {
     hist_titulo: "سجل الجلسة",
     limpar: "مسح",
     hist_vazio: "لم يتم توليد أي شيء بعد.",
-    selo_local: "100% محلي",
     t_historico: "السجل",
     t_config: "الإعدادات",
     t_tema: "المظهر",
@@ -827,7 +822,7 @@ const MENSAGENS = {
   },
 
   hi: {
-    subtitulo: "परीक्षण डेटा",
+    subtitulo: "परीक्षण डेटा, सिलेक्टर और फ़ॉर्म",
     t_pais: "डेटा का देश",
     modal_titulo: "डेटा का देश चुनें",
     modal_em_breve: "जल्द आ रहा है",
@@ -921,7 +916,6 @@ const MENSAGENS = {
     hist_titulo: "सत्र इतिहास",
     limpar: "साफ़ करें",
     hist_vazio: "अभी तक कुछ नहीं बना।",
-    selo_local: "100% लोकल",
     t_historico: "इतिहास",
     t_config: "सेटिंग्स",
     t_tema: "थीम",
@@ -987,7 +981,7 @@ const MENSAGENS = {
   },
 
   de: {
-    subtitulo: "Testdaten",
+    subtitulo: "Testdaten, Selektoren und Formulare",
     t_pais: "Land der Daten",
     modal_titulo: "Land der Daten auswählen",
     modal_em_breve: "Demnächst",
@@ -1081,7 +1075,6 @@ const MENSAGENS = {
     hist_titulo: "Sitzungsverlauf",
     limpar: "Leeren",
     hist_vazio: "Noch nichts erzeugt.",
-    selo_local: "100% lokal",
     t_historico: "Verlauf",
     t_config: "Einstellungen",
     t_tema: "Design",
