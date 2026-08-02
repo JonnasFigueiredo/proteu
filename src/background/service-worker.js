@@ -36,8 +36,6 @@ const ITENS = [
   { estrategia: "xpath", chave: "menu_copiar_xpath" },
   { estrategia: "xpath-absoluto", chave: "menu_copiar_xpath_abs" },
   { estrategia: "texto", chave: "menu_copiar_texto" },
-  { separador: true },
-  { estrategia: "todos", chave: "menu_copiar_todos" },
 ];
 
 /** Temos acesso de host? Sem ele o listener não chega antes do clique. */

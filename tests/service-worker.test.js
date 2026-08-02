@@ -103,7 +103,7 @@ beforeAll(async () => {
   await import("../src/background/service-worker.js");
 });
 
-const ESTRATEGIAS = ["melhor", "id", "css", "xpath", "xpath-absoluto", "texto", "todos"];
+const ESTRATEGIAS = ["melhor", "id", "css", "xpath", "xpath-absoluto", "texto"];
 
 describe("service worker — menu de contexto de seletores", () => {
   beforeEach(() => {
