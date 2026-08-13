@@ -245,10 +245,6 @@ licença pede o de sempre em Apache: **preservar o aviso de copyright**,
 licença na distribuição. Ela também concede expressamente os direitos de patente
 dos contribuidores — é o que a diferencia da MIT.
 
-O que a licença **não** cobre é a marca: o nome "Proteu QA" e o ícone da
-joaninha não são licenciados por ela. Se você redistribuir uma versão
-modificada, use nome e identidade próprios para não confundir quem instala —
-dizer que ela deriva da Proteu QA é permitido e bem-vindo.
 
 O código nunca é ofuscado: cada gerador e cada dígito verificador podem ser
 auditados.
