@@ -124,9 +124,11 @@ Marcar **nenhuma** das categorias. E declarar:
 - ✅ Não uso nem transfiro dados para avaliar crédito ou para empréstimos
 
 ### Política de privacidade
-A loja exige uma URL pública. O README do repositório serve:
+A loja exige uma URL pública. O texto pronto está em
+[`docs/privacy-policy.md`](docs/privacy-policy.md) — publique-o no GitHub Pages
+e use a URL resultante:
 ```
-https://github.com/JonnasFigueiredo/proteu#privacidade
+https://<seu-usuario>.github.io/proteu-qa/privacy-policy
 ```
 > ⚠️ O repositório está **privado**. Torne-o público antes de enviar, ou
 > publique a política em outra URL acessível (GitHub Pages, Gist público).
@@ -142,9 +144,26 @@ https://github.com/JonnasFigueiredo/proteu#privacidade
 | Bloco pequeno | 440×280 | não |
 | Bloco marquee | 1400×560 | não |
 
-Sugestões de captura: (1) a aba Perfil com a pessoa completa, (2) o formulário
-preenchido de uma vez, (3) a aba Casos-limite, (4) o modal de países,
-(5) a exportação em CSV/fixture.
+As capturas já estão montadas em `tests/e2e/screenshots.html` — 7 slides de
+1280×800 com o popup real embutido:
+
+```bash
+node tests/e2e/servir.mjs
+# abra http://localhost:8791/tests/e2e/screenshots.html
+```
+
+Para salvar cada uma em PNG exato: F12 → clique direito no `<div class="slide">`
+→ **Capture node screenshot**.
+
+| # | Slide |
+|---|-------|
+| 1 | Perfil — persona com os documentos do país |
+| 2 | Texto — geração por tamanho exato |
+| 3 | Casos-limite — entradas que quebram sistemas |
+| 4 | Mapear/seletores — menu de contexto com o retorno do que foi copiado |
+| 5 | Seletores inteligentes — data-testid, desambiguação, Shadow DOM |
+| 6 | Interface em 7 idiomas |
+| 7 | 100% offline — zero rede, zero coleta |
 
 ---
 
