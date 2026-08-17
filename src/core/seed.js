@@ -99,3 +99,48 @@ export function normalizarSeed(texto) {
   const limpa = texto.trim().toLowerCase();
   return /^[0-9a-f]{1,16}$/.test(limpa) ? limpa : null;
 }
+
+// --- Referência: o endereço completo de uma pessoa gerada -------------------
+//
+// A seed sozinha não identifica ninguém: ela abre uma SEQUÊNCIA, e cada pessoa
+// é uma posição dentro dela. Quem manda só a seed para um colega manda o
+// começo da fila, não a pessoa que está vendo na tela.
+//
+// Por isso a UI trabalha com "seed#posição" (ex.: 7f2a91#3): um texto só, que
+// se copia e se cola, e que reproduz exatamente aquela pessoa. Seed sem "#"
+// continua valendo e significa a primeira (#0) — assim nada do que já foi
+// anotado por aí deixa de funcionar.
+
+/** Limite de posição aceito. Segura erro de digitação antes de virar espera. */
+const POSICAO_MAXIMA = 999999;
+
+/**
+ * Interpreta "seed" ou "seed#posição".
+ * @returns {{seed: string, contador: number} | null} null se inválido.
+ */
+export function normalizarReferencia(texto) {
+  if (typeof texto !== "string") return null;
+  const limpa = texto.trim().toLowerCase();
+
+  const partes = limpa.split("#");
+  if (partes.length > 2) return null;
+
+  const seed = normalizarSeed(partes[0]);
+  if (!seed) return null;
+
+  if (partes.length === 1) return { seed, contador: 0 };
+
+  // "abc#" (posição vazia) é engano de digitação, não a posição 0: recusar dá
+  // um retorno visível em vez de saltar para outra pessoa em silêncio.
+  if (!/^\d+$/.test(partes[1])) return null;
+
+  const contador = Number(partes[1]);
+  if (contador > POSICAO_MAXIMA) return null;
+
+  return { seed, contador };
+}
+
+/** Monta a referência exibida no campo. */
+export function formatarReferencia(seed, contador) {
+  return `${seed}#${contador}`;
+}

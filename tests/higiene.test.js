@@ -245,37 +245,68 @@ describe("popup — mudar a origem dos dados tem que aparecer na tela", () => {
     return null;
   };
 
-  it("toda função que zera o contador também regera a persona", () => {
+  it("toda função que mexe no contador também regera a persona", () => {
     const nomes = [...popupJs.matchAll(/async function (\w+)\s*\(/g)].map((m) => m[1]);
     const culpadas = [];
 
     for (const nome of nomes) {
       const corpo = corpoDe(nome);
-      if (!corpo || !/c\.contador\s*=\s*0/.test(corpo)) continue;
+      if (!corpo || !/c\.contador\s*=/.test(corpo)) continue;
+      // A própria aoNovaPersona é quem gera: não delega para si mesma.
+      if (nome === "aoNovaPersona") continue;
       // Regerar pode ser direto (aoNovaPersona) ou delegado a um helper que o
       // faça — o que não vale é terminar no storage e não tocar na tela.
-      if (!/aoNovaPersona\(\)|aplicarSeed\(/.test(corpo)) culpadas.push(nome);
+      if (!/aoNovaPersona\(\)|aplicarReferencia\(/.test(corpo)) culpadas.push(nome);
     }
 
-    expect(culpadas, `reinicia a sequência sem mostrar o resultado: ${culpadas.join(", ")}`)
+    expect(culpadas, `mexe na sequência sem mostrar o resultado: ${culpadas.join(", ")}`)
       .toEqual([]);
   });
 
   it("os dois caminhos de seed passam pelo mesmo lugar", () => {
-    // Digitar a seed e sortear uma nova têm que se comportar igual; foi a
-    // duplicação entre os dois que deixou o bug passar em só um deles.
+    // Digitar a referência e sortear uma seed nova têm que se comportar igual;
+    // foi a duplicação entre os dois que deixou o bug passar em só um deles.
     for (const handler of ["aoMudarSeed", "aoNovaSeed"]) {
       const corpo = corpoDe(handler);
       expect(corpo, `${handler} não encontrada`).toBeTruthy();
-      expect(corpo, `${handler} deveria delegar para aplicarSeed`).toMatch(/aplicarSeed\(/);
+      expect(corpo, `${handler} deveria delegar para aplicarReferencia`)
+        .toMatch(/aplicarReferencia\(/);
     }
   });
 
-  it("aplicarSeed grava a seed, zera o contador e renderiza", () => {
-    const corpo = corpoDe("aplicarSeed");
+  it("aplicarReferencia grava seed e posição e renderiza", () => {
+    const corpo = corpoDe("aplicarReferencia");
     expect(corpo).toBeTruthy();
     expect(corpo, "não grava a seed").toMatch(/c\.seed\s*=/);
-    expect(corpo, "não reinicia a sequência").toMatch(/c\.contador\s*=\s*0/);
+    expect(corpo, "não aponta a posição").toMatch(/c\.contador\s*=/);
     expect(corpo, "não mostra o resultado").toMatch(/aoNovaPersona\(\)/);
+  });
+
+  it("o campo mostra a pessoa exibida, não a próxima", () => {
+    // `config.contador` já aponta para a próxima geração. Se o campo lesse
+    // dele, a referência copiada entregaria a pessoa seguinte — errada de um
+    // jeito silencioso, que só apareceria do outro lado.
+    const corpo = popupJs.slice(popupJs.indexOf("function atualizarCampoSeed("));
+    const fim = corpo.indexOf("\n}");
+    const fonte = semComentarios(corpo.slice(0, fim));
+    expect(fonte, "deveria usar personaAtual.contador").toMatch(/personaAtual\.contador/);
+  });
+
+  it("gerar uma pessoa atualiza o campo junto", () => {
+    // Sem isto o campo congela na primeira pessoa e passa a apontar para
+    // alguém que não está mais na tela.
+    expect(corpoDe("gerarEExibirPersona")).toMatch(/atualizarCampoSeed\(\)/);
+  });
+
+  it("as gerações são enfileiradas, não concorrentes", () => {
+    // Bug medido no navegador: 5 cliques em "Nova pessoa" avançavam o contador
+    // uma vez só. Todas as chamadas liam o contador no mesmo await, antes de
+    // qualquer uma gravar, e produziam a mesma pessoa repetida.
+    expect(popupJs, "faltou a fila de gerações").toMatch(/let filaPersona/);
+    const corpo = semComentarios(
+      popupJs.slice(popupJs.indexOf("function aoNovaPersona("))
+    ).slice(0, 300);
+    expect(corpo, "aoNovaPersona deveria encadear na fila").toMatch(/filaPersona\s*=/);
+    expect(corpo, "a fila não pode travar depois de um erro").toMatch(/catch/);
   });
 });
