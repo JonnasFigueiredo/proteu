@@ -189,6 +189,36 @@ describe("higiene — JavaScript", () => {
       ).toBe(false);
     }
   });
+
+  it("nada em src/ faz requisição de rede", () => {
+    // "Zero requisição de rede" é a promessa mais visível do projeto: está na
+    // descrição da loja, no README e no NOTICE. Ela não pode depender de
+    // ninguém lembrar — se um fetch entrar em src/, isto quebra.
+    //
+    // A tabela de CEPs reais é o caso que tornou esta guarda necessária: os
+    // dados vieram do ViaCEP, mas por uma ferramenta em tools/ que roda à mão.
+    // O que entra na extensão é array literal, não chamada.
+    // Ler o PRÓPRIO pacote não é rede: `chrome.runtime.getURL` devolve uma URL
+    // chrome-extension://, e nada sai da máquina. O painel do DevTools depende
+    // disso para montar o agente que injeta na página. A exceção é a forma
+    // exata, não o arquivo — um fetch de verdade ali continua sendo pego.
+    const LEITURA_DO_PACOTE = /fetch\s*\(\s*chrome\.runtime\.getURL\s*\([^)]*\)\s*\)/g;
+
+    const REDE = /\bfetch\s*\(|XMLHttpRequest|\bWebSocket\b|navigator\.sendBeacon|EventSource/;
+    const culpados = [];
+    for (const f of arquivosJs("src")) {
+      const codigo = semLiterais(semComentarios(ler(f))).replace(LEITURA_DO_PACOTE, "");
+      if (REDE.test(codigo)) culpados.push(f);
+    }
+    expect(culpados, `fazem requisição de rede: ${culpados.join(", ")}`).toEqual([]);
+  });
+
+  it("a tabela de CEPs é dado parado, não chamada", () => {
+    // Guarda específica do módulo que quase virou exceção à regra.
+    const cep = semComentarios(ler("src/core/documents/cep.js"));
+    expect(cep).not.toMatch(/fetch|viacep|https?:\/\//i);
+    expect(cep, "a tabela sumiu").toMatch(/CEPS_REAIS\s*=\s*\{/);
+  });
 });
 
 describe("higiene — manifest", () => {
