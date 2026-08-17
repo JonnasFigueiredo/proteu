@@ -11,7 +11,7 @@ import {
 } from "../storage.js";
 import { gerar, tiposDoPais, idiomaDoPais, paisMostraOpcoesCnpj, PAISES_DISPONIVEIS } from "../core/gerador.js";
 import { gerarSeedAleatoria } from "../core/config.js";
-import { normalizarSeed, criarRng } from "../core/seed.js";
+import { normalizarReferencia, formatarReferencia, criarRng } from "../core/seed.js";
 import { gerarSetFronteira } from "../core/field.js";
 import { IDIOMAS, CODIGOS_IDIOMA, RTL, gerarPalavras, gerarFrases } from "../core/text/idiomas.js";
 import { gerarPorTamanho } from "../core/text/tamanho.js";
@@ -372,8 +372,21 @@ function refletirConfigNaUI() {
   $("#modo-insercao").value = config.insercao.modo;
   $("#sel-tema").value = config.tema;
   $("#sel-idioma").value = config.idiomaFixo || "auto";
-  $("#campo-seed").value = config.seed;
+  atualizarCampoSeed();
   aplicarTema(config.tema);
+}
+
+/**
+ * Mostra no campo a referência da pessoa que está na tela — não a próxima.
+ *
+ * `config.contador` já aponta para a PRÓXIMA geração (aoNovaPersona avança
+ * assim que rende). Exibir esse número daria a referência de alguém que
+ * ninguém viu ainda: quem copiasse o texto e mandasse para um colega
+ * entregaria a pessoa seguinte. Quem manda é `personaAtual.contador`.
+ */
+function atualizarCampoSeed() {
+  const posicao = personaAtual ? personaAtual.contador : config.contador;
+  $("#campo-seed").value = formatarReferencia(config.seed, posicao);
 }
 
 // --- Tema (claro / escuro / automático) -------------------------------------
@@ -584,6 +597,9 @@ function ligarEventos() {
   );
 
   $("#campo-seed").addEventListener("change", aoMudarSeed);
+  // Enviar a referência para um colega é o uso principal deste campo, e ele é
+  // curto: selecionar tudo ao focar deixa o Ctrl+C a uma tecla de distância.
+  $("#campo-seed").addEventListener("focus", (e) => e.target.select());
   $("#btn-nova-seed").addEventListener("click", aoNovaSeed);
 
   $("#btn-tema").addEventListener("click", aoAlternarTema);
@@ -844,7 +860,23 @@ async function reformatarPerfil() {
   renderizarPerfil();
 }
 
-async function aoNovaPersona() {
+// Fila de uma posição: duas gerações nunca se sobrepõem.
+//
+// `aoNovaPersona` lê o contador num await e só grava noutro. Cliques seguidos
+// caíam todos na mesma leitura: cinco cliques em "Nova pessoa" geravam a MESMA
+// pessoa cinco vezes e avançavam o contador uma vez só. Para quem clica, é o
+// botão não respondendo — e agora que a referência fica visível, seria pior:
+// dois cliques mostrando o mesmo "#10" passam a ideia de que ela não vale.
+//
+// Mesmo recurso que o service worker usa para as reconstruções do menu.
+let filaPersona = Promise.resolve();
+
+function aoNovaPersona() {
+  filaPersona = filaPersona.catch(() => {}).then(gerarEExibirPersona);
+  return filaPersona;
+}
+
+async function gerarEExibirPersona() {
   config = await carregarConfig();
   personaAtual = gerarPersona(config);
   // A persona inteira é UMA geração: o contador avança uma vez só, e é isso
@@ -864,6 +896,9 @@ async function aoNovaPersona() {
   if (historicoVisivel()) await renderizarHistorico();
 
   renderizarPerfil();
+  // O campo é o endereço de quem está na tela: tem que andar junto, senão
+  // aponta para a pessoa anterior e vira uma referência errada para copiar.
+  atualizarCampoSeed();
   limparFeedback();
 }
 
@@ -1127,44 +1162,44 @@ function mostrarCampoDetectado(d) {
 // --- Seed -------------------------------------------------------------------
 
 /**
- * Grava a seed nova, reinicia a sequência e mostra a primeira pessoa dela.
+ * Aponta a geração para uma pessoa e a mostra.
  *
  * Regerar aqui É a funcionalidade, não um efeito colateral: a promessa da
- * extensão é "me passa a seed e eu vejo a mesma pessoa". Antes daqui só o
- * storage era atualizado — a QA colava a seed que o colega mandou, a tela
+ * extensão é "me passa a referência e eu vejo a mesma pessoa". Antes daqui só
+ * o storage era atualizado — a QA colava o que o colega mandou, a tela
  * continuava na pessoa anterior, e a reprodução parecia não funcionar.
  *
- * Mesmo caminho da troca de país (`mudarPais`), que também zera o contador:
+ * Mesmo caminho da troca de país (`mudarPais`), que também mexe no contador:
  * quem muda a origem dos dados vê o resultado na hora.
  */
-async function aplicarSeed(nova) {
-  grupoRaiz = null; // nova seed = novo grupo de CNPJ
-  // Trocar a seed reinicia o contador: a sequência recomeça do zero.
+async function aplicarReferencia(seed, contador) {
+  grupoRaiz = null; // nova posição = novo grupo de CNPJ
   await atualizarConfig((c) => {
-    c.seed = nova;
-    c.contador = 0;
+    c.seed = seed;
+    c.contador = contador;
   });
-  // Consome o contador 0 e renderiza: é exatamente a pessoa que a seed
-  // sozinha reproduz, que é o que se espera ver ao digitá-la.
+  // Consome a posição pedida e renderiza: é exatamente a pessoa que a
+  // referência reproduz, que é o que se espera ver ao colá-la.
   await aoNovaPersona();
 }
 
 async function aoMudarSeed(e) {
-  const nova = normalizarSeed(e.target.value);
-  if (!nova) {
+  const ref = normalizarReferencia(e.target.value);
+  if (!ref) {
     e.target.classList.add("invalida");
     return;
   }
   e.target.classList.remove("invalida");
-  e.target.value = nova;
-  await aplicarSeed(nova);
+  await aplicarReferencia(ref.seed, ref.contador);
+  // Reescreve pelo estado real: quem digitou só a seed vê o "#0" aparecer, e
+  // com isso descobre que a posição existe e viaja junto.
+  atualizarCampoSeed();
 }
 
 async function aoNovaSeed() {
-  const nova = gerarSeedAleatoria();
-  $("#campo-seed").value = nova;
   $("#campo-seed").classList.remove("invalida");
-  await aplicarSeed(nova);
+  await aplicarReferencia(gerarSeedAleatoria(), 0);
+  atualizarCampoSeed();
 }
 
 // --- Histórico --------------------------------------------------------------

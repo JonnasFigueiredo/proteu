@@ -944,7 +944,7 @@ input:focus-visible {
 }
 
 #campo-seed {
-  width: 84px;
+  width: 124px; /* cabe "7f2a91#12" sem cortar a posição */
   padding: 4px 6px;
   font-family: ui-monospace, "Cascadia Code", monospace;
   font-size: 12px;
