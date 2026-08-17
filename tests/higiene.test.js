@@ -209,3 +209,73 @@ describe("higiene — manifest", () => {
     expect(manifest.version).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });
+
+describe("popup — mudar a origem dos dados tem que aparecer na tela", () => {
+  // Bug real, relatado como "preencho a seed e nada acontece": `aoMudarSeed`
+  // gravava a seed nova e zerava o contador, mas nunca regerava a persona. A
+  // tela continuava na pessoa anterior, e a funcionalidade que dá nome ao
+  // projeto — reproduzir massa a partir da seed — ficava inutilizável pela UI.
+  //
+  // O invariante é o mesmo para país e seed: quem reinicia a sequência
+  // determinística precisa mostrar o resultado. Um handler que só mexe no
+  // storage é indistinguível de um botão quebrado.
+
+  /**
+   * Tira comentários do código.
+   *
+   * Sem isto o teste casa com chamada comentada e passa a mentir: foi o que
+   * aconteceu na primeira versão daqui, verificada comentando a regeração —
+   * o bug voltou e a suíte continuou verde.
+   */
+  const semComentarios = (fonte) =>
+    fonte.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+
+  /** Corpo da função nomeada, do `async function nome(` até a chave que fecha. */
+  const corpoDe = (nome) => {
+    const inicio = popupJs.indexOf(`async function ${nome}(`);
+    if (inicio === -1) return null;
+    let i = popupJs.indexOf("{", inicio);
+    let profundidade = 0;
+    for (let j = i; j < popupJs.length; j++) {
+      if (popupJs[j] === "{") profundidade++;
+      else if (popupJs[j] === "}" && --profundidade === 0) {
+        return semComentarios(popupJs.slice(inicio, j + 1));
+      }
+    }
+    return null;
+  };
+
+  it("toda função que zera o contador também regera a persona", () => {
+    const nomes = [...popupJs.matchAll(/async function (\w+)\s*\(/g)].map((m) => m[1]);
+    const culpadas = [];
+
+    for (const nome of nomes) {
+      const corpo = corpoDe(nome);
+      if (!corpo || !/c\.contador\s*=\s*0/.test(corpo)) continue;
+      // Regerar pode ser direto (aoNovaPersona) ou delegado a um helper que o
+      // faça — o que não vale é terminar no storage e não tocar na tela.
+      if (!/aoNovaPersona\(\)|aplicarSeed\(/.test(corpo)) culpadas.push(nome);
+    }
+
+    expect(culpadas, `reinicia a sequência sem mostrar o resultado: ${culpadas.join(", ")}`)
+      .toEqual([]);
+  });
+
+  it("os dois caminhos de seed passam pelo mesmo lugar", () => {
+    // Digitar a seed e sortear uma nova têm que se comportar igual; foi a
+    // duplicação entre os dois que deixou o bug passar em só um deles.
+    for (const handler of ["aoMudarSeed", "aoNovaSeed"]) {
+      const corpo = corpoDe(handler);
+      expect(corpo, `${handler} não encontrada`).toBeTruthy();
+      expect(corpo, `${handler} deveria delegar para aplicarSeed`).toMatch(/aplicarSeed\(/);
+    }
+  });
+
+  it("aplicarSeed grava a seed, zera o contador e renderiza", () => {
+    const corpo = corpoDe("aplicarSeed");
+    expect(corpo).toBeTruthy();
+    expect(corpo, "não grava a seed").toMatch(/c\.seed\s*=/);
+    expect(corpo, "não reinicia a sequência").toMatch(/c\.contador\s*=\s*0/);
+    expect(corpo, "não mostra o resultado").toMatch(/aoNovaPersona\(\)/);
+  });
+});
