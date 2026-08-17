@@ -1,7 +1,8 @@
-// O pacote enviado à Chrome Web Store.
+// O que compõe a extensão distribuída.
 //
-// Um envio rejeitado custa dias de revisão, então as regras que o Google
-// verifica ficam travadas aqui: manifest na raiz, nada de teste/dependência
+// O empacotador saiu do projeto; quem define o conteúdo agora é o
+// `sincronizar.mjs`, e é a lista dele que estes testes travam. As regras que o
+// Google verifica continuam aqui: manifest na raiz, nada de teste/dependência
 // junto, e os campos obrigatórios da listagem preenchidos.
 
 import { describe, it, expect } from "vitest";
@@ -9,7 +10,6 @@ import fs from "node:fs";
 import path from "node:path";
 
 const RAIZ = path.resolve(import.meta.dirname, "..");
-const empacotador = fs.readFileSync(path.join(RAIZ, "empacotar.mjs"), "utf8");
 const sincronizador = fs.readFileSync(path.join(RAIZ, "sincronizar.mjs"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(RAIZ, "manifest.json"), "utf8"));
 
@@ -21,26 +21,10 @@ function listaDe(fonte, nome) {
   return m ? m[1].match(/"([^"]+)"/g).map((s) => s.replace(/"/g, "")) : null;
 }
 
-describe("sincronizar e empacotar enxergam a mesma extensão", () => {
+describe("sincronizar — a pasta carregada é a extensão inteira", () => {
   // Bug real e caro de achar: a pasta que o Chrome carregava ficou parada numa
   // versão antiga enquanto o repositório seguia em frente. O sintoma chegou
-  // como bug de interface ("removi o selo e ele continua na tela") — testar no
-  // Chrome deixou de significar testar o que vai para a loja.
-  //
-  // Enquanto as duas listas forem iguais, o que se carrega localmente é
-  // exatamente o que se publica.
-
-  it("as duas ferramentas incluem os mesmos arquivos", () => {
-    expect(listaDe(sincronizador, "INCLUIR")).toEqual(listaDe(empacotador, "INCLUIR"));
-  });
-
-  it("as duas excluem as mesmas ferramentas de desenvolvimento", () => {
-    const regexDe = (fonte) => {
-      const m = fonte.match(/const EXCLUIR = \[([\s\S]*?)\];/);
-      return m ? m[1].trim() : null;
-    };
-    expect(regexDe(sincronizador)).toBe(regexDe(empacotador));
-  });
+  // como bug de interface ("removi o selo e ele continua na tela").
 
   it("o sincronizador falha alto em vez de fingir sucesso", () => {
     // A causa raiz não foi copiar errado: foi copiar errado em silêncio.
@@ -48,13 +32,19 @@ describe("sincronizar e empacotar enxergam a mesma extensão", () => {
     expect(sincronizador, "precisa conferir a versão que chegou no destino")
       .toMatch(/versaoDestino/);
   });
+
+  it("remove sobras de sincronizações antigas", () => {
+    // node_modules e tests/ já ficaram parados na pasta de destino, engordando
+    // o que se carrega no Chrome com coisa que não é da extensão.
+    expect(sincronizador, "precisa espelhar, não só copiar por cima")
+      .toMatch(/unlinkSync|rmdirSync/);
+  });
 });
 
-describe("pacote — o que entra no zip", () => {
+describe("pacote — o que compõe a extensão", () => {
   it("inclui o que a extensão roda, mais LICENSE e NOTICE", () => {
-    const m = empacotador.match(/const INCLUIR = \[([^\]]+)\]/);
-    expect(m, "constante INCLUIR não encontrada").toBeTruthy();
-    const itens = m[1].match(/"([^"]+)"/g).map((s) => s.replace(/"/g, ""));
+    const itens = listaDe(sincronizador, "INCLUIR");
+    expect(itens, "constante INCLUIR não encontrada").toBeTruthy();
     expect(itens).toEqual(ESPERADO_NO_PACOTE);
   });
 
@@ -65,9 +55,8 @@ describe("pacote — o que entra no zip", () => {
   });
 
   it("a licença acompanha a distribuição (Apache 2.0, seção 4a)", () => {
-    // Distribuir o zip sem a licença descumpriria a própria licença escolhida.
-    const m = empacotador.match(/const INCLUIR = \[([^\]]+)\]/);
-    const itens = m[1].match(/"([^"]+)"/g).map((s) => s.replace(/"/g, ""));
+    // Distribuir sem a licença descumpriria a própria licença escolhida.
+    const itens = listaDe(sincronizador, "INCLUIR");
     expect(itens).toContain("LICENSE");
     expect(itens).toContain("NOTICE");
   });
@@ -263,24 +252,28 @@ describe("manifest — a página do DevTools mora na raiz", () => {
 
 describe("pacote — ferramenta de desenvolvimento não vaza", () => {
   // O gerador de ícones é uma página HTML dentro de icons/. O filtro antigo
-  // excluía por extensão (.ps1, .md), e por isso ele entrou no zip quando o
-  // gerador deixou de ser PowerShell — a extensão também é feita de HTML.
-  const zip = fs.readFileSync(
-    path.join(RAIZ, "dist", `proteu-qa-${manifest.version}.zip`),
-    "latin1"
-  );
+  // excluía por extensão (.ps1, .md), e por isso ele entrou na distribuição
+  // quando o gerador deixou de ser PowerShell — a extensão também é HTML.
+  //
+  // Antes isto conferia o .zip pronto. Sem empacotador, a checagem passou a
+  // ser na regra que decide o que sai: é ela que precisa estar certa, e vale
+  // sem depender de alguém ter rodado um build antes do teste.
 
-  it("o gerador de ícones fica fora do pacote", () => {
-    expect(zip.includes("gerar-icones")).toBe(false);
+  const excluir = sincronizador.match(/const EXCLUIR = \[([\s\S]*?)\];/);
+
+  it("o gerador de ícones é excluído por nome, não por extensão", () => {
+    expect(excluir, "constante EXCLUIR não encontrada").toBeTruthy();
+    expect(excluir[1]).toMatch(/gerar-icones/);
   });
 
-  it("os quatro ícones do manifest estão no pacote", () => {
+  it("os quatro ícones do manifest existem para ser copiados", () => {
     for (const rel of Object.values(manifest.icons)) {
-      expect(zip.includes(rel), `${rel} não está no zip`).toBe(true);
+      expect(fs.existsSync(path.join(RAIZ, rel)), `${rel} não existe`).toBe(true);
     }
   });
 
-  it("a página do DevTools está no pacote", () => {
-    expect(zip.includes(manifest.devtools_page)).toBe(true);
+  it("a página do DevTools está na raiz, dentro do que é copiado", () => {
+    expect(fs.existsSync(path.join(RAIZ, manifest.devtools_page))).toBe(true);
+    expect(listaDe(sincronizador, "INCLUIR")).toContain(manifest.devtools_page);
   });
 });
