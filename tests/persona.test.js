@@ -134,3 +134,93 @@ describe("persona — trocar formato não troca a pessoa", () => {
     expect(soAlfanumerico(doc(a, "doc_cnpj"))).toMatch(/^\d+$/);
   });
 });
+
+describe("persona — a reprodutibilidade não pode vazar para Math.random", () => {
+  // A promessa da extensão é "mesma seed, mesma pessoa". Basta um gerador novo
+  // chamar Math.random() para ela virar mentira — e de um jeito que os testes
+  // de igualdade não pegam, porque comparar duas gerações seguidas continua
+  // passando enquanto o resto do campo diverge. Aqui a chamada estoura.
+  const semMathRandom = (fn) => {
+    const original = Math.random;
+    Math.random = () => {
+      throw new Error("Math.random() foi chamado: a geração deixou de ser reproduzível");
+    };
+    try {
+      fn();
+    } finally {
+      Math.random = original;
+    }
+  };
+
+  it("nenhum país usa Math.random ao gerar persona", () => {
+    semMathRandom(() => {
+      for (const codigo of Object.keys(PAISES)) {
+        for (let contador = 0; contador < 25; contador++) {
+          gerarPersona(cfg(codigo, contador));
+        }
+      }
+    });
+  });
+
+  it("nem com máscara e CNPJ alfanumérico ligados", () => {
+    semMathRandom(() => {
+      for (const codigo of Object.keys(PAISES)) {
+        gerarPersona({
+          ...cfg(codigo, 3),
+          documentos: { mascara: true, cnpjAlfanumerico: true },
+        });
+      }
+    });
+  });
+});
+
+describe("persona — reproduzir do meio de uma sequência", () => {
+  // O fluxo real: a QA gera várias pessoas, anota a seed e o contador daquela
+  // que quebrou, e o dev precisa recuperar SÓ ela — sem regerar as anteriores.
+  // Se o contador não bastasse, o relato de bug perderia o dado.
+
+  it("a 7ª pessoa da sequência é recuperável sozinha", () => {
+    const c = cfg("br");
+    let contadorDaSetima = null;
+    let setima = null;
+
+    for (let i = 0; i < 10; i++) {
+      const p = gerarPersona(c);
+      if (i === 6) {
+        setima = p.porSlot;
+        contadorDaSetima = p.contador;
+      }
+      c.contador = p.proximoContador;
+    }
+
+    const recuperada = gerarPersona(cfg("br", contadorDaSetima)).porSlot;
+    expect(recuperada).toEqual(setima);
+  });
+
+  it("uma sequência inteira é refeita igual em outra execução", () => {
+    const rodar = () => {
+      const c = cfg("br");
+      const nomes = [];
+      for (let i = 0; i < 20; i++) {
+        const p = gerarPersona(c);
+        nomes.push(p.porSlot.nome);
+        c.contador = p.proximoContador;
+      }
+      return nomes;
+    };
+    expect(rodar()).toEqual(rodar());
+  });
+
+  it("20 gerações seguidas não repetem a mesma pessoa", () => {
+    // Contador que não avança daria 20 clones — e o bug passaria despercebido
+    // porque cada geração isolada continua "correta".
+    const c = cfg("br");
+    const nomes = new Set();
+    for (let i = 0; i < 20; i++) {
+      const p = gerarPersona(c);
+      nomes.add(`${p.porSlot.nome}|${p.porSlot.cpf}`);
+      c.contador = p.proximoContador;
+    }
+    expect(nomes.size).toBe(20);
+  });
+});

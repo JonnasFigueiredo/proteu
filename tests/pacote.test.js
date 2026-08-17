@@ -10,9 +10,45 @@ import path from "node:path";
 
 const RAIZ = path.resolve(import.meta.dirname, "..");
 const empacotador = fs.readFileSync(path.join(RAIZ, "empacotar.mjs"), "utf8");
+const sincronizador = fs.readFileSync(path.join(RAIZ, "sincronizar.mjs"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(RAIZ, "manifest.json"), "utf8"));
 
 const ESPERADO_NO_PACOTE = ["manifest.json", "devtools.html", "icons", "src", "LICENSE", "NOTICE"];
+
+/** Extrai uma lista de strings declarada como `const NOME = [...]`. */
+function listaDe(fonte, nome) {
+  const m = fonte.match(new RegExp(`const ${nome} = \\[([^\\]]+)\\]`));
+  return m ? m[1].match(/"([^"]+)"/g).map((s) => s.replace(/"/g, "")) : null;
+}
+
+describe("sincronizar e empacotar enxergam a mesma extensão", () => {
+  // Bug real e caro de achar: a pasta que o Chrome carregava ficou parada numa
+  // versão antiga enquanto o repositório seguia em frente. O sintoma chegou
+  // como bug de interface ("removi o selo e ele continua na tela") — testar no
+  // Chrome deixou de significar testar o que vai para a loja.
+  //
+  // Enquanto as duas listas forem iguais, o que se carrega localmente é
+  // exatamente o que se publica.
+
+  it("as duas ferramentas incluem os mesmos arquivos", () => {
+    expect(listaDe(sincronizador, "INCLUIR")).toEqual(listaDe(empacotador, "INCLUIR"));
+  });
+
+  it("as duas excluem as mesmas ferramentas de desenvolvimento", () => {
+    const regexDe = (fonte) => {
+      const m = fonte.match(/const EXCLUIR = \[([\s\S]*?)\];/);
+      return m ? m[1].trim() : null;
+    };
+    expect(regexDe(sincronizador)).toBe(regexDe(empacotador));
+  });
+
+  it("o sincronizador falha alto em vez de fingir sucesso", () => {
+    // A causa raiz não foi copiar errado: foi copiar errado em silêncio.
+    expect(sincronizador).toMatch(/process\.exit\(1\)/);
+    expect(sincronizador, "precisa conferir a versão que chegou no destino")
+      .toMatch(/versaoDestino/);
+  });
+});
 
 describe("pacote — o que entra no zip", () => {
   it("inclui o que a extensão roda, mais LICENSE e NOTICE", () => {

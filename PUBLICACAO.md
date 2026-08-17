@@ -24,7 +24,7 @@ Proteu QA
 
 ### Descrição breve (máx. 132 caracteres)
 ```
-Massa de dados de teste com seed determinística. 100% local, sem rede, sem coleta de dados.
+Dados de teste, seletores e preenchimento de formulários para QA. 100% offline, sem coleta de dados.
 ```
 
 ### Descrição completa
