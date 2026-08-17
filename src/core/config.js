@@ -28,7 +28,7 @@ export function configPadrao() {
 // Valores aceitos.
 const TEMAS = ["auto", "claro", "escuro"];
 // Países previstos (nem todos implementados ainda; o popup só oferece os prontos).
-const PAISES_VALIDOS = ["br", "us", "ca", "ar", "cl", "mx", "uy", "py", "cn", "sa", "in", "de"];
+const PAISES_VALIDOS = ["br", "us", "ca", "ar", "mx", "cn", "sa", "in", "de", "au", "jp", "kr"];
 // Idiomas de interface que o QA pode fixar (null = automático, segue o país).
 const IDIOMAS_FIXOS = ["pt", "es", "en", "zh", "ar", "hi", "de"];
 

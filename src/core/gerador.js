@@ -17,6 +17,9 @@ import { SA } from "./paises/sa.js";
 import { MX } from "./paises/mx.js";
 import { IN } from "./paises/in.js";
 import { DE } from "./paises/de.js";
+import { AU } from "./paises/au.js";
+import { JP } from "./paises/jp.js";
+import { KR } from "./paises/kr.js";
 
 // Países implementados (com geradores prontos).
 export const PAISES = {
@@ -29,6 +32,9 @@ export const PAISES = {
   mx: MX,
   in: IN,
   de: DE,
+  au: AU,
+  jp: JP,
+  kr: KR,
 };
 
 export const PAIS_PADRAO = "br";
@@ -45,9 +51,9 @@ export const PAISES_DISPONIVEIS = [
   { codigo: "mx", rotulo: "México", idioma: "es", implementado: true },
   { codigo: "in", rotulo: "Índia", idioma: "hi", implementado: true },
   { codigo: "de", rotulo: "Alemanha", idioma: "de", implementado: true },
-  { codigo: "cl", rotulo: "Chile", idioma: "es", implementado: false },
-  { codigo: "uy", rotulo: "Uruguai", idioma: "es", implementado: false },
-  { codigo: "py", rotulo: "Paraguai", idioma: "es", implementado: false },
+  { codigo: "au", rotulo: "Austrália", idioma: "en", implementado: true },
+  { codigo: "jp", rotulo: "Japão", idioma: "en", implementado: true },
+  { codigo: "kr", rotulo: "Coreia do Sul", idioma: "en", implementado: true },
 ];
 
 /** Devolve o registro de tipos do país (cai no padrão se desconhecido). */
