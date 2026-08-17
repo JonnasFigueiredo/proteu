@@ -30,6 +30,10 @@
     linguagem: null, // preenchido com LINGUAGEM_PADRAO quando o motor carrega
     convencao: null,
     rascunho: "",
+    // Tamanho que a QA escolheu arrastando o canto. Guardado junto do resto
+    // para o painel reabrir do jeito que ela deixou, em vez de voltar ao
+    // padrão a cada vez que liga o modo.
+    painel: null, // { largura, altura }
   };
 
   /** Garante que estado.linguagem/convencao existem, usando o padrão do core. */
@@ -285,9 +289,16 @@
   const CSS_PAINEL = `
     :host { all: initial; }
     * { box-sizing: border-box; font-family: "Segoe UI", system-ui, sans-serif; }
+    /* Redimensionável nos dois eixos: seletor de caminho CSS passa fácil dos
+       80 caracteres, e num quadro fixo a QA lia o começo da linha e adivinhava
+       o resto. "overflow: hidden" é o que habilita o "resize" do navegador. */
     .caixa {
-      position: fixed; top: 16px; right: 16px; width: 380px;
-      max-height: calc(100vh - 32px); display: flex; flex-direction: column;
+      position: fixed; top: 16px; right: 16px;
+      width: 460px; height: 520px;
+      min-width: 320px; min-height: 240px;
+      max-width: calc(100vw - 32px); max-height: calc(100vh - 32px);
+      resize: both; overflow: hidden;
+      display: flex; flex-direction: column;
       background: #1b1f24; color: #e6e6e6; border: 1px solid #333a42;
       border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.45);
       z-index: 2147483647; font-size: 13px;
@@ -307,7 +318,12 @@
       font-size: 16px; line-height: 1; padding: 2px 6px; border-radius: 5px;
     }
     .icone:hover { background: #2b323a; color: #e6e6e6; }
-    .corpo { padding: 9px 10px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+    /* flex:1 + min-height:0 é o que faz o corpo (e o textarea dentro dele)
+       crescer junto quando a QA arrasta o canto, em vez de estourar a caixa. */
+    .corpo {
+      flex: 1 1 auto; min-height: 0;
+      padding: 9px 10px; display: flex; flex-direction: column; gap: 8px;
+    }
     .linha { display: flex; gap: 6px; }
     select {
       flex: 1; min-width: 0; padding: 5px 6px; font-size: 12px;
@@ -315,7 +331,9 @@
       border-radius: 6px;
     }
     textarea {
-      width: 100%; min-height: 190px; resize: vertical; padding: 8px;
+      /* Ocupa o que sobrar: quem manda no tamanho é a caixa. O "resize" próprio
+         sai de cena para não brigar com o do quadro. */
+      width: 100%; flex: 1 1 auto; min-height: 120px; resize: none; padding: 8px;
       font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
       font-size: 12px; line-height: 1.5; color: #e6e6e6;
       background: #12161a; border: 1px solid #3a424b; border-radius: 6px;
@@ -332,6 +350,12 @@
     button.botao.primario { background: #1565c0; border-color: #1565c0; color: #fff; }
     button.botao.primario:hover { background: #1a6fd0; }
     .dica { font-size: 11px; color: #7f8a95; line-height: 1.4; }
+    /* Recolhido vira só a barra: sem isto a altura fixa deixaria um retângulo
+       vazio ocupando meia tela. O tamanho volta ao expandir, porque fica
+       guardado em estado.painel. */
+    .recolhido {
+      height: auto !important; min-height: 0; resize: none;
+    }
     .recolhido .corpo { display: none; }
   `;
 
@@ -453,6 +477,8 @@
     });
 
     arrastavel(caixa, caixa.querySelector("[data-arrastar]"));
+    aplicarTamanhoSalvo(caixa);
+    observarTamanho(caixa);
     renderizar();
   }
 
@@ -475,6 +501,37 @@
       caixa.style.right = "auto";
     }, true);
     document.addEventListener("mouseup", () => { arrastando = false; }, true);
+  }
+
+  /** Devolve o painel ao tamanho que a QA tinha deixado. */
+  function aplicarTamanhoSalvo(caixa) {
+    const t = estado.painel;
+    if (!t) return;
+    if (t.largura) caixa.style.width = `${t.largura}px`;
+    if (t.altura) caixa.style.height = `${t.altura}px`;
+  }
+
+  /**
+   * Guarda o tamanho depois que a QA solta o canto.
+   *
+   * A primeira versão usava ResizeObserver e não gravava nada — medido no banco
+   * de provas, o storage ficava vazio depois de um resize. O soltar do mouse é
+   * o gesto que de fato encerra um arraste, e dá para verificar.
+   */
+  function observarTamanho(caixa) {
+    const salvar = () => {
+      if (caixa.classList.contains("recolhido")) return;
+      const largura = Math.round(caixa.offsetWidth);
+      const altura = Math.round(caixa.offsetHeight);
+      const t = estado.painel;
+      if (t && t.largura === largura && t.altura === altura) return;
+      estado.painel = { largura, altura };
+      gravarEstado();
+    };
+    // Capturante e no documento: o ponteiro costuma sair da caixa durante o
+    // arraste, e um listener só nela perderia o soltar.
+    document.addEventListener("mouseup", salvar, true);
+    document.addEventListener("pointerup", salvar, true);
   }
 
   function renderizar() {
