@@ -4,7 +4,7 @@
 // japonês, e inventar rótulos meia-boca seria pior do que assumir o inglês.
 // Os NOMES dos documentos ficam em japonês, como acontece com CPF/CNPJ no
 // Brasil — é o nome próprio do documento.
-import { gerarDataNascimento, gerarDataAdmissao } from "../documents/datas.js";
+import { nascimentoDaPersona, admissaoDaPersona } from "../documents/datas.js";
 import {
   gerarNameJP, gerarMyNumber, gerarHoujinBangou,
   gerarPostalJP, gerarPhoneJP, gerarCompanyJP,
@@ -22,11 +22,11 @@ export const JP = {
     },
     seinengappi: {
       rotulo: "生年月日", rotuloKey: "doc_nascimento", categoria: "Pessoa",
-      gerar: (rng) => gerarDataNascimento(rng, { formato: "iso" }),
+      gerar: (_rng, config) => nascimentoDaPersona(config, "iso"),
     },
     nyushabi: {
       rotulo: "入社日", rotuloKey: "doc_admissao", categoria: "Pessoa",
-      gerar: (rng) => gerarDataAdmissao(rng, { formato: "iso" }),
+      gerar: (_rng, config) => admissaoDaPersona(config, "iso"),
     },
     myNumber: {
       rotulo: "マイナンバー", rotuloKey: "doc_mynumber", categoria: "Pessoa",

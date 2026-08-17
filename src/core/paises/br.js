@@ -11,7 +11,7 @@ import { gerarIe } from "../documents/ie.js";
 import { gerarCep } from "../documents/cep.js";
 import { gerarTelefone } from "../documents/telefone.js";
 import { gerarNome } from "../documents/nome.js";
-import { gerarDataNascimento, gerarDataAdmissao } from "../documents/datas.js";
+import { nascimentoDaPersona, admissaoDaPersona } from "../documents/datas.js";
 import { gerarRazaoSocial } from "../documents/razao-social.js";
 
 export const BR = {
@@ -27,11 +27,11 @@ export const BR = {
     },
     dataNascimento: {
       rotulo: "Data de nascimento", rotuloKey: "doc_nascimento", categoria: "Pessoa",
-      gerar: (rng) => gerarDataNascimento(rng),
+      gerar: (_rng, config) => nascimentoDaPersona(config),
     },
     dataAdmissao: {
       rotulo: "Data de admissão", rotuloKey: "doc_admissao", categoria: "Pessoa",
-      gerar: (rng) => gerarDataAdmissao(rng),
+      gerar: (_rng, config) => admissaoDaPersona(config),
     },
     cpf: {
       rotulo: "CPF", rotuloKey: "doc_cpf", categoria: "Pessoa",

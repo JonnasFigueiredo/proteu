@@ -1,5 +1,5 @@
 // Argentina — registro de documentos (rótulos em espanhol; a UI acompanha).
-import { gerarDataNascimento, gerarDataAdmissao } from "../documents/datas.js";
+import { nascimentoDaPersona, admissaoDaPersona } from "../documents/datas.js";
 import {
   gerarNombreAR, gerarDni, gerarCuil, gerarCuit, gerarCpa, gerarTelefonoAR,
   gerarRazonSocialAR,
@@ -17,11 +17,11 @@ export const AR = {
     },
     nacimiento: {
       rotulo: "Fecha de nacimiento", rotuloKey: "doc_nascimento", categoria: "Pessoa",
-      gerar: (rng) => gerarDataNascimento(rng, { formato: "br" }),
+      gerar: (_rng, config) => nascimentoDaPersona(config, "br"),
     },
     ingreso: {
       rotulo: "Fecha de ingreso", rotuloKey: "doc_admissao", categoria: "Pessoa",
-      gerar: (rng) => gerarDataAdmissao(rng, { formato: "br" }),
+      gerar: (_rng, config) => admissaoDaPersona(config, "br"),
     },
     dni: {
       rotulo: "DNI", rotuloKey: "doc_dni", categoria: "Pessoa",

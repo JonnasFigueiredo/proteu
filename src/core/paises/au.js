@@ -1,5 +1,5 @@
 // Austrália — registro de documentos (rótulos em inglês; a UI acompanha o país).
-import { gerarDataNascimento, gerarDataAdmissao } from "../documents/datas.js";
+import { nascimentoDaPersona, admissaoDaPersona } from "../documents/datas.js";
 import {
   gerarNameAU, gerarTfn, gerarAbn, gerarAcn, gerarMedicare,
   gerarPostcode, gerarPhoneAU, gerarCompanyAU,
@@ -17,11 +17,11 @@ export const AU = {
     },
     dateOfBirth: {
       rotulo: "Date of birth", rotuloKey: "doc_nascimento", categoria: "Pessoa",
-      gerar: (rng) => gerarDataNascimento(rng),  // DD/MM/AAAA, como na Austrália
+      gerar: (_rng, config) => nascimentoDaPersona(config),  // DD/MM/AAAA, como na Austrália
     },
     hireDate: {
       rotulo: "Hire date", rotuloKey: "doc_admissao", categoria: "Pessoa",
-      gerar: (rng) => gerarDataAdmissao(rng),
+      gerar: (_rng, config) => admissaoDaPersona(config),
     },
     tfn: {
       rotulo: "TFN", rotuloKey: "doc_tfn", categoria: "Pessoa",

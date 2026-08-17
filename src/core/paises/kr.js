@@ -1,10 +1,9 @@
 // Coreia do Sul — registro de documentos (rótulos em coreano).
 // A UI fica em inglês pelo mesmo motivo do Japão: não há tradução de interface
 // para coreano ainda.
-import { gerarDataAdmissao } from "../documents/datas.js";
-import { criarRng } from "../seed.js";
+import { nascimentoDaPersona, admissaoDaPersona, datasDaPersona } from "../documents/datas.js";
 import {
-  gerarNameKR, gerarRrn, gerarBrn, gerarCorpKr, nascimentoKR,
+  gerarNameKR, gerarRrn, gerarBrn, gerarCorpKr,
   gerarPostalKR, gerarPhoneKR, gerarCompanyKR,
 } from "../documents/kr.js";
 
@@ -18,26 +17,21 @@ export const KR = {
       rotulo: "성명", rotuloKey: "doc_nome", categoria: "Pessoa",
       gerar: (rng) => gerarNameKR(rng),
     },
-    // Sai da MESMA derivação que alimenta o RRN: os seis primeiros dígitos
-    // dele são esta data, e as duas não podem discordar.
     saengnyeonwolil: {
       rotulo: "생년월일", rotuloKey: "doc_nascimento", categoria: "Pessoa",
-      gerar: (_rng, config) => {
-        const { ano, mes, dia } = nascimentoKR(criarRng, config.seed, config.contador);
-        const dd = String(dia).padStart(2, "0");
-        const mm = String(mes).padStart(2, "0");
-        return `${ano}-${mm}-${dd}`;
-      },
+      gerar: (_rng, config) => nascimentoDaPersona(config, "iso"),
     },
     ipsail: {
       rotulo: "입사일", rotuloKey: "doc_admissao", categoria: "Pessoa",
-      gerar: (rng) => gerarDataAdmissao(rng, { formato: "iso" }),
+      gerar: (_rng, config) => admissaoDaPersona(config, "iso"),
     },
     juminDeungnok: {
       rotulo: "주민등록번호", rotuloKey: "doc_rrn", categoria: "Pessoa",
       gerar: (rng, config) => gerarRrn(rng, {
         mascara: config.documentos.mascara,
-        nascimento: nascimentoKR(criarRng, config.seed, config.contador),
+        // Os seis primeiros dígitos do RRN SÃO a data de nascimento: tem que
+        // sair da mesma fonte que o campo acima, senão a persona diz duas idades.
+        nascimento: datasDaPersona(config).nascimento,
       }),
     },
     upyeonBeonho: {
