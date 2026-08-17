@@ -1,5 +1,5 @@
 // Canadá — registro de documentos (rótulos em inglês; a UI acompanha o país).
-import { gerarDataNascimento, gerarDataAdmissao } from "../documents/datas.js";
+import { nascimentoDaPersona, admissaoDaPersona } from "../documents/datas.js";
 import { gerarTelefoneUS } from "../documents/us.js"; // NANP, igual ao dos EUA
 import {
   gerarNomeCA, gerarSin, gerarBn, gerarPostalCA, gerarCompanyNameCA,
@@ -17,11 +17,11 @@ export const CA = {
     },
     dob: {
       rotulo: "Date of birth", rotuloKey: "doc_nascimento", categoria: "Pessoa",
-      gerar: (rng) => gerarDataNascimento(rng, { formato: "iso" }),
+      gerar: (_rng, config) => nascimentoDaPersona(config, "iso"),
     },
     hireDate: {
       rotulo: "Hire date", rotuloKey: "doc_admissao", categoria: "Pessoa",
-      gerar: (rng) => gerarDataAdmissao(rng, { formato: "iso" }),
+      gerar: (_rng, config) => admissaoDaPersona(config, "iso"),
     },
     sin: {
       rotulo: "SIN", rotuloKey: "doc_sin", categoria: "Pessoa",

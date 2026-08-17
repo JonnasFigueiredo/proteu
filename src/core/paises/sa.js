@@ -1,6 +1,6 @@
 // Arábia Saudita — registro de documentos (rótulos em árabe; a UI acompanha o
 // país, e a interface é RTL quando o idioma é árabe).
-import { gerarDataNascimento, gerarDataAdmissao } from "../documents/datas.js";
+import { nascimentoDaPersona, admissaoDaPersona } from "../documents/datas.js";
 import {
   gerarNomeSA, gerarNationalIdSA, gerarCrSA, gerarVatSA, gerarPostalSA,
   gerarTelefoneSA, gerarRazaoSocialSA,
@@ -18,11 +18,11 @@ export const SA = {
     },
     nascimento: {
       rotulo: "تاريخ الميلاد", rotuloKey: "doc_nascimento", categoria: "Pessoa",
-      gerar: (rng) => gerarDataNascimento(rng, { formato: "iso" }),
+      gerar: (_rng, config) => nascimentoDaPersona(config, "iso"),
     },
     admissao: {
       rotulo: "تاريخ التعيين", rotuloKey: "doc_admissao", categoria: "Pessoa",
-      gerar: (rng) => gerarDataAdmissao(rng, { formato: "iso" }),
+      gerar: (_rng, config) => admissaoDaPersona(config, "iso"),
     },
     nationalId: {
       rotulo: "الهوية الوطنية", rotuloKey: "doc_nationalid", categoria: "Pessoa",

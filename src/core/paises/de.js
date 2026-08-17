@@ -1,5 +1,5 @@
 // Alemanha — registro de documentos (rótulos em alemão; a UI acompanha o país).
-import { gerarDataNascimento, gerarDataAdmissao } from "../documents/datas.js";
+import { nascimentoDaPersona, admissaoDaPersona } from "../documents/datas.js";
 import {
   gerarNameDE, gerarSteuerId, gerarUstId, gerarIbanDE, gerarPlz,
   gerarTelefonDE, gerarFirmennameDE,
@@ -17,11 +17,11 @@ export const DE = {
     },
     geburtsdatum: {
       rotulo: "Geburtsdatum", rotuloKey: "doc_nascimento", categoria: "Pessoa",
-      gerar: (rng) => gerarDataNascimento(rng, { formato: "de" }),
+      gerar: (_rng, config) => nascimentoDaPersona(config, "de"),
     },
     eintrittsdatum: {
       rotulo: "Eintrittsdatum", rotuloKey: "doc_admissao", categoria: "Pessoa",
-      gerar: (rng) => gerarDataAdmissao(rng, { formato: "de" }),
+      gerar: (_rng, config) => admissaoDaPersona(config, "de"),
     },
     steuerId: {
       rotulo: "Steuer-IdNr.", rotuloKey: "doc_steuerid", categoria: "Pessoa",

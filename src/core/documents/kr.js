@@ -47,23 +47,6 @@ export function validarRrn(valor) {
   return dvRrn(d.slice(0, 12)) === Number(d[12]);
 }
 
-/**
- * Data de nascimento da persona coreana, derivada de (seed, contador).
- *
- * O RRN carrega a data de nascimento nos seis primeiros dígitos. Se ele e o
- * campo 생년월일 sorteassem cada um a sua, a persona diria duas idades
- * diferentes — e a incoerência apareceria justamente no documento que a QA usa
- * para conferir. Derivar de um rng próprio, fixado pela seed e pelo contador,
- * mantém os dois de acordo sem que um precise enxergar o outro.
- */
-export function nascimentoKR(criarRng, seed, contador) {
-  const r = criarRng(`${seed}:${contador}:kr-nascimento`);
-  const ano = r.inteiro(1960, 2005);
-  const mes = r.inteiro(1, 12);
-  const dia = r.inteiro(1, new Date(ano, mes, 0).getDate());
-  return { ano, mes, dia };
-}
-
 export function gerarRrn(rng, { mascara = false, nascimento = null } = {}) {
   // Sem nascimento fixado (uso avulso), sorteia um que exista.
   const { ano: anoCheio, mes, dia } = nascimento || (() => {

@@ -1,5 +1,5 @@
 // México — registro de documentos (rótulos em espanhol; a UI acompanha o país).
-import { gerarDataNascimento, gerarDataAdmissao } from "../documents/datas.js";
+import { nascimentoDaPersona, admissaoDaPersona } from "../documents/datas.js";
 import {
   gerarNombreMX, gerarCurpMX, gerarRfcMX, gerarRfcMoralMX, gerarNssMX,
   gerarCpMX, gerarTelefonoMX, gerarRazonSocialMX,
@@ -17,11 +17,11 @@ export const MX = {
     },
     nacimiento: {
       rotulo: "Fecha de nacimiento", rotuloKey: "doc_nascimento", categoria: "Pessoa",
-      gerar: (rng) => gerarDataNascimento(rng, { formato: "br" }),
+      gerar: (_rng, config) => nascimentoDaPersona(config, "br"),
     },
     ingreso: {
       rotulo: "Fecha de ingreso", rotuloKey: "doc_admissao", categoria: "Pessoa",
-      gerar: (rng) => gerarDataAdmissao(rng, { formato: "br" }),
+      gerar: (_rng, config) => admissaoDaPersona(config, "br"),
     },
     curp: {
       rotulo: "CURP", rotuloKey: "doc_curp", categoria: "Pessoa",
