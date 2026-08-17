@@ -56,10 +56,25 @@ describe("licença — coerência com o que o projeto declara", () => {
     expect(readme).not.toMatch(/A definir/i);
   });
 
-  it("se a listagem da loja diz 'código é aberto', a licença existe", () => {
-    const pub = ler("PUBLICACAO.md");
-    if (/c[óo]digo\s+(é\s+)?aberto/i.test(pub)) {
-      expect(fs.existsSync(path.join(RAIZ, "LICENSE")), "prometeu aberto sem LICENSE").toBe(true);
+  it("se algum texto público diz 'código aberto', a licença existe", () => {
+    // Antes isto olhava só o PUBLICACAO.md. Ele saiu do projeto, mas a promessa
+    // continua podendo aparecer em qualquer texto que vai para fora — e
+    // prometer abertura sem LICENSE é promessa que não se cumpre.
+    const publicos = ["README.md", "NOTICE"];
+    const pastaDocs = path.join(RAIZ, "docs");
+    if (fs.existsSync(pastaDocs)) {
+      for (const f of fs.readdirSync(pastaDocs)) publicos.push(`docs/${f}`);
+    }
+
+    const prometem = publicos.filter((rel) =>
+      /c[óo]digo\s+(é\s+)?aberto|open[- ]source/i.test(ler(rel))
+    );
+
+    if (prometem.length) {
+      expect(
+        fs.existsSync(path.join(RAIZ, "LICENSE")),
+        `${prometem.join(", ")} prometem código aberto, mas não há LICENSE`
+      ).toBe(true);
     }
   });
 });

@@ -89,11 +89,10 @@ para copiar seletores e atalhos de teclado.
 4. Selecione a pasta raiz do projeto (a que contém o `manifest.json`).
 5. Fixe o ícone do Proteu QA na barra e clique para abrir o popup.
 
-Para gerar o `.zip` da Chrome Web Store ou espelhar a extensão numa pasta
-separada (útil para não recarregar o repositório inteiro a cada mudança):
+Para espelhar a extensão numa pasta separada — útil para carregar no Chrome sem
+apontar para o repositório inteiro:
 
 ```bash
-node empacotar.mjs                 # dist/proteu-qa-<versão>.zip
 node sincronizar.mjs [destino]     # padrão: D:/Projetos/proteu
 ```
 
@@ -241,7 +240,6 @@ reproduzivel/
 │   │   ├── painel.html/.css/.js      # a interface das três abas
 │   │   └── agente.js                 # roda NA página via inspectedWindow.eval
 │   └── popup/                        # popup.html / .css / .js (Vanilla JS, sem framework)
-├── empacotar.mjs                     # gera o .zip da Chrome Web Store (Node puro)
 ├── sincronizar.mjs                   # espelha a extensão para a pasta do "Load unpacked"
 └── tests/                            # Vitest (unitário) + e2e no navegador
     ├── *.test.js                     # espelha src/core + storage + service-worker
@@ -251,9 +249,9 @@ reproduzivel/
                                       #   screenshots.html, preview.html, servir.mjs
 ```
 
-> `empacotar.mjs` e `sincronizar.mjs` compartilham a **mesma lista de arquivos**,
-> travada por teste. Sem isso, a pasta carregada no Chrome pode divergir do que
-> vai para a loja — e aí "testei e funcionou" deixa de significar alguma coisa.
+> `sincronizar.mjs` confere a versão que chegou no destino e falha alto se não
+> bater. A pasta carregada no Chrome já ficou parada numa versão antiga sem
+> ninguém notar, e o sintoma apareceu como bug de interface.
 
 ### Decisões de arquitetura
 
@@ -449,11 +447,6 @@ licença pede o de sempre em Apache: **preservar o aviso de copyright**,
 **declarar as mudanças** que fez nos arquivos alterados e incluir uma cópia da
 licença na distribuição. Ela também concede expressamente os direitos de patente
 dos contribuidores — é o que a diferencia da MIT.
-
-O que a licença **não** cobre é a marca: o nome "Proteu QA" e o ícone não são
-licenciados por ela. Se você redistribuir uma versão
-modificada, use nome e identidade próprios para não confundir quem instala —
-dizer que ela deriva da Proteu QA é permitido e bem-vindo.
 
 O código nunca é ofuscado: cada gerador e cada dígito verificador podem ser
 auditados.

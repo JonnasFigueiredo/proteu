@@ -6,7 +6,7 @@
 // interface ("removi o selo e ele continua na tela") quando na verdade o Chrome
 // nunca tinha recebido o código novo.
 //
-// Por isso aqui: mesma lista de arquivos do empacotar.mjs (uma fonte só), e
+// Por isso aqui: lista explícita do que a extensão carrega, e
 // falha barulhenta com código de saída != 0.
 //
 // Uso: node sincronizar.mjs [destino]      (padrão: D:/Projetos/proteu)
@@ -17,8 +17,8 @@ import path from "node:path";
 const RAIZ = import.meta.dirname;
 const DESTINO = process.argv[2] || "D:/Projetos/proteu";
 
-// Precisa bater com empacotar.mjs: o que o Chrome carrega tem que ser o mesmo
-// que vai para a loja, senão o teste local não vale para o pacote publicado.
+// O que o Chrome carrega tem que ser exatamente o que se distribui, senão
+// testar localmente deixa de valer para o que os outros recebem.
 const INCLUIR = ["manifest.json", "devtools.html", "icons", "src", "LICENSE", "NOTICE"];
 const EXCLUIR = [/\.ps1$/i, /\.md$/i, /(^|\/)gerar-icones\.html$/i];
 
