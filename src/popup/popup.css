@@ -1364,3 +1364,44 @@ input:focus-visible {
 [dir="rtl"] .switch input:checked + .switch__trilho::after { transform: translateX(-14px); }
 /* Valores de caso são sempre LTR (dir="ltr" no elemento), mas ficam à direita
    no fluxo RTL — o unicode-bidi: plaintext preserva a leitura correta. */
+
+/* --- Ação sobre a página (Mapear) ------------------------------------------ */
+.acao-pagina {
+  padding: 0 14px 10px;
+}
+
+.btn-pagina {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-pagina:hover {
+  background: var(--superficie-2);
+}
+
+/* Ligado é um estado da PÁGINA, não do popup: o popup fecha e o modo continua.
+   Sem um estado visível distinto, reabrir o popup não diria se está ativo. */
+.btn-pagina.ativo {
+  color: #fff;
+  background: var(--azul);
+  border-color: var(--azul);
+}
+
+.acao-pagina__ajuda {
+  margin: 6px 2px 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--texto-fraco);
+}

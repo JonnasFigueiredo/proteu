@@ -13,6 +13,9 @@
       <button id="aba-gravador" class="aba" role="tab" aria-selected="false" aria-controls="painel-gravador">
         Gravador
       </button>
+      <button id="aba-mapear" class="aba" role="tab" aria-selected="false" aria-controls="painel-mapear">
+        Mapear
+      </button>
       <span class="crescer"></span>
       <span id="estado-conexao" class="estado">conectando…</span>
     </nav>
@@ -108,6 +111,32 @@
           <pre id="codigo" class="codigo"></pre>
         </div>
       </div>
+    </section>
+
+    <!-- ================= Mapear ================= -->
+    <!-- Mesma lista que o painel flutuante da página: os dois leem e escrevem
+         o mesmo storage, então dá para capturar na página e editar aqui. -->
+    <section id="painel-mapear" class="painel" role="tabpanel" hidden>
+      <div class="barra">
+        <button id="btn-mapear-modo" class="botao gravar" type="button">
+          <span class="ponto"></span> Ligar modo mapear
+        </button>
+        <button id="btn-mapear-limpar" class="botao" type="button">Limpar</button>
+        <span id="mapear-contagem" class="selo neutro">0 elementos</span>
+      </div>
+
+      <div class="barra">
+        <select id="mapear-linguagem" aria-label="Linguagem"></select>
+        <select id="mapear-convencao" aria-label="Padrão do nome"></select>
+        <span class="crescer"></span>
+        <button id="btn-mapear-regerar" class="botao pequeno" type="button"
+                title="Reescreve tudo na linguagem atual, descartando edições">Regerar</button>
+        <button id="btn-mapear-copiar" class="botao pequeno" type="button">Copiar</button>
+        <button id="btn-mapear-baixar" class="botao pequeno" type="button">Baixar</button>
+      </div>
+
+      <textarea id="mapear-rascunho" class="codigo editavel" spellcheck="false"
+        placeholder="Ligue o modo e clique nos elementos da página. As variáveis aparecem aqui — e você pode editar antes de levar para a IDE."></textarea>
     </section>
 
     <div id="aviso" class="aviso" hidden></div>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Proteu QA — modo Mapear (banco de provas)</title>
+<style>
+  body { font: 14px "Segoe UI", system-ui; margin: 0; padding: 24px; background: #f4f6f9; color: #1a1d21; }
+  h1 { font-size: 17px; margin: 0 0 4px; }
+  .nota { color: #667085; font-size: 12px; margin: 0 0 18px; }
+  .cartao { background: #fff; border: 1px solid #e2e6ec; border-radius: 10px; padding: 16px; margin-bottom: 14px; max-width: 620px; }
+  label { display: block; font-size: 12px; color: #667085; margin: 10px 0 3px; }
+  input, select, textarea { width: 100%; padding: 7px 9px; font: inherit; font-size: 13px; border: 1px solid #dbe1ea; border-radius: 6px; box-sizing: border-box; }
+  button { padding: 8px 14px; font: inherit; font-size: 13px; border-radius: 6px; border: 1px solid #dbe1ea; background: #f6f8fb; cursor: pointer; }
+  button.primario { background: #1565c0; color: #fff; border-color: #1565c0; }
+  .barra { display: flex; gap: 8px; margin-bottom: 16px; }
+  .linha-itens { display: flex; gap: 8px; margin-top: 8px; }
+  .item { flex: 1; padding: 8px; background: #eef1f6; border-radius: 6px; text-align: center; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>Banco de provas — modo Mapear</h1>
+<p class="nota">
+  Carrega o content script real com as APIs do Chrome mockadas.
+  Clique em <b>Ligar modo</b> e depois nos elementos abaixo.
+</p>
+
+<div class="barra">
+  <button id="ligar" class="primario" type="button">Ligar modo</button>
+  <button id="estado" type="button">Ver estado</button>
+</div>
+
+<div class="cartao">
+  <h2 style="font-size:14px;margin:0 0 4px">Formulário com boas pistas</h2>
+
+  <label for="email">E-mail</label>
+  <input id="email" name="email" type="email" data-testid="email-login" placeholder="voce@exemplo.com">
+
+  <label for="senha">Senha</label>
+  <input id="senha" name="senha" type="password">
+
+  <label for="uf">Estado</label>
+  <select id="uf" name="uf"><option>SP</option><option>RJ</option></select>
+
+  <label><input type="checkbox" name="lembrar" style="width:auto"> Lembrar de mim</label>
+
+  <div style="margin-top:12px">
+    <button type="button" class="primario" data-testid="entrar">Entrar</button>
+    <button type="button">Cancelar</button>
+  </div>
+</div>
+
+<div class="cartao">
+  <h2 style="font-size:14px;margin:0 0 4px">Casos difíceis</h2>
+  <p style="font-size:12px;color:#667085;margin:0 0 8px">
+    Acentos, id gerado por build e irmãos idênticos — os três que costumam
+    produzir nome ruim.
+  </p>
+
+  <label for="obs">Observações</label>
+  <textarea id="obs" name="observações" rows="2"></textarea>
+
+  <button type="button" id="a3f9c21e" style="margin-top:8px">Salvar alterações</button>
+  <button type="button" class="css-1x2y3z" style="margin-top:8px">Não aplicável</button>
+
+  <!-- Quatro irmãos com a mesma classe: o seletor tem que desambiguar -->
+  <div class="linha-itens">
+    <div class="item">Item A</div>
+    <div class="item">Item B</div>
+    <div class="item">Item C</div>
+    <div class="item">Item D</div>
+  </div>
+</div>
+
+<script>
+// --- Mock do chrome, suficiente para o content script rodar ------------------
+const loja = {};
+const ouvintesStorage = [];
+const ouvintesMsg = [];
+
+window.chrome = {
+  runtime: {
+    // O runner é servido pela mesma raiz do projeto, então caminho relativo serve.
+    getURL: (p) => new URL("/" + p, location.origin).href,
+    onMessage: { addListener: (fn) => ouvintesMsg.push(fn) },
+  },
+  storage: {
+    local: {
+      async get(chave) {
+        return chave in loja ? { [chave]: structuredClone(loja[chave]) } : {};
+      },
+      async set(obj) {
+        const antes = structuredClone(loja);
+        Object.assign(loja, structuredClone(obj));
+        const mudancas = {};
+        for (const k of Object.keys(obj)) {
+          mudancas[k] = { oldValue: antes[k], newValue: loja[k] };
+        }
+        ouvintesStorage.forEach((fn) => fn(mudancas, "local"));
+      },
+    },
+    onChanged: { addListener: (fn) => ouvintesStorage.push(fn) },
+  },
+};
+
+/** Envia mensagem como o popup faria. */
+function enviar(msg) {
+  return new Promise((r) => {
+    for (const fn of ouvintesMsg) {
+      if (fn(msg, {}, r) === true) return;
+    }
+    r(null);
+  });
+}
+
+document.getElementById("ligar").addEventListener("click", async () => {
+  const r = await enviar({ app: "proteu", tipo: "MAPEAR_ALTERNAR" });
+  document.getElementById("ligar").textContent = r && r.ligado ? "Desligar modo" : "Ligar modo";
+});
+
+document.getElementById("estado").addEventListener("click", async () => {
+  const r = await enviar({ app: "proteu", tipo: "MAPEAR_ESTADO" });
+  console.log("estado:", r, "storage:", loja);
+});
+
+// Exposto para o agente de teste inspecionar sem depender do painel.
+window.__provaMapeador = { enviar, loja };
+</script>
+
+<script src="/src/content/mapeador.js"></script>
+</body>
+</html>

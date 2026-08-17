@@ -17,7 +17,8 @@
     {
       "resources": [
         "src/core/seletores.js",
-        "src/content/leitura-dom.js"
+        "src/content/leitura-dom.js",
+        "src/core/mapeador.js"
       ],
       "matches": [
         "<all_urls>"

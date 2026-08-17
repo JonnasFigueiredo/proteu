@@ -8,6 +8,7 @@ import { t } from "../core/i18n.js";
 
 const PREFIXO_MENU = "proteu:sel:";
 const ID_SCRIPT_SELETOR = "proteu-seletor";
+const ID_SCRIPT_MAPEADOR = "proteu-mapeador";
 
 // Padrões pedidos ao usuário, e conferidos depois.
 //
@@ -103,27 +104,37 @@ function reconstruirMenu() {
  * item do menu é clicado, o evento de botão direito já passou, e só quem
  * estava ouvindo antes sabe em qual elemento ele aconteceu.
  */
+// Os dois recursos que precisam estar ouvindo antes do gesto do usuário. O
+// mapeador roda em todos os frames para alcançar elementos dentro de iframe;
+// só o frame de topo desenha o painel (quem decide isso é o próprio script).
+const SCRIPTS = [
+  { id: ID_SCRIPT_SELETOR, arquivo: "src/content/seletor.js" },
+  { id: ID_SCRIPT_MAPEADOR, arquivo: "src/content/mapeador.js" },
+];
+
 async function registrarSeletor() {
   if (!(await temPermissao())) return false;
+  let jaRegistrados = [];
   try {
-    const jaTem = await chrome.scripting.getRegisteredContentScripts({
-      ids: [ID_SCRIPT_SELETOR],
+    jaRegistrados = await chrome.scripting.getRegisteredContentScripts({
+      ids: SCRIPTS.map((s) => s.id),
     });
-    if (jaTem.length) return true;
   } catch {
     // Nada registrado ainda: segue para o registro.
   }
+  const faltando = SCRIPTS.filter((s) => !jaRegistrados.some((r) => r.id === s.id));
+  if (!faltando.length) return true;
   try {
-    await chrome.scripting.registerContentScripts([
-      {
-        id: ID_SCRIPT_SELETOR,
-        js: ["src/content/seletor.js"],
+    await chrome.scripting.registerContentScripts(
+      faltando.map((s) => ({
+        id: s.id,
+        js: [s.arquivo],
         matches: ORIGENS,
         allFrames: true,
         runAt: "document_idle",
         persistAcrossSessions: true,
-      },
-    ]);
+      }))
+    );
     return true;
   } catch (e) {
     console.warn("Proteu QA: não foi possível registrar o content script:", e.message);
@@ -133,7 +144,7 @@ async function registrarSeletor() {
 
 async function desregistrarSeletor() {
   try {
-    await chrome.scripting.unregisterContentScripts({ ids: [ID_SCRIPT_SELETOR] });
+    await chrome.scripting.unregisterContentScripts({ ids: SCRIPTS.map((s) => s.id) });
   } catch {
     // Já não estava registrado.
   }
@@ -158,7 +169,7 @@ async function injetarNasAbasAbertas() {
     try {
       await chrome.scripting.executeScript({
         target: { tabId: aba.id, allFrames: true },
-        files: ["src/content/seletor.js"],
+        files: SCRIPTS.map((s) => s.arquivo),
       });
     } catch {
       // Página privilegiada ou sem permissão: segue para a próxima.

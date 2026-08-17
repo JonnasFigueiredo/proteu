@@ -84,6 +84,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   ligarEventos();
   await aoNovaPersona(); // a aba Persona já abre com uma pessoa pronta
   await detectarCampo();
+  await sincronizarBotaoMapear(); // o modo pode ter ficado ligado na página
 });
 
 // Marcadores visuais para caracteres invisíveis (só na exibição; o valor
@@ -596,6 +597,7 @@ function ligarEventos() {
     atualizarConfig((c) => (c.insercao.modo = e.target.value))
   );
 
+  $("#btn-mapear").addEventListener("click", aoAlternarMapear);
   $("#campo-seed").addEventListener("change", aoMudarSeed);
   // Enviar a referência para um colega é o uso principal deste campo, e ele é
   // curto: selecionar tudo ao focar deixa o Ctrl+C a uma tecla de distância.
@@ -1385,4 +1387,66 @@ function limparFeedback() {
   clearTimeout(timerToast);
   el.textContent = "";
   el.hidden = true;
+}
+
+// --- Modo Mapear ------------------------------------------------------------
+//
+// Age sobre a página, não sobre o popup: o popup fecha assim que a QA volta a
+// clicar na tela, e o modo precisa continuar ligado. Por isso o estado mora no
+// content script, e o botão só pergunta como está quando o popup reabre.
+
+/** Aba ativa, ou null se for página privilegiada onde não dá para injetar. */
+async function abaMapeavel() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !tab.id || !tab.url || !/^https?:/.test(tab.url)) return null;
+  return tab;
+}
+
+/** Pinta o botão conforme o modo esteja ligado na página. */
+function refletirMapear(ligado) {
+  const btn = $("#btn-mapear");
+  if (!btn) return;
+  btn.classList.toggle("ativo", !!ligado);
+  const rot = btn.querySelector("span");
+  if (rot) rot.textContent = t(idiomaAtual, ligado ? "mapear_ativo" : "mapear_ligar");
+}
+
+async function sincronizarBotaoMapear() {
+  const tab = await abaMapeavel();
+  if (!tab) return refletirMapear(false);
+  const r = await chrome.tabs
+    .sendMessage(tab.id, { app: "proteu", tipo: "MAPEAR_ESTADO" })
+    .catch(() => null);
+  refletirMapear(r && r.ligado);
+}
+
+async function aoAlternarMapear() {
+  const tab = await abaMapeavel();
+  if (!tab) {
+    mostrarFeedback(t(idiomaAtual, "fb_pagina_bloqueada"), "erro");
+    return;
+  }
+
+  // Sem acesso de host o content script nem foi registrado: a mensagem não
+  // chegaria a lugar nenhum, e o botão pareceria quebrado. Dizer o que falta é
+  // melhor do que um clique que não faz nada.
+  const temPermissao = await chrome.permissions.contains(PERMISSAO_SELETOR);
+  if (!temPermissao) {
+    mostrarFeedback(t(idiomaAtual, "mapear_sem_permissao"), "erro");
+    $("#aviso-seletor").hidden = false;
+    return;
+  }
+
+  const r = await chrome.tabs
+    .sendMessage(tab.id, { app: "proteu", tipo: "MAPEAR_ALTERNAR" })
+    .catch(() => null);
+
+  if (!r) {
+    // Página aberta antes de a permissão existir: o script ainda não está lá.
+    mostrarFeedback(t(idiomaAtual, "fb_pagina_bloqueada"), "erro");
+    return;
+  }
+  refletirMapear(r.ligado);
+  // Ligado, o trabalho é na página: manter o popup aberto só atrapalharia.
+  if (r.ligado) window.close();
 }
