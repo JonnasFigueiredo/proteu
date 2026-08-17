@@ -343,3 +343,22 @@ body {
   border-top: 1px solid var(--borda);
   font-weight: 600;
 }
+
+/* Rascunho do Mapear: é um <textarea>, não um <pre>. A QA edita antes de levar
+   para a IDE, então precisa aceitar digitação e manter a fonte monoespaçada. */
+.codigo.editavel {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  box-sizing: border-box;
+  tab-size: 2;
+}
+
+.codigo.editavel:focus {
+  outline: 2px solid var(--azul);
+  outline-offset: -1px;
+}
+
+#painel-mapear select {
+  min-width: 150px;
+}

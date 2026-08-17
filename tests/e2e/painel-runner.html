@@ -120,6 +120,30 @@
           },
           network: { onNavigated: { addListener: () => {} } },
         },
+        // A aba Mapear guarda a lista em storage — é o ponto de encontro com o
+        // painel flutuante da página. Sem o dublê, a aba não montava aqui.
+        storage: (() => {
+          const loja = {};
+          const ouvintes = [];
+          return {
+            local: {
+              async get(chave) {
+                return chave in loja ? { [chave]: structuredClone(loja[chave]) } : {};
+              },
+              async set(obj) {
+                const antes = structuredClone(loja);
+                Object.assign(loja, structuredClone(obj));
+                const mudancas = {};
+                for (const k of Object.keys(obj)) {
+                  mudancas[k] = { oldValue: antes[k], newValue: loja[k] };
+                }
+                ouvintes.forEach((fn) => fn(mudancas, "local"));
+              },
+            },
+            onChanged: { addListener: (fn) => ouvintes.push(fn) },
+          };
+        })(),
+        tabs: { sendMessage: async () => null }, // sem página real do outro lado
       };
 
       // --- Monta o painel dentro do iframe -------------------------------------

@@ -1,0 +1,583 @@
+// Modo Mapear — clicar nos elementos da página e levar embora as variáveis.
+//
+// O gravador responde "como reproduzo este fluxo?". Aqui a pergunta é anterior:
+// "quais elementos desta tela eu vou automatizar, e como vou chamá-los?". A QA
+// liga o modo, clica nos campos que interessam e o bloco de notas ao lado vai
+// crescendo — pronto para colar na IDE.
+//
+// O painel vive num shadow root fechado: a página não o alcança pelo CSS nem
+// pelos seletores dela, e ele não aparece no que a própria QA está mapeando.
+//
+// Estado compartilhado com o painel do DevTools via chrome.storage.local. Os
+// dois rodam em mundos JS diferentes (isolated world vs. página), então
+// storage é o único ponto de encontro possível sem passar pelo background.
+
+(() => {
+  if (window.__proteuMapeador) return;
+
+  const CHAVE = "mapeamento";
+  const ID_PAINEL = "proteu-mapeador-raiz";
+
+  let ligado = false;
+  let painel = null; // { host, raiz, elementos... }
+  let motorPromessa = null;
+
+  // Espelho local do que está no storage. O storage continua sendo a verdade;
+  // isto evita reler a cada clique. Os padrões saem do core (não escritos aqui
+  // à mão) para que trocar o padrão lá valha nas duas telas de uma vez.
+  let estado = {
+    elementos: [],
+    linguagem: null, // preenchido com LINGUAGEM_PADRAO quando o motor carrega
+    convencao: null,
+    rascunho: "",
+  };
+
+  /** Garante que estado.linguagem/convencao existem, usando o padrão do core. */
+  async function garantirPadroes() {
+    const m = await carregarMotor();
+    if (!estado.linguagem) estado.linguagem = m.LINGUAGEM_PADRAO;
+    if (!estado.convencao) {
+      estado.convencao = m.CONVENCAO_PADRAO[estado.linguagem] || "camelCase";
+    }
+    return m;
+  }
+
+  function carregarMotor() {
+    if (!motorPromessa) {
+      motorPromessa = Promise.all([
+        import(chrome.runtime.getURL("src/core/seletores.js")),
+        import(chrome.runtime.getURL("src/content/leitura-dom.js")),
+        import(chrome.runtime.getURL("src/core/mapeador.js")),
+      ]).then(([sel, dom, map]) => ({ ...sel, ...dom, ...map }));
+    }
+    return motorPromessa;
+  }
+
+  // --- Estado compartilhado ---------------------------------------------------
+
+  async function lerEstado() {
+    try {
+      const d = await chrome.storage.local.get(CHAVE);
+      if (d && d[CHAVE]) estado = { ...estado, ...d[CHAVE] };
+    } catch {
+      // Sem storage (contexto invalidado): segue com o espelho em memória.
+    }
+    return estado;
+  }
+
+  async function gravarEstado() {
+    try {
+      await chrome.storage.local.set({ [CHAVE]: estado });
+    } catch {
+      // A extensão foi recarregada com a página aberta. O painel continua
+      // funcionando; só não espelha mais no DevTools.
+    }
+  }
+
+  // --- Captura ----------------------------------------------------------------
+
+  /** O elemento faz parte do próprio painel? Então não é alvo de captura. */
+  function ehDoPainel(el) {
+    if (!painel || !el) return false;
+    return el === painel.host || painel.host.contains(el);
+  }
+
+  /**
+   * Analisa o elemento e devolve o registro que vira uma linha do rascunho.
+   *
+   * A contagem acontece agora, com a página no estado em que a QA a vê: um
+   * localizador ambíguo precisa ser marcado enquanto ela ainda pode conferir.
+   */
+  async function analisar(el) {
+    const m = await carregarMotor();
+    const ctx = m.contextoDe(el);
+    const candidatos = m.gerarCandidatos(ctx);
+    const contagens = m.contarCandidatos(candidatos, ctx.caminhoShadow, ctx.caminhoFrame);
+    const classificados = m.classificar(candidatos, contagens);
+    const melhor = classificados.find((c) => c.unico) || classificados[0];
+    if (!melhor) return null;
+    return {
+      no: ctx.cadeia[0],
+      seletor: { valor: melhor.valor, sintaxe: melhor.sintaxe },
+      matches: typeof melhor.matches === "number" ? melhor.matches : 1,
+      resumo: m.resumir(ctx.cadeia[0]),
+      em: Date.now(),
+    };
+  }
+
+  async function capturar(el) {
+    await garantirPadroes(); // captura em iframe pode acontecer sem painel
+    const registro = await analisar(el);
+    if (!registro) {
+      piscar(el, "#c62828");
+      return;
+    }
+    estado.elementos.push(registro);
+
+    // Acrescenta ao rascunho em vez de reescrever: o texto é da QA, e ela pode
+    // já ter editado o que está lá em cima. Reescrever tudo a cada clique
+    // apagaria o trabalho dela sem aviso.
+    const m = await carregarMotor();
+    const linha = m.gerarRascunho([registro], estado.linguagem, estado.convencao);
+    // Renomeia se o nome já existir no rascunho — a numeração precisa olhar o
+    // texto real, que é o que a QA vai colar, e não só a lista interna.
+    estado.rascunho = juntarLinha(estado.rascunho, linha);
+
+    await gravarEstado();
+    renderizar();
+    piscar(el, "#2e7d32");
+  }
+
+  /**
+   * Junta a linha nova ao rascunho, numerando se o nome colidir.
+   *
+   * A desambiguação do core olha a lista inteira de uma vez; aqui as linhas
+   * chegam uma a uma e o texto pode ter sido editado à mão. Conferir contra o
+   * que está escrito evita entregar duas variáveis com o mesmo nome — que na
+   * IDE é erro de compilação, não um detalhe estético.
+   */
+  function juntarLinha(rascunho, linha) {
+    const nome = nomeDaLinha(linha);
+    if (!nome) return rascunho ? `${rascunho}\n${linha}` : linha;
+
+    const existentes = new Set(
+      rascunho.split("\n").map(nomeDaLinha).filter(Boolean)
+    );
+    let final = linha;
+    if (existentes.has(nome)) {
+      let i = 2;
+      while (existentes.has(sufixar(nome, i))) i++;
+      final = linha.replace(nome, sufixar(nome, i));
+    }
+    return rascunho ? `${rascunho}\n${final}` : final;
+  }
+
+  function sufixar(nome, i) {
+    if (nome.includes("_")) return `${nome}_${i}`;
+    if (nome.includes("-")) return `${nome}-${i}`;
+    return `${nome}${i}`;
+  }
+
+  /** Extrai o identificador declarado numa linha, seja qual for a linguagem. */
+  function nomeDaLinha(linha) {
+    const t = String(linha || "").trim();
+    if (!t) return null;
+    const padroes = [
+      /^\$\{([^}]+)\}/,                       // Robot Framework
+      /^(?:private\s+(?:final|readonly)\s+By\s+)([A-Za-z_$][\w$]*)/, // Java / C#
+      /^(?:const|let|var)\s+([A-Za-z_$][\w$]*)/, // JS / TS
+      /^([A-Za-z_$][\w$]*)\s*(?::\s*\w+)?\s*=/,  // Python / texto
+    ];
+    for (const p of padroes) {
+      const m = t.match(p);
+      if (m) return m[1];
+    }
+    return null;
+  }
+
+  // --- Realce -----------------------------------------------------------------
+
+  let caixaRealce = null;
+  function realcar(el) {
+    if (!caixaRealce) {
+      caixaRealce = document.createElement("div");
+      Object.assign(caixaRealce.style, {
+        position: "fixed", pointerEvents: "none", zIndex: "2147483646",
+        border: "2px solid #1565c0", background: "rgba(21,101,192,.12)",
+        borderRadius: "2px", transition: "all .05s linear",
+      });
+      document.documentElement.appendChild(caixaRealce);
+    }
+    const r = el.getBoundingClientRect();
+    Object.assign(caixaRealce.style, {
+      display: "block",
+      top: `${r.top}px`, left: `${r.left}px`,
+      width: `${r.width}px`, height: `${r.height}px`,
+    });
+  }
+
+  function limparRealce() {
+    if (caixaRealce) caixaRealce.style.display = "none";
+  }
+
+  /** Confirmação visual do clique: verde capturou, vermelho não deu. */
+  function piscar(el, cor) {
+    const r = el.getBoundingClientRect();
+    const flash = document.createElement("div");
+    Object.assign(flash.style, {
+      position: "fixed", pointerEvents: "none", zIndex: "2147483646",
+      top: `${r.top}px`, left: `${r.left}px`,
+      width: `${r.width}px`, height: `${r.height}px`,
+      background: cor, opacity: "0.35",
+      transition: "opacity .4s ease-out",
+    });
+    document.documentElement.appendChild(flash);
+    requestAnimationFrame(() => { flash.style.opacity = "0"; });
+    setTimeout(() => flash.remove(), 450);
+  }
+
+  // --- Eventos da página ------------------------------------------------------
+
+  function aoMover(ev) {
+    if (!ligado) return;
+    const el = alvoReal(ev);
+    if (!el || ehDoPainel(el)) return limparRealce();
+    realcar(el);
+  }
+
+  function aoClicar(ev) {
+    if (!ligado) return;
+    const el = alvoReal(ev);
+    if (!el || ehDoPainel(el)) return; // cliques no painel são do painel
+    // A página não pode reagir: mapear um botão de "excluir" não deveria
+    // excluir nada, e seguir um link tiraria a QA da tela que ela mapeia.
+    ev.preventDefault();
+    ev.stopPropagation();
+    ev.stopImmediatePropagation();
+    capturar(el);
+  }
+
+  /** Pega o elemento real mesmo dentro de shadow root aberto. */
+  function alvoReal(ev) {
+    const caminho = ev.composedPath ? ev.composedPath() : [];
+    const el = caminho.length ? caminho[0] : ev.target;
+    return el && el.nodeType === 1 ? el : null;
+  }
+
+  function aoTeclar(ev) {
+    if (ligado && ev.key === "Escape") {
+      ev.preventDefault();
+      desligar();
+    }
+  }
+
+  const ouvintes = [
+    ["mousemove", aoMover, true],
+    ["click", aoClicar, true],
+    ["mousedown", bloquear, true],
+    ["mouseup", bloquear, true],
+    ["keydown", aoTeclar, true],
+  ];
+
+  /** Segura mousedown/mouseup para a página não iniciar arrasto nem foco. */
+  function bloquear(ev) {
+    if (!ligado) return;
+    const el = alvoReal(ev);
+    if (!el || ehDoPainel(el)) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
+
+  function instalarOuvintes() {
+    for (const [nome, fn, captura] of ouvintes) {
+      document.addEventListener(nome, fn, captura);
+    }
+  }
+
+  function removerOuvintes() {
+    for (const [nome, fn, captura] of ouvintes) {
+      document.removeEventListener(nome, fn, captura);
+    }
+  }
+
+  // --- Painel -----------------------------------------------------------------
+
+  const CSS_PAINEL = `
+    :host { all: initial; }
+    * { box-sizing: border-box; font-family: "Segoe UI", system-ui, sans-serif; }
+    .caixa {
+      position: fixed; top: 16px; right: 16px; width: 380px;
+      max-height: calc(100vh - 32px); display: flex; flex-direction: column;
+      background: #1b1f24; color: #e6e6e6; border: 1px solid #333a42;
+      border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.45);
+      z-index: 2147483647; font-size: 13px;
+    }
+    .cab {
+      display: flex; align-items: center; gap: 8px; padding: 9px 10px;
+      border-bottom: 1px solid #333a42; cursor: move; user-select: none;
+    }
+    .titulo { font-weight: 600; font-size: 13px; }
+    .contagem {
+      font-size: 11px; color: #9aa4af; background: #262c33;
+      padding: 2px 7px; border-radius: 100px;
+    }
+    .crescer { flex: 1; }
+    .icone {
+      background: none; border: 0; color: #9aa4af; cursor: pointer;
+      font-size: 16px; line-height: 1; padding: 2px 6px; border-radius: 5px;
+    }
+    .icone:hover { background: #2b323a; color: #e6e6e6; }
+    .corpo { padding: 9px 10px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+    .linha { display: flex; gap: 6px; }
+    select {
+      flex: 1; min-width: 0; padding: 5px 6px; font-size: 12px;
+      background: #262c33; color: #e6e6e6; border: 1px solid #3a424b;
+      border-radius: 6px;
+    }
+    textarea {
+      width: 100%; min-height: 190px; resize: vertical; padding: 8px;
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: 12px; line-height: 1.5; color: #e6e6e6;
+      background: #12161a; border: 1px solid #3a424b; border-radius: 6px;
+      white-space: pre; overflow: auto;
+    }
+    textarea:focus { outline: 2px solid #1565c0; outline-offset: -1px; }
+    .acoes { display: flex; gap: 6px; }
+    button.botao {
+      flex: 1; padding: 6px 8px; font-size: 12px; cursor: pointer;
+      background: #262c33; color: #e6e6e6; border: 1px solid #3a424b;
+      border-radius: 6px;
+    }
+    button.botao:hover { background: #2f363f; }
+    button.botao.primario { background: #1565c0; border-color: #1565c0; color: #fff; }
+    button.botao.primario:hover { background: #1a6fd0; }
+    .dica { font-size: 11px; color: #7f8a95; line-height: 1.4; }
+    .recolhido .corpo { display: none; }
+  `;
+
+  function criarPainel() {
+    const host = document.createElement("div");
+    host.id = ID_PAINEL;
+    // Fechado: nem a página nem o que a QA está mapeando enxergam dentro.
+    const raiz = host.attachShadow({ mode: "closed" });
+
+    const estilo = document.createElement("style");
+    estilo.textContent = CSS_PAINEL;
+
+    const caixa = document.createElement("div");
+    caixa.className = "caixa";
+    caixa.innerHTML = `
+      <div class="cab" data-arrastar>
+        <span class="titulo">Proteu QA · Mapear</span>
+        <span class="contagem" data-contagem>0</span>
+        <span class="crescer"></span>
+        <button class="icone" data-recolher title="Recolher">–</button>
+        <button class="icone" data-fechar title="Sair do modo mapear (Esc)">×</button>
+      </div>
+      <div class="corpo">
+        <div class="linha">
+          <select data-linguagem aria-label="Linguagem"></select>
+          <select data-convencao aria-label="Padrão do nome"></select>
+        </div>
+        <textarea data-rascunho spellcheck="false"
+          placeholder="Clique nos elementos da página. As variáveis aparecem aqui — e você pode editar à vontade."></textarea>
+        <div class="acoes">
+          <button class="botao primario" data-copiar>Copiar</button>
+          <button class="botao" data-regerar title="Reescreve tudo na linguagem atual, descartando edições">Regerar</button>
+          <button class="botao" data-limpar>Limpar</button>
+        </div>
+        <div class="dica">Esc sai do modo. O texto é seu: edite antes de levar para a IDE.</div>
+      </div>
+    `;
+    raiz.append(estilo, caixa);
+    document.documentElement.appendChild(host);
+
+    painel = {
+      host, raiz, caixa,
+      contagem: caixa.querySelector("[data-contagem]"),
+      linguagem: caixa.querySelector("[data-linguagem]"),
+      convencao: caixa.querySelector("[data-convencao]"),
+      rascunho: caixa.querySelector("[data-rascunho]"),
+      pronto: false, // as listas de opção ainda não existem
+    };
+
+    return ligarPainel(caixa).then(() => painel);
+  }
+
+  async function ligarPainel(caixa) {
+    const m = await garantirPadroes();
+
+    for (const l of m.LINGUAGENS) {
+      const o = document.createElement("option");
+      o.value = l.id;
+      o.textContent = l.rotulo;
+      painel.linguagem.appendChild(o);
+    }
+    for (const c of m.CONVENCOES) {
+      const o = document.createElement("option");
+      o.value = c.id;
+      o.textContent = c.rotulo;
+      painel.convencao.appendChild(o);
+    }
+    painel.linguagem.value = estado.linguagem;
+    painel.convencao.value = estado.convencao;
+    // Só a partir daqui os <select> têm opções e valem como fonte de verdade.
+    // Antes disso, escrever neles é no-op e LER deles devolveria a primeira
+    // opção da lista — foi assim que a linguagem escolhida virou "Java" sozinha.
+    painel.pronto = true;
+
+    painel.linguagem.addEventListener("change", async () => {
+      estado.linguagem = painel.linguagem.value;
+      // A convenção acompanha a linguagem, senão Python abriria em camelCase.
+      estado.convencao = m.CONVENCAO_PADRAO[estado.linguagem] || estado.convencao;
+      painel.convencao.value = estado.convencao;
+      await gravarEstado();
+    });
+
+    painel.convencao.addEventListener("change", async () => {
+      estado.convencao = painel.convencao.value;
+      await gravarEstado();
+    });
+
+    // O texto é da QA: o que ela digita é o que vale, inclusive para o DevTools.
+    painel.rascunho.addEventListener("input", () => {
+      estado.rascunho = painel.rascunho.value;
+      gravarEstado();
+    });
+
+    caixa.querySelector("[data-copiar]").addEventListener("click", async () => {
+      const btn = caixa.querySelector("[data-copiar]");
+      const ok = await copiar(painel.rascunho.value);
+      btn.textContent = ok ? "Copiado" : "Falhou";
+      setTimeout(() => { btn.textContent = "Copiar"; }, 1200);
+    });
+
+    // Regerar é destrutivo e por isso é botão, não efeito colateral de trocar a
+    // linguagem: quem editou o rascunho não pode perdê-lo sem ter pedido.
+    caixa.querySelector("[data-regerar]").addEventListener("click", async () => {
+      estado.rascunho = m.gerarRascunho(estado.elementos, estado.linguagem, estado.convencao);
+      await gravarEstado();
+      renderizar();
+    });
+
+    caixa.querySelector("[data-limpar]").addEventListener("click", async () => {
+      estado.elementos = [];
+      estado.rascunho = "";
+      await gravarEstado();
+      renderizar();
+    });
+
+    caixa.querySelector("[data-fechar]").addEventListener("click", desligar);
+    caixa.querySelector("[data-recolher]").addEventListener("click", () => {
+      caixa.classList.toggle("recolhido");
+    });
+
+    arrastavel(caixa, caixa.querySelector("[data-arrastar]"));
+    renderizar();
+  }
+
+  /** Deixa o painel ser arrastado: ele pode estar cobrindo o que a QA quer clicar. */
+  function arrastavel(caixa, punho) {
+    let dx = 0, dy = 0, arrastando = false;
+    punho.addEventListener("mousedown", (ev) => {
+      if (ev.target.closest("button")) return;
+      arrastando = true;
+      const r = caixa.getBoundingClientRect();
+      dx = ev.clientX - r.left;
+      dy = ev.clientY - r.top;
+      ev.preventDefault();
+      ev.stopPropagation();
+    });
+    document.addEventListener("mousemove", (ev) => {
+      if (!arrastando) return;
+      caixa.style.left = `${ev.clientX - dx}px`;
+      caixa.style.top = `${ev.clientY - dy}px`;
+      caixa.style.right = "auto";
+    }, true);
+    document.addEventListener("mouseup", () => { arrastando = false; }, true);
+  }
+
+  function renderizar() {
+    if (!painel) return;
+    painel.contagem.textContent = String(estado.elementos.length);
+    // Não sobrescreve enquanto a QA digita: o cursor saltaria para o fim.
+    if (painel.rascunho !== document.activeElement &&
+        painel.rascunho.value !== estado.rascunho) {
+      painel.rascunho.value = estado.rascunho;
+      painel.rascunho.scrollTop = painel.rascunho.scrollHeight;
+    }
+  }
+
+  async function copiar(texto) {
+    try {
+      await navigator.clipboard.writeText(texto);
+      return true;
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = texto;
+      Object.assign(ta.style, { position: "fixed", top: "-1000px", opacity: "0" });
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch { ok = false; }
+      ta.remove();
+      return ok;
+    }
+  }
+
+  // --- Liga / desliga ---------------------------------------------------------
+
+  // Só o frame de topo desenha o painel. O script roda em todos os frames para
+  // alcançar elementos dentro de iframe; se cada um criasse o seu, a QA veria
+  // um bloco de notas por frame, todos mostrando a mesma lista.
+  const ehTopo = (() => {
+    try {
+      return window.top === window;
+    } catch {
+      return false; // iframe de outra origem: não é o topo
+    }
+  })();
+
+  async function ligar() {
+    if (ligado) return true;
+    await lerEstado();
+    await garantirPadroes();
+    if (ehTopo) {
+      // Espera o painel ficar utilizável ANTES de aceitar cliques. Sem isso a
+      // QA capturava enquanto os <select> ainda estavam vazios, e a linguagem
+      // exibida passava a discordar da que gerou as linhas.
+      if (!painel) await criarPainel();
+      else painel.host.style.display = "";
+    }
+    ligado = true;
+    instalarOuvintes();
+    document.documentElement.style.cursor = "crosshair";
+    renderizar();
+    return true;
+  }
+
+  function desligar() {
+    if (!ligado) return false;
+    ligado = false;
+    removerOuvintes();
+    limparRealce();
+    document.documentElement.style.cursor = "";
+    if (painel) painel.host.style.display = "none";
+    return false;
+  }
+
+  // Mudança vinda do painel do DevTools: os dois mostram a mesma lista.
+  chrome.storage.onChanged.addListener((mudancas, area) => {
+    if (area !== "local" || !mudancas[CHAVE]) return;
+    const novo = mudancas[CHAVE].newValue;
+    if (!novo) return;
+    estado = { ...estado, ...novo };
+    // Antes de `pronto` os selects estão vazios: escrever neles não faz nada e
+    // deixaria a lista exibindo a primeira opção, que não é a escolhida.
+    if (painel && painel.pronto) {
+      painel.linguagem.value = estado.linguagem;
+      painel.convencao.value = estado.convencao;
+    }
+    renderizar();
+  });
+
+  chrome.runtime.onMessage.addListener((msg, _remetente, responder) => {
+    if (!msg || msg.app !== "proteu") return false;
+
+    if (msg.tipo === "MAPEAR_ALTERNAR") {
+      (ligado ? Promise.resolve(desligar()) : ligar())
+        .then((v) => responder({ ligado: !!v }))
+        .catch((e) => responder({ ligado: false, erro: e.message }));
+      return true;
+    }
+
+    if (msg.tipo === "MAPEAR_ESTADO") {
+      responder({ ligado, quantos: estado.elementos.length });
+      return true;
+    }
+
+    return false;
+  });
+
+  window.__proteuMapeador = true;
+})();

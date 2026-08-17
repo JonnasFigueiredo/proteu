@@ -58,6 +58,18 @@
       <ul id="diagnostico-seletor" class="diagnostico"></ul>
     </section>
 
+    <!-- Vale para a página inteira, não para uma aba do popup: fica aqui fora,
+         junto do outro recurso que também age sobre a página. -->
+    <section class="acao-pagina">
+      <button id="btn-mapear" class="btn-pagina" type="button">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path d="M17.5 17.5v3M16 19h3"/></svg>
+        <span data-i18n="mapear_ligar">Mapear elementos</span>
+      </button>
+      <p class="acao-pagina__ajuda" data-i18n="mapear_ajuda">
+        Clique nos elementos da página e leve as variáveis prontas para a IDE.
+      </p>
+    </section>
+
     <section id="secao-campo" class="banner-campo" hidden>
       <div class="banner-campo__cab">
         <span class="banner-campo__rot" data-i18n="campo_detectado">Campo detectado</span>

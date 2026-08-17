@@ -1,4 +1,4 @@
-// Painel do DevTools — abas Inspecionar e Gravador.
+// Painel do DevTools — abas Inspecionar, Gravador e Mapear.
 //
 // O painel não toca no DOM da página: tudo passa por
 // chrome.devtools.inspectedWindow.eval(), que é o que permite este recurso
@@ -399,15 +399,18 @@ function baixarCodigo() {
 
 // --- Abas ----------------------------------------------------------------------
 
+// Uma entrada por aba. Era um par de toggles booleanos, que não sobreviveu à
+// terceira aba: com N nomes, cada aba nova exigiria mexer em todas as linhas.
+const ABAS = ["inspecionar", "gravador", "mapear"];
+
 function trocarAba(nome) {
   estado.aba = nome;
-  const ehInspecionar = nome === "inspecionar";
-  $("#aba-inspecionar").classList.toggle("ativa", ehInspecionar);
-  $("#aba-gravador").classList.toggle("ativa", !ehInspecionar);
-  $("#aba-inspecionar").setAttribute("aria-selected", String(ehInspecionar));
-  $("#aba-gravador").setAttribute("aria-selected", String(!ehInspecionar));
-  $("#painel-inspecionar").hidden = !ehInspecionar;
-  $("#painel-gravador").hidden = ehInspecionar;
+  for (const a of ABAS) {
+    const ativa = a === nome;
+    $(`#aba-${a}`).classList.toggle("ativa", ativa);
+    $(`#aba-${a}`).setAttribute("aria-selected", String(ativa));
+    $(`#painel-${a}`).hidden = !ativa;
+  }
 }
 
 // --- Início ---------------------------------------------------------------------
@@ -430,6 +433,15 @@ function montarFormatos() {
 function ligarEventos() {
   $("#aba-inspecionar").addEventListener("click", () => trocarAba("inspecionar"));
   $("#aba-gravador").addEventListener("click", () => trocarAba("gravador"));
+  $("#aba-mapear").addEventListener("click", () => trocarAba("mapear"));
+  // Falhar aqui não pode derrubar Inspecionar e Gravador: são recursos
+  // independentes, e uma promise rejeitada e solta deixaria a aba Mapear morta
+  // sem dizer por quê.
+  ligarMapear().catch((e) => {
+    $("#mapear-rascunho").placeholder =
+      `Mapear indisponível nesta página: ${e.message}`;
+    $("#btn-mapear-modo").disabled = true;
+  });
 
   $("#btn-mira").addEventListener("click", alternarMira);
   $("#campo-teste").addEventListener("input", aoTestarSeletor);
@@ -502,3 +514,122 @@ async function iniciar() {
 window.addEventListener("unload", () => clearInterval(laco));
 
 iniciar();
+
+// --- Mapear ------------------------------------------------------------------
+//
+// A captura acontece no content script da página; aqui é só a outra janela
+// para a mesma lista. Os dois trocam estado por chrome.storage.local porque
+// rodam em mundos JS diferentes — o painel é uma página de extensão e o
+// content script vive na aba inspecionada.
+
+const CHAVE_MAPEAMENTO = "mapeamento";
+
+let mapa = { elementos: [], linguagem: null, convencao: null, rascunho: "" };
+
+async function ligarMapear() {
+  const { LINGUAGENS, CONVENCOES, CONVENCAO_PADRAO, LINGUAGEM_PADRAO, gerarRascunho,
+          nomeArquivoRascunho } = await import("../core/mapeador.js");
+
+  for (const l of LINGUAGENS) {
+    const o = document.createElement("option");
+    o.value = l.id;
+    o.textContent = l.rotulo;
+    $("#mapear-linguagem").appendChild(o);
+  }
+  for (const c of CONVENCOES) {
+    const o = document.createElement("option");
+    o.value = c.id;
+    o.textContent = c.rotulo;
+    $("#mapear-convencao").appendChild(o);
+  }
+
+  const gravar = () => chrome.storage.local.set({ [CHAVE_MAPEAMENTO]: mapa });
+
+  function refletir() {
+    $("#mapear-contagem").textContent = `${mapa.elementos.length} elementos`;
+    $("#mapear-linguagem").value = mapa.linguagem;
+    $("#mapear-convencao").value = mapa.convencao;
+    // Não sobrescreve enquanto se digita: o cursor saltaria para o fim.
+    const ta = $("#mapear-rascunho");
+    if (document.activeElement !== ta && ta.value !== mapa.rascunho) {
+      ta.value = mapa.rascunho;
+    }
+  }
+
+  const dados = await chrome.storage.local.get(CHAVE_MAPEAMENTO);
+  mapa = { ...mapa, ...(dados[CHAVE_MAPEAMENTO] || {}) };
+  mapa.linguagem = mapa.linguagem || LINGUAGEM_PADRAO;
+  mapa.convencao = mapa.convencao || CONVENCAO_PADRAO[mapa.linguagem] || "camelCase";
+  refletir();
+
+  // Capturou na página → aparece aqui sem precisar reabrir a aba.
+  chrome.storage.onChanged.addListener((mudancas, area) => {
+    if (area !== "local" || !mudancas[CHAVE_MAPEAMENTO]) return;
+    const novo = mudancas[CHAVE_MAPEAMENTO].newValue;
+    if (!novo) return;
+    mapa = { ...mapa, ...novo };
+    refletir();
+  });
+
+  $("#mapear-linguagem").addEventListener("change", () => {
+    mapa.linguagem = $("#mapear-linguagem").value;
+    mapa.convencao = CONVENCAO_PADRAO[mapa.linguagem] || mapa.convencao;
+    refletir();
+    gravar();
+  });
+
+  $("#mapear-convencao").addEventListener("change", () => {
+    mapa.convencao = $("#mapear-convencao").value;
+    gravar();
+  });
+
+  // O texto é da QA: o que ela digita aqui vale também no painel da página.
+  $("#mapear-rascunho").addEventListener("input", () => {
+    mapa.rascunho = $("#mapear-rascunho").value;
+    gravar();
+  });
+
+  // Destrutivo de propósito e por isso explícito: trocar a linguagem não
+  // apaga o que foi editado à mão; só este botão reescreve tudo.
+  $("#btn-mapear-regerar").addEventListener("click", () => {
+    mapa.rascunho = gerarRascunho(mapa.elementos, mapa.linguagem, mapa.convencao);
+    $("#mapear-rascunho").value = mapa.rascunho;
+    gravar();
+  });
+
+  $("#btn-mapear-copiar").addEventListener("click", async () => {
+    await navigator.clipboard.writeText($("#mapear-rascunho").value).catch(() => {});
+    avisar("rascunho copiado");
+  });
+
+  $("#btn-mapear-baixar").addEventListener("click", () => {
+    const blob = new Blob([$("#mapear-rascunho").value], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = nomeArquivoRascunho(mapa.linguagem);
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  $("#btn-mapear-limpar").addEventListener("click", () => {
+    mapa.elementos = [];
+    mapa.rascunho = "";
+    refletir();
+    $("#mapear-rascunho").value = "";
+    gravar();
+  });
+
+  $("#btn-mapear-modo").addEventListener("click", async () => {
+    const abaId = chrome.devtools.inspectedWindow.tabId;
+    const r = await chrome.tabs
+      .sendMessage(abaId, { app: "proteu", tipo: "MAPEAR_ALTERNAR" })
+      .catch(() => null);
+    if (!r) {
+      avisar("recarregue a página para o modo mapear ficar disponível");
+      return;
+    }
+    const btn = $("#btn-mapear-modo");
+    btn.classList.toggle("rodando", r.ligado);
+    btn.lastChild.textContent = r.ligado ? " Mapeando — clique na página" : " Ligar modo mapear";
+  });
+}
