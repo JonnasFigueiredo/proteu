@@ -8,7 +8,11 @@ seed reproduz exatamente a mesma massa, então um bug encontrado com dados gerad
 deixa de ser "não reproduzível".
 
 **100% local** · sem requisições de rede · sem coleta de dados · sem dependências
-em runtime · 4 permissões na instalação · Vanilla JS (sem build).
+em runtime · 4 permissões na instalação · Vanilla JS (sem build) · 804 testes.
+
+Ela cobre o ciclo inteiro de quem automatiza: **gerar** a massa, **preencher** o
+formulário com ela, **mapear** os elementos da tela em variáveis e **gravar** o
+fluxo como script rodável.
 
 **Multi-país:** um seletor de país (bandeira no cabeçalho) define de qual país os
 dados gerados são equivalentes, e a interface acompanha o idioma (Brasil → pt;
@@ -22,10 +26,11 @@ cada país é um arquivo em `src/core/paises/`).
 
 ## Diferenciais
 
-1. **Seed determinística** — a seed (ex.: `7f2a91`) fica no rodapé do popup. A
-   mesma seed + a mesma sequência de gerações produz sempre os mesmos valores;
-   trocar a seed reinicia a sequência. Anexe a seed ao relatório de bug e quem
-   for reproduzir gera exatamente os mesmos dados.
+1. **Referência determinística, copiável** — o rodapé do popup mostra
+   `7f2a91#8`: a seed **e a posição** da pessoa que está na tela. Cole esse
+   texto no relatório de bug e quem abrir vê exatamente a mesma pessoa. A seed
+   sozinha não bastaria — ela abre uma *sequência*, e mandar só ela entregaria
+   o começo da fila, não quem você estava olhando.
 2. **Detecção de campo** — ao acionar a extensão sobre um campo, ela lê os
    atributos (`type`, `maxlength`, `min`, `max`, `pattern`, `required`,
    `inputmode`) e oferece valores de fronteira específicos daquele campo.
@@ -40,6 +45,12 @@ cada país é um arquivo em `src/core/paises/`).
    Python) e Playwright (JavaScript e Python), já com o salto de **Shadow DOM**
    e a troca de **iframe** que gravador comum esquece — e por isso cospe script
    que estoura `NoSuchElementException` num elemento visível na tela.
+6. **Mapear a tela clicando** — antes de escrever o teste vem a pergunta "quais
+   elementos vou automatizar, e como vou chamá-los?". Liga o modo, clica nos
+   elementos e o bloco de notas ao lado vai montando as **declarações de
+   variável** em 9 linguagens. O nome sai do papel do elemento e da pista mais
+   estável disponível — e **id gerado por build** (`css-1x2y3z`, `a3f9c21e`) é
+   descartado, porque não sobrevive ao próximo deploy.
 
 ## Recursos
 
@@ -54,6 +65,7 @@ cada país é um arquivo em `src/core/paises/`).
 | **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. Quem não quer entrar nesse mérito escolhe a unidade **caracteres (ASCII)**: o texto sai em ASCII puro e as quatro contagens dão o mesmo número. |
 | **Casos-limite** | Arsenal de entradas que quebram sistemas, cada uma com o **porquê**: fronteiras Unicode (contagens inline), payloads XSS/SQLi/formato (**uso defensivo**), números & datas de borda, espaços/controle invisíveis, formatos inválidos e overflow. Busca + "copiar todos"; 1 clique insere no campo. |
 | **Inspecionar** (DevTools) | Para o elemento selecionado, várias estratégias de seletor — `data-testid`, id, name, aria-label, texto, caminho CSS, XPath relativo e absoluto — **cada uma com a contagem real de matches**. Classe gerada por ferramenta (`css-1a2b3c`, `sc-bdVaJa`, `_ngcontent-*`) e id com hash são **rebaixados**, porque quebram no próximo build. Mostra a cadeia de **Shadow DOM** e de **iframe**, e tem um campo para testar seletor à mão com destaque na página. |
+| **Mapear** (página + DevTools) | Modo de captura por clique: cada elemento vira uma **declaração de variável** num rascunho **editável**, ao lado da tela. **9 linguagens** (Selenium Java/Python/C#, Playwright JS/TS/Python, Cypress, Robot Framework, texto puro) e **5 convenções** de nome (camelCase, PascalCase, snake_case, UPPER_SNAKE, kebab), com o padrão de cada linguagem já escolhido. Localizador ambíguo sai **marcado na linha** com a contagem real. |
 | **Gravador** (DevTools) | Grava a navegação e exporta **Selenium (Java/Python)** e **Playwright (JS/Python)**. A digitação vira um `fill` com o valor final, o clique que só focou o campo some, e cada passo deixa **trocar o seletor** por outro candidato. Modo verificação: clicar em algo cria uma asserção em vez de acionar a página. |
 
 Mais: **interface em pt/es/en/zh/ar/hi/de** (segue o país por padrão, mas o QA
@@ -75,7 +87,15 @@ para copiar seletores e atalhos de teclado.
 2. Ative o **Modo do desenvolvedor** (canto superior direito).
 3. Clique em **Carregar sem compactação** (*Load unpacked*).
 4. Selecione a pasta raiz do projeto (a que contém o `manifest.json`).
-5. Fixe o ícone **R** na barra e clique para abrir o popup.
+5. Fixe o ícone do Proteu QA na barra e clique para abrir o popup.
+
+Para gerar o `.zip` da Chrome Web Store ou espelhar a extensão numa pasta
+separada (útil para não recarregar o repositório inteiro a cada mudança):
+
+```bash
+node empacotar.mjs                 # dist/proteu-qa-<versão>.zip
+node sincronizar.mjs [destino]     # padrão: D:/Projetos/proteu
+```
 
 ### O popup
 
@@ -85,8 +105,11 @@ para copiar seletores e atalhos de teclado.
   Pessoa e Empresa. Os essenciais ficam à vista; o resto atrás de "mais N".
   Exportar em lote e Opções ficam recolhidos no rodapé da aba.
 - **Gerar → Copiar / Inserir no campo** — o valor aparece no card de resultado.
-- **Seed** no rodapé (editável); o botão ao lado sorteia uma nova (e reinicia a
-  sequência).
+- **Referência** no rodapé (editável), no formato `seed#posição` — ex.:
+  `7f2a91#8`. Ela acompanha a pessoa que está na tela: clicar em *Nova pessoa*
+  avança para `#9`. Colar uma referência traz aquela pessoa de volta; colar só a
+  seed (`7f2a91`) traz a primeira. O botão ao lado sorteia uma seed nova.
+- **Mapear elementos** — liga o modo de captura na página (veja abaixo).
 
 ### Menu de contexto — copiar o seletor de qualquer elemento
 
@@ -100,7 +123,6 @@ Clique com o **botão direito** em qualquer elemento da página → *Proteu QA*:
 | Copiar XPath relativo | `//*[@name='email']` |
 | Copiar XPath absoluto | `/html/body/form/input[2]` |
 | Copiar XPath por texto | `//button[normalize-space()='Salvar']` |
-| Copiar todos os seletores | relatório com todos, com a contagem de matches |
 
 Um balão confirma o que foi copiado. Se o seletor escolhido casar com mais de
 um elemento, o balão avisa — copiar um seletor ambíguo em silêncio é entregar
@@ -111,6 +133,44 @@ botão direito*), porque depende de acesso às páginas: o Chrome não informa e
 qual elemento o menu foi aberto, então só um listener que já estava ouvindo
 sabe disso — e `activeTab` só concede acesso *depois* do clique. Veja
 [Permissões](#permissões).
+
+### Modo Mapear — a tela vira variáveis
+
+Clique em **Mapear elementos** no popup (ou abra o DevTools → *Proteu QA* →
+*Mapear*). O cursor vira mira e um bloco de notas encosta na lateral da página.
+A partir daí, cada clique num elemento vira uma linha:
+
+```js
+const campoEmailLogin = page.locator('[data-testid="email-login"]');
+const comboUf = page.locator('#uf');
+const caixaLembrar = page.locator('[name="lembrar"]');
+const botaoSalvarAlteracoes = page.locator('xpath=//button[normalize-space()=\'Salvar alterações\']');
+const elementoItem = page.locator('… > div.item:nth-of-type(1)');   // atenção: casa com 4 elementos
+```
+
+- **O texto é seu.** O campo é editável, não um resultado só de leitura: é dele
+  que sai o que vai para a IDE, então dá para renomear, comentar e apagar antes
+  de levar. Capturas novas são **anexadas** — trocar a linguagem não reescreve
+  o que você editou. Só o botão **Regerar** faz isso, e por isso ele é explícito.
+- **De onde vem o nome.** Papel do elemento (`campo`, `botao`, `combo`, `caixa`,
+  `link`…) mais a pista mais estável que existir, nesta ordem: `data-testid` →
+  `name` → `id` → `aria-label` → `placeholder` → texto visível → classe. A ordem
+  não é estética, é de resistência a mudança de layout.
+- **Acento vira a letra base.** "Salvar alterações" → `botaoSalvarAlteracoes`, e
+  não `botaoSalvarAlteraEs`.
+- **Clique não aciona a página.** Mapear um botão de "excluir" não exclui nada, e
+  mapear um link não tira você da tela que está mapeando.
+- **`Esc` sai do modo.** O painel é arrastável, porque pode estar cobrindo
+  justamente o que você quer clicar.
+
+O painel vive num **shadow root fechado**: não herda o CSS do site, não é
+alcançável pelos seletores dele e não aparece no que você está mapeando. As duas
+telas (página e DevTools) mostram **a mesma lista** — dá para capturar na página
+e editar no DevTools, ou o contrário.
+
+Assim como o menu de contexto, o modo Mapear **precisa do acesso às páginas**
+(veja [Permissões](#permissões)) — pelo mesmo motivo: alguém tem que estar
+ouvindo o clique antes de ele acontecer.
 
 ### Atalhos
 
@@ -134,7 +194,15 @@ Cada geração usa um PRNG determinístico (`xmur3` → `sfc32`) derivado de
 `` `${seed}:${contador}` ``. O **contador** é persistido e avança a cada valor
 gerado. Assim "o N-ésimo valor gerado com a seed X" é sempre o mesmo, e o
 histórico só precisa guardar `(seed, contador, tipo)` para reproduzir qualquer
-item. Nenhuma parte da geração usa `Math.random()`.
+item.
+
+O par `(seed, contador)` é o que a UI mostra como **`seed#posição`** — a persona
+inteira é *uma* geração, então a referência reproduz a pessoa completa, com
+todos os documentos coerentes entre si.
+
+Nenhuma parte da geração usa `Math.random()` — e há um teste que **falha** se
+alguma passar a usar, porque uma única chamada quebraria a promessa inteira sem
+que nenhuma comparação de igualdade percebesse.
 
 ## Arquitetura
 
@@ -152,6 +220,7 @@ reproduzivel/
 │   │   ├── mapeamento.js             # campo do form → slot da persona
 │   │   ├── exportar.js               # N personas → CSV / JSON / fixture
 │   │   ├── seletores.js              # elemento → candidatos de seletor + ranking
+│   │   ├── mapeador.js               # elemento → nome de variável + declaração (9 linguagens)
 │   │   ├── gravador/                 # acoes.js (normalização), selenium.js,
 │   │   │                             #   playwright.js, codigo.js (despacho)
 │   │   ├── paises/                   # um arquivo por país (br, us, ca, ar, cn, sa, mx, in, de)
@@ -161,19 +230,30 @@ reproduzivel/
 │   │   ├── text/                     # contagem, idiomas, tamanho, pseudolocale
 │   │   └── invalid/                  # casos-limite, unicode, payloads, valores-limite
 │   ├── storage.js                    # adaptador chrome.storage (ponte p/ core/config)
-│   ├── content/content.js            # detecção do campo + inserção robusta (injetado sob demanda)
+│   ├── content/
+│   │   ├── content.js                # detecção do campo + inserção robusta (sob demanda)
+│   │   ├── leitura-dom.js            # leitura de DOM compartilhada (página e DevTools)
+│   │   ├── seletor.js                # menu de contexto "copiar seletor"
+│   │   └── mapeador.js               # modo Mapear: captura por clique + painel flutuante
 │   ├── background/service-worker.js  # menu de seletores, atalhos, roteamento da inserção
-│   ├── devtools/                     # painel do DevTools: abas Inspecionar e Gravador
+│   ├── devtools/                     # painel: abas Inspecionar, Gravador e Mapear
 │   │   ├── devtools.html/.js         # registra o painel (não tem interface)
-│   │   ├── painel.html/.css/.js      # a interface das duas abas
+│   │   ├── painel.html/.css/.js      # a interface das três abas
 │   │   └── agente.js                 # roda NA página via inspectedWindow.eval
 │   └── popup/                        # popup.html / .css / .js (Vanilla JS, sem framework)
+├── empacotar.mjs                     # gera o .zip da Chrome Web Store (Node puro)
+├── sincronizar.mjs                   # espelha a extensão para a pasta do "Load unpacked"
 └── tests/                            # Vitest (unitário) + e2e no navegador
     ├── *.test.js                     # espelha src/core + storage + service-worker
     ├── documents/  text/             # testes por documento e por módulo de texto
     └── e2e/                          # cenarios.md, runner.html, popup-runner.html,
-                                      #   preview.html, servir.mjs
+                                      #   painel-runner.html, mapeador-runner.html,
+                                      #   screenshots.html, preview.html, servir.mjs
 ```
+
+> `empacotar.mjs` e `sincronizar.mjs` compartilham a **mesma lista de arquivos**,
+> travada por teste. Sem isso, a pasta carregada no Chrome pode divergir do que
+> vai para a loja — e aí "testei e funcionou" deixa de significar alguma coisa.
 
 ### Decisões de arquitetura
 
@@ -325,9 +405,15 @@ npm run test:watch
 
   ```bash
   node tests/e2e/servir.mjs
-  # content script:  http://localhost:8791/tests/e2e/runner.html
-  # popup completo:  http://localhost:8791/tests/e2e/popup-runner.html
+  # content script:   http://localhost:8791/tests/e2e/runner.html
+  # popup completo:   http://localhost:8791/tests/e2e/popup-runner.html
+  # popup "de verdade": http://localhost:8791/previa/popup
+  # painel DevTools:  http://localhost:8791/tests/e2e/painel-runner.html
+  # modo Mapear:      http://localhost:8791/tests/e2e/mapeador-runner.html
   ```
+
+  Os *runners* carregam os arquivos **reais** da extensão com o `chrome.*`
+  dublado — não uma cópia que envelhece à parte.
 
 ## Aviso sobre os payloads (uso defensivo)
 
@@ -347,7 +433,12 @@ Ainda **não** implementado:
 - **Inscrição Estadual das demais UFs** (hoje só SP; cada UF tem algoritmo de DV
   próprio).
 - **Casos-limite customizados pela equipe**, exportáveis como JSON.
-- **Snippet de relatório de bug** pronto para colar no Jira, com a seed.
+- **Snippet de relatório de bug** pronto para colar no Jira, com a referência.
+- **Mapear dentro de iframe** com o painel no frame de topo: a captura já
+  funciona em todos os frames, mas elementos de iframe de **outra origem**
+  continuam fora do alcance (limite do navegador, não da extensão).
+- **Page Object completo** como alternativa ao rascunho de declarações (hoje o
+  Mapear entrega só as variáveis, que é o que se pediu para colar na IDE).
 
 ## Licença
 
@@ -359,8 +450,8 @@ licença pede o de sempre em Apache: **preservar o aviso de copyright**,
 licença na distribuição. Ela também concede expressamente os direitos de patente
 dos contribuidores — é o que a diferencia da MIT.
 
-O que a licença **não** cobre é a marca: o nome "Proteu QA" e o ícone da
-joaninha não são licenciados por ela. Se você redistribuir uma versão
+O que a licença **não** cobre é a marca: o nome "Proteu QA" e o ícone não são
+licenciados por ela. Se você redistribuir uma versão
 modificada, use nome e identidade próprios para não confundir quem instala —
 dizer que ela deriva da Proteu QA é permitido e bem-vindo.
 
