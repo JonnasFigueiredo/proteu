@@ -1126,6 +1126,29 @@ function mostrarCampoDetectado(d) {
 
 // --- Seed -------------------------------------------------------------------
 
+/**
+ * Grava a seed nova, reinicia a sequência e mostra a primeira pessoa dela.
+ *
+ * Regerar aqui É a funcionalidade, não um efeito colateral: a promessa da
+ * extensão é "me passa a seed e eu vejo a mesma pessoa". Antes daqui só o
+ * storage era atualizado — a QA colava a seed que o colega mandou, a tela
+ * continuava na pessoa anterior, e a reprodução parecia não funcionar.
+ *
+ * Mesmo caminho da troca de país (`mudarPais`), que também zera o contador:
+ * quem muda a origem dos dados vê o resultado na hora.
+ */
+async function aplicarSeed(nova) {
+  grupoRaiz = null; // nova seed = novo grupo de CNPJ
+  // Trocar a seed reinicia o contador: a sequência recomeça do zero.
+  await atualizarConfig((c) => {
+    c.seed = nova;
+    c.contador = 0;
+  });
+  // Consome o contador 0 e renderiza: é exatamente a pessoa que a seed
+  // sozinha reproduz, que é o que se espera ver ao digitá-la.
+  await aoNovaPersona();
+}
+
 async function aoMudarSeed(e) {
   const nova = normalizarSeed(e.target.value);
   if (!nova) {
@@ -1134,23 +1157,14 @@ async function aoMudarSeed(e) {
   }
   e.target.classList.remove("invalida");
   e.target.value = nova;
-  grupoRaiz = null; // nova seed = novo grupo de CNPJ
-  // Trocar a seed reinicia o contador: a sequência recomeça do zero.
-  await atualizarConfig((c) => {
-    c.seed = nova;
-    c.contador = 0;
-  });
+  await aplicarSeed(nova);
 }
 
 async function aoNovaSeed() {
   const nova = gerarSeedAleatoria();
   $("#campo-seed").value = nova;
   $("#campo-seed").classList.remove("invalida");
-  grupoRaiz = null; // nova seed = novo grupo de CNPJ
-  await atualizarConfig((c) => {
-    c.seed = nova;
-    c.contador = 0;
-  });
+  await aplicarSeed(nova);
 }
 
 // --- Histórico --------------------------------------------------------------
