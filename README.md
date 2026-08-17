@@ -86,7 +86,7 @@ para copiar seletores e atalhos de teclado.
   Exportar em lote e Opções ficam recolhidos no rodapé da aba.
 - **Gerar → Copiar / Inserir no campo** — o valor aparece no card de resultado.
 - **Seed** no rodapé (editável); o botão ao lado sorteia uma nova (e reinicia a
-  sequência). Selo **100% local** sempre à vista.
+  sequência).
 
 ### Menu de contexto — copiar o seletor de qualquer elemento
 
