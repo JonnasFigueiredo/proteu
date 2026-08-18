@@ -451,22 +451,6 @@ ambientes de teste sob sua responsabilidade**. **Não** as use contra sistemas d
 terceiros sem autorização — isso pode ser ilegal. A ferramenta não realiza
 nenhum ataque: apenas coloca strings em campos que você mesmo escolhe.
 
-## Backlog
-
-Ainda **não** implementado:
-
-- **Chile, Uruguai e Paraguai** (aparecem como "em breve" no modal; a
-  arquitetura já suporta — cada país é um arquivo em `core/paises/`).
-- **Inscrição Estadual das demais UFs** (hoje só SP; cada UF tem algoritmo de DV
-  próprio).
-- **Casos-limite customizados pela equipe**, exportáveis como JSON.
-- **Snippet de relatório de bug** pronto para colar no Jira, com a referência.
-- **Mapear dentro de iframe** com o painel no frame de topo: a captura já
-  funciona em todos os frames, mas elementos de iframe de **outra origem**
-  continuam fora do alcance (limite do navegador, não da extensão).
-- **Page Object completo** como alternativa ao rascunho de declarações (hoje o
-  Mapear entrega só as variáveis, que é o que se pediu para colar na IDE).
-
 ## Licença
 
 **Apache License 2.0** — veja [LICENSE](LICENSE) e [NOTICE](NOTICE).
