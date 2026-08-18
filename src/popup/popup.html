@@ -33,6 +33,7 @@
       <nav class="abas" role="tablist">
         <button class="aba aba--ativa" data-view="perfil" role="tab" data-i18n="tab_perfil">Perfil</button>
         <button class="aba" data-view="texto" role="tab" data-i18n="tab_texto">Texto</button>
+        <button class="aba" data-view="senha" role="tab" data-i18n="tab_senha">Senha</button>
         <button class="aba" data-view="invalidos" role="tab" data-i18n="tab_invalidos">Casos-limite</button>
       </nav>
 
@@ -212,6 +213,45 @@
       </section>
 
       <!-- Inválidos & payloads -->
+      <!-- Senha: a única geração do projeto que NÃO é determinística.
+           Derivar da seed a tornaria reproduzível por quem lê a tela, e aí
+           chamá-la de forte seria mentira. Ver src/core/senha.js. -->
+      <section class="painel" data-view="senha" role="tabpanel">
+        <div class="sn-campo">
+          <output id="senha-valor" class="sn-valor" aria-live="polite"></output>
+          <button id="btn-nova-senha" class="icone" type="button"
+                  data-i18n-title="senha_nova" data-i18n-aria="senha_nova" title="Gerar outra">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" /></svg>
+          </button>
+        </div>
+
+        <button id="btn-copiar-senha" class="primario sn-copiar" data-i18n="senha_copiar">Copiar senha</button>
+
+        <div class="sn-forca">
+          <div class="sn-barra"><span id="senha-barra"></span></div>
+          <span id="senha-nivel" class="sn-nivel"></span>
+        </div>
+
+        <div class="sn-opcoes">
+          <label class="sn-linha" for="senha-tamanho">
+            <span data-i18n="senha_tamanho">Número de caracteres</span>
+            <output id="senha-tamanho-valor" class="sn-numero">16</output>
+            <input id="senha-tamanho" type="range" min="4" max="64" value="16" />
+          </label>
+
+          <div class="sn-linha sn-linha--classes">
+            <span data-i18n="senha_classes">Caracteres utilizados</span>
+            <div class="sn-checks">
+              <label class="check"><input id="sn-maiusculas" type="checkbox" checked /> <span data-i18n="senha_maiusculas">Maiúsculas</span></label>
+              <label class="check"><input id="sn-minusculas" type="checkbox" checked /> <span data-i18n="senha_minusculas">Minúsculas</span></label>
+              <label class="check"><input id="sn-numeros" type="checkbox" checked /> <span data-i18n="senha_numeros">Números</span></label>
+              <label class="check"><input id="sn-simbolos" type="checkbox" checked /> <span data-i18n="senha_simbolos">Símbolos</span></label>
+              <label class="check"><input id="sn-ambiguos" type="checkbox" /> <span data-i18n="excluir_ambiguas">Excluir ambíguas</span></label>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="painel" data-view="invalidos" role="tabpanel">
         <p class="lim-intro" data-i18n="lim_intro">Entradas que costumam quebrar sistemas. Clique para inserir no campo focado (ou copiar).</p>
 

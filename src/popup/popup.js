@@ -23,6 +23,7 @@ import { gerarPersona } from "../core/persona.js";
 import { planejarPreenchimento } from "../core/mapeamento.js";
 import { gerarLote, serializar, FORMATOS } from "../core/exportar.js";
 import { proximoTema } from "../core/tema.js";
+import { gerarSenha, alfabetoDe, forcaDaSenha, CHAVE_NIVEL } from "../core/senha.js";
 import { t, LANG_ATTR, DIR_ATTR } from "../core/i18n.js";
 import { cnpjDeRaiz } from "../core/documents/cnpj.js";
 
@@ -85,6 +86,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await aoNovaPersona(); // a aba Persona já abre com uma pessoa pronta
   await detectarCampo();
   await sincronizarBotaoMapear(); // o modo pode ter ficado ligado na página
+  ligarAbaSenha();
 });
 
 // Marcadores visuais para caracteres invisíveis (só na exibição; o valor
@@ -1449,4 +1451,69 @@ async function aoAlternarMapear() {
   refletirMapear(r.ligado);
   // Ligado, o trabalho é na página: manter o popup aberto só atrapalharia.
   if (r.ligado) window.close();
+}
+
+// --- Aba Senha ---------------------------------------------------------------
+//
+// É a única geração do projeto que NÃO passa pela seed. Ver core/senha.js: uma
+// senha reproduzível por quem lê a seed na tela não poderia ser chamada de
+// forte, e o medidor ao lado dela estaria mentindo.
+
+function opcoesDeSenha() {
+  return {
+    tamanho: Number($("#senha-tamanho").value),
+    maiusculas: $("#sn-maiusculas").checked,
+    minusculas: $("#sn-minusculas").checked,
+    numeros: $("#sn-numeros").checked,
+    simbolos: $("#sn-simbolos").checked,
+    excluirAmbiguos: $("#sn-ambiguos").checked,
+  };
+}
+
+function renderizarSenha() {
+  const opcoes = opcoesDeSenha();
+  $("#senha-tamanho-valor").textContent = String(opcoes.tamanho);
+
+  const alfabeto = alfabetoDe(opcoes);
+  if (!alfabeto) {
+    // Desmarcar tudo é um estado alcançável: dizer o que fazer vale mais do que
+    // um campo vazio sem explicação.
+    $("#senha-valor").textContent = "—";
+    $("#senha-nivel").textContent = t(idiomaAtual, "senha_sem_classe");
+    $("#senha-barra").style.width = "0%";
+    $(".sn-forca").dataset.nivel = "fraca";
+    return;
+  }
+
+  const senha = gerarSenha(opcoes);
+  $("#senha-valor").textContent = senha;
+
+  const forca = forcaDaSenha(senha.length, alfabeto.length);
+  $("#senha-barra").style.width = `${Math.round(forca.proporcao * 100)}%`;
+  $("#senha-nivel").textContent =
+    `${t(idiomaAtual, CHAVE_NIVEL[forca.nivel])} · ${forca.bits} bits`;
+  $(".sn-forca").dataset.nivel = forca.nivel;
+}
+
+async function aoCopiarSenha() {
+  const senha = $("#senha-valor").textContent;
+  if (!senha || senha === "—") return;
+  try {
+    await navigator.clipboard.writeText(senha);
+    mostrarFeedback(t(idiomaAtual, "fb_senha_copiada"), "ok");
+  } catch {
+    mostrarFeedback(t(idiomaAtual, "fb_copiar_erro"), "erro");
+  }
+}
+
+function ligarAbaSenha() {
+  $("#btn-nova-senha").addEventListener("click", renderizarSenha);
+  $("#btn-copiar-senha").addEventListener("click", aoCopiarSenha);
+  // Mexer no tamanho ou nas classes gera outra na hora: esperar um clique a
+  // mais para ver o efeito da opção seria atrito sem motivo.
+  $("#senha-tamanho").addEventListener("input", renderizarSenha);
+  for (const id of ["#sn-maiusculas", "#sn-minusculas", "#sn-numeros", "#sn-simbolos", "#sn-ambiguos"]) {
+    $(id).addEventListener("change", renderizarSenha);
+  }
+  renderizarSenha();
 }
