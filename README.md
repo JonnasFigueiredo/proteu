@@ -10,7 +10,7 @@ deixa de ser "não reproduzível".
 **[Instalar na Chrome Web Store](https://chromewebstore.google.com/detail/proteu-qa/edpjppimngkekieldgokejdccfpiehgn)**
 
 **100% local** · sem requisições de rede · sem coleta de dados · sem dependências
-em runtime · 4 permissões na instalação · Vanilla JS (sem build) · 948 testes.
+em runtime · 4 permissões na instalação · Vanilla JS (sem build) · 969 testes.
 
 Ela cobre o ciclo inteiro de quem automatiza: **gerar** a massa, **preencher** o
 formulário com ela, **mapear** os elementos da tela em variáveis e **gravar** o
@@ -64,6 +64,7 @@ Saudita, Índia, Alemanha, Austrália, Japão e Coreia do Sul.
 | **Pessoa** | Nome · data de nascimento (sempre maior de idade) · data de admissão (**nunca antes dos 16 anos** da pessoa) · CPF · RG (SSP-SP) · CNH · **CEP que existe de verdade** · telefone fixo/celular com DDD real. |
 | **Empresa** | **CNPJ numérico *e* alfanumérico na mesma função** (novo padrão jul/2026, incl. o caso oficial SERPRO `12.ABC.345/01DE-35`) · **CNPJ com a mesma raiz** (matriz 0001 + filiais 0002, 0003… compartilhando os 8 primeiros dígitos) · razão social · Inscrição Estadual (SP). Com e sem máscara. |
 | **Austrália · Japão · Coreia** | TFN, ABN, ACN e Medicare · マイナンバー e 法人番号 · 주민등록번호, 사업자등록번호 e 법인등록번호 — todos com o **dígito verificador oficial**. Os algoritmos australianos são conferidos contra números públicos reais (o ABN do próprio ATO e o ABN/ACN da Telstra), então um erro de implementação reprova no teste. |
+| **Senha** | Aba dedicada com tamanho ajustável, escolha das classes de caractere e medidor de força em **bits de entropia**. Garante ao menos um caractere de cada classe marcada — senha sem dígito reprova em política que exige número, e isso só apareceria no cadastro. **É a única geração que não passa pela seed**: derivá-la de uma seed visível na tela tornaria previsível algo que o medidor chama de forte. |
 | **Detecção → fronteira** | Chips clicáveis a partir do campo focado: `maxlength` ±1, `number` min/max + `1e999`/`NaN`, datas de fronteira, e-mails que passam na regex mas quebram no servidor, strings Unicode. |
 | **Texto** | 9 idiomas (pt, es, ar, tr, ru, zh, hi, ja, he — cada um cobrindo um problema real de i18n) · geração **por tamanho exata** nas 4 unidades de contagem · **pseudolocale** (`Save` → `Šávé`) com expansão, marcadores `⟦…⟧`, preservação de placeholders e modo `fakebidi`. |
 | **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. Quem não quer entrar nesse mérito escolhe a unidade **caracteres (ASCII)**: o texto sai em ASCII puro e as quatro contagens dão o mesmo número. |
@@ -106,7 +107,7 @@ Para desenvolver, ou para rodar uma versão modificada:
 
 ### O popup
 
-- **Abas** — *Perfil*, *Texto* e *Casos-limite*; os ícones do cabeçalho abrem
+- **Abas** — *Perfil*, *Texto*, *Senha* e *Casos-limite*; os ícones do cabeçalho abrem
   *Histórico* e *Configurações*. Só um bloco aparece por vez.
 - **Perfil** — uma pessoa fictícia com todos os documentos do país, em seções
   Pessoa e Empresa. Os essenciais ficam à vista; o resto atrás de "mais N".
