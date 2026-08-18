@@ -1405,3 +1405,115 @@ input:focus-visible {
   line-height: 1.45;
   color: var(--texto-fraco);
 }
+
+/* --- Aba Senha ------------------------------------------------------------- */
+.sn-campo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+}
+
+/* A senha é o conteúdo principal da aba: fonte monoespaçada para distinguir
+   O de 0, e quebra por caractere porque não há espaços onde quebrar. */
+.sn-valor {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 15px;
+  line-height: 1.5;
+  word-break: break-all;
+  user-select: all;
+  color: var(--texto);
+}
+
+.sn-copiar {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.sn-forca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.sn-barra {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--superficie-2);
+  overflow: hidden;
+}
+
+.sn-barra span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: var(--verde);
+  transition: width 0.18s ease, background-color 0.18s ease;
+}
+
+.sn-nivel {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--verde);
+}
+
+/* A cor carrega a informação, então o texto ao lado repete o nível — quem não
+   distingue verde de vermelho lê o rótulo. */
+.sn-forca[data-nivel="fraca"] .sn-barra span,
+.sn-forca[data-nivel="fraca"] .sn-nivel { background-color: var(--vermelho); color: var(--vermelho); }
+.sn-forca[data-nivel="fraca"] .sn-nivel { background: none; }
+.sn-forca[data-nivel="media"] .sn-barra span { background-color: #e69100; }
+.sn-forca[data-nivel="media"] .sn-nivel { color: #e69100; }
+
+.sn-opcoes {
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+}
+
+.sn-linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--texto-fraco);
+}
+
+.sn-linha--classes {
+  align-items: flex-start;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--borda);
+}
+
+.sn-numero {
+  min-width: 22px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  color: var(--texto);
+}
+
+.sn-linha input[type="range"] {
+  flex: 1;
+  accent-color: var(--azul);
+}
+
+.sn-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-weight: 400;
+}
