@@ -163,6 +163,23 @@ github.com/JonnasFigueiredo/proteu
 
 ---
 
+## Descrição do único propósito
+
+Campo separado, no formulário de Privacidade. Limite de 1.000 caracteres — mas
+encher o limite trabalha contra: o campo pede UM propósito claro, e um resumo de
+recursos argumenta que a extensão faz muitas coisas, que é o oposto do que a
+política de propósito único aceita. A lista de recursos já está na descrição.
+
+```
+Apoiar quem testa software, gerando dados fictícios para preencher formulários e identificando os elementos da página que serão automatizados.
+
+Todo o processamento acontece no navegador do próprio usuário. A extensão não envia dados a servidor algum, não usa bibliotecas externas e não coleta nenhuma informação de uso.
+```
+
+*(310 caracteres)*
+
+---
+
 ## Justificativa das permissões
 
 | Permissão | Texto para o formulário |
