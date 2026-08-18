@@ -289,15 +289,15 @@
   const CSS_PAINEL = `
     :host { all: initial; }
     * { box-sizing: border-box; font-family: "Segoe UI", system-ui, sans-serif; }
-    /* Redimensionável nos dois eixos: seletor de caminho CSS passa fácil dos
-       80 caracteres, e num quadro fixo a QA lia o começo da linha e adivinhava
-       o resto. "overflow: hidden" é o que habilita o "resize" do navegador. */
+    /* Redimensionável pelas OITO pontas. O "resize" do CSS só entrega o canto
+       inferior direito, e quem encosta o painel num canto da tela precisa puxar
+       justamente pelo lado oposto. Daí as alças próprias, abaixo. */
     .caixa {
       position: fixed; top: 16px; right: 16px;
       width: 460px; height: 520px;
       min-width: 320px; min-height: 240px;
       max-width: calc(100vw - 32px); max-height: calc(100vh - 32px);
-      resize: both; overflow: hidden;
+      overflow: hidden;
       display: flex; flex-direction: column;
       background: #1b1f24; color: #e6e6e6; border: 1px solid #333a42;
       border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.45);
@@ -350,6 +350,30 @@
     button.botao.primario { background: #1565c0; border-color: #1565c0; color: #fff; }
     button.botao.primario:hover { background: #1a6fd0; }
     .dica { font-size: 11px; color: #7f8a95; line-height: 1.4; }
+    /* Alças de redimensionamento: 4 cantos e 4 lados. Ficam por FORA do fluxo
+       (position: absolute) e por cima de tudo, mas só nas bordas — o miolo
+       continua livre para selecionar texto. */
+    .alca { position: absolute; z-index: 3; }
+    .alca.n  { top: -3px; left: 10px; right: 10px; height: 7px; cursor: ns-resize; }
+    .alca.s  { bottom: -3px; left: 10px; right: 10px; height: 7px; cursor: ns-resize; }
+    .alca.e  { right: -3px; top: 10px; bottom: 10px; width: 7px; cursor: ew-resize; }
+    .alca.w  { left: -3px; top: 10px; bottom: 10px; width: 7px; cursor: ew-resize; }
+    .alca.ne { top: -3px; right: -3px; width: 14px; height: 14px; cursor: nesw-resize; }
+    .alca.nw { top: -3px; left: -3px; width: 14px; height: 14px; cursor: nwse-resize; }
+    .alca.se { bottom: -3px; right: -3px; width: 14px; height: 14px; cursor: nwse-resize; }
+    .alca.sw { bottom: -3px; left: -3px; width: 14px; height: 14px; cursor: nesw-resize; }
+
+    /* Marca visual só no canto inferior direito, que é onde as pessoas
+       procuram primeiro. As outras sete são invisíveis mas pegáveis. */
+    .alca.se::after {
+      content: ""; position: absolute; right: 3px; bottom: 3px;
+      width: 7px; height: 7px;
+      border-right: 2px solid #5a636d; border-bottom: 2px solid #5a636d;
+    }
+
+    /* Enquanto arrasta, nada dentro rouba o ponteiro. */
+    .redimensionando, .redimensionando * { user-select: none; }
+
     /* Recolhido vira só a barra: sem isto a altura fixa deixaria um retângulo
        vazio ocupando meia tela. O tamanho volta ao expandir, porque fica
        guardado em estado.painel. */
@@ -392,6 +416,14 @@
         </div>
         <div class="dica">Esc sai do modo. O texto é seu: edite antes de levar para a IDE.</div>
       </div>
+      <div class="alca n"  data-alca="n"></div>
+      <div class="alca s"  data-alca="s"></div>
+      <div class="alca e"  data-alca="e"></div>
+      <div class="alca w"  data-alca="w"></div>
+      <div class="alca ne" data-alca="ne"></div>
+      <div class="alca nw" data-alca="nw"></div>
+      <div class="alca se" data-alca="se"></div>
+      <div class="alca sw" data-alca="sw"></div>
     `;
     raiz.append(estilo, caixa);
     document.documentElement.appendChild(host);
@@ -477,6 +509,7 @@
     });
 
     arrastavel(caixa, caixa.querySelector("[data-arrastar]"));
+    redimensionavel(caixa);
     aplicarTamanhoSalvo(caixa);
     observarTamanho(caixa);
     renderizar();
@@ -503,31 +536,154 @@
     document.addEventListener("mouseup", () => { arrastando = false; }, true);
   }
 
-  /** Devolve o painel ao tamanho que a QA tinha deixado. */
+  const MIN_LARGURA = 320;
+  const MIN_ALTURA = 240;
+
+  /**
+   * Fixa a caixa em coordenadas absolutas antes de mexer nela.
+   *
+   * Ela nasce ancorada pela direita (top/right). Redimensionar pelo lado
+   * esquerdo com essa âncora faria a caixa "escorregar", porque mudar a largura
+   * move a borda que não está presa. Passar para left/top uma vez resolve, e
+   * daí toda a conta vira aritmética simples.
+   */
+  function fixarGeometria(caixa) {
+    const r = caixa.getBoundingClientRect();
+    caixa.style.left = `${r.left}px`;
+    caixa.style.top = `${r.top}px`;
+    caixa.style.right = "auto";
+    caixa.style.width = `${r.width}px`;
+    caixa.style.height = `${r.height}px`;
+    return r;
+  }
+
+  /** Redimensionamento pelas oito pontas. */
+  function redimensionavel(caixa) {
+    for (const alca of caixa.querySelectorAll("[data-alca]")) {
+      alca.addEventListener("pointerdown", (ev) => {
+        if (caixa.classList.contains("recolhido")) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const lado = alca.dataset.alca;
+        const inicio = fixarGeometria(caixa);
+        const x0 = ev.clientX;
+        const y0 = ev.clientY;
+        caixa.classList.add("redimensionando");
+        alca.setPointerCapture(ev.pointerId);
+
+        const mover = (e) => {
+          const dx = e.clientX - x0;
+          const dy = e.clientY - y0;
+          let { left, top, width, height } = {
+            left: inicio.left, top: inicio.top,
+            width: inicio.width, height: inicio.height,
+          };
+
+          if (lado.includes("e")) width = inicio.width + dx;
+          if (lado.includes("s")) height = inicio.height + dy;
+          // Pelo lado oposto, a borda presa é a de baixo/direita: a largura
+          // cresce enquanto a origem anda, e as duas têm que andar juntas.
+          if (lado.includes("w")) {
+            width = inicio.width - dx;
+            left = inicio.left + dx;
+          }
+          if (lado.includes("n")) {
+            height = inicio.height - dy;
+            top = inicio.top + dy;
+          }
+
+          // Trava no mínimo sem deixar a caixa deslizar: ao bater no piso pelo
+          // lado esquerdo, a origem para junto, senão ela continuaria andando.
+          if (width < MIN_LARGURA) {
+            if (lado.includes("w")) left = inicio.left + (inicio.width - MIN_LARGURA);
+            width = MIN_LARGURA;
+          }
+          if (height < MIN_ALTURA) {
+            if (lado.includes("n")) top = inicio.top + (inicio.height - MIN_ALTURA);
+            height = MIN_ALTURA;
+          }
+
+          // Não deixa sair da tela. Puxando pelo norte dava para empurrar o
+          // topo para fora da viewport, e com a barra de título inacessível o
+          // painel não voltava mais — nem para arrastar, nem para fechar.
+          if (top < 0) {
+            if (lado.includes("n")) height += top; // devolve o que passou
+            top = 0;
+          }
+          if (left < 0) {
+            if (lado.includes("w")) width += left;
+            left = 0;
+          }
+          width = Math.min(width, window.innerWidth - left);
+          height = Math.min(height, window.innerHeight - top);
+          width = Math.max(width, MIN_LARGURA);
+          height = Math.max(height, MIN_ALTURA);
+
+          caixa.style.left = `${Math.round(left)}px`;
+          caixa.style.top = `${Math.round(top)}px`;
+          caixa.style.width = `${Math.round(width)}px`;
+          caixa.style.height = `${Math.round(height)}px`;
+        };
+
+        const soltar = () => {
+          caixa.classList.remove("redimensionando");
+          alca.removeEventListener("pointermove", mover);
+          alca.removeEventListener("pointerup", soltar);
+          alca.removeEventListener("pointercancel", soltar);
+          salvarGeometria(caixa);
+        };
+
+        alca.addEventListener("pointermove", mover);
+        alca.addEventListener("pointerup", soltar);
+        alca.addEventListener("pointercancel", soltar);
+      });
+    }
+  }
+
+  /** Devolve o painel ao tamanho e ao lugar que a QA tinha deixado. */
   function aplicarTamanhoSalvo(caixa) {
     const t = estado.painel;
     if (!t) return;
     if (t.largura) caixa.style.width = `${t.largura}px`;
     if (t.altura) caixa.style.height = `${t.altura}px`;
+    // Só reposiciona se a caixa couber na tela atual: a QA pode ter deixado o
+    // painel num monitor maior, e restaurar fora da vista seria pior do que
+    // voltar ao canto padrão.
+    if (typeof t.left === "number" && typeof t.top === "number" &&
+        t.left >= 0 && t.top >= 0 &&
+        t.left + (t.largura || 0) <= window.innerWidth &&
+        t.top + 40 <= window.innerHeight) {
+      caixa.style.left = `${t.left}px`;
+      caixa.style.top = `${t.top}px`;
+      caixa.style.right = "auto";
+    }
+  }
+
+  /** Guarda tamanho e posição. */
+  function salvarGeometria(caixa) {
+    if (caixa.classList.contains("recolhido")) return;
+    const r = caixa.getBoundingClientRect();
+    const novo = {
+      largura: Math.round(r.width), altura: Math.round(r.height),
+      left: Math.round(r.left), top: Math.round(r.top),
+    };
+    const t = estado.painel;
+    if (t && t.largura === novo.largura && t.altura === novo.altura &&
+        t.left === novo.left && t.top === novo.top) return;
+    estado.painel = novo;
+    gravarEstado();
   }
 
   /**
-   * Guarda o tamanho depois que a QA solta o canto.
+   * Guarda a geometria quando a QA solta o ponteiro.
    *
    * A primeira versão usava ResizeObserver e não gravava nada — medido no banco
-   * de provas, o storage ficava vazio depois de um resize. O soltar do mouse é
-   * o gesto que de fato encerra um arraste, e dá para verificar.
+   * de provas, o storage ficava vazio depois de um resize. O soltar é o gesto
+   * que de fato encerra um arraste, e dá para verificar.
    */
   function observarTamanho(caixa) {
-    const salvar = () => {
-      if (caixa.classList.contains("recolhido")) return;
-      const largura = Math.round(caixa.offsetWidth);
-      const altura = Math.round(caixa.offsetHeight);
-      const t = estado.painel;
-      if (t && t.largura === largura && t.altura === altura) return;
-      estado.painel = { largura, altura };
-      gravarEstado();
-    };
+    const salvar = () => salvarGeometria(caixa);
     // Capturante e no documento: o ponteiro costuma sair da caixa durante o
     // arraste, e um listener só nela perderia o soltar.
     document.addEventListener("mouseup", salvar, true);
