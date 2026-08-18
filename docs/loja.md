@@ -35,136 +35,118 @@ Português (Brasil)
 ## Descrição completa
 
 ```
-Proteu QA reúne, numa extensão só, as tarefas que consomem o tempo de quem testa
-software: gerar massa de dados, preencher formulários, mapear elementos da tela,
-gravar o fluxo como script e repetir esse fluxo dezenas de vezes para popular a
-base — tudo sem sair do navegador.
+Proteu QA ajuda quem testa software a resolver, sem sair do navegador, as
+tarefas que mais consomem tempo: criar dados de teste, preencher formulários,
+identificar os elementos da tela e repetir um cadastro várias vezes para popular
+um ambiente.
 
-Tudo funciona sem conexão. A extensão não faz nenhuma requisição de rede, não usa
-bibliotecas de terceiros e não coleta dado nenhum.
-
-
-REPRODUTIBILIDADE
-
-Toda geração parte de uma referência visível no rodapé, no formato seed#posição
-(por exemplo, 7f2a91#8). Copie essa referência para o relatório de bug e quem for
-reproduzir verá exatamente a mesma pessoa, com os mesmos documentos.
-
-A seed sozinha não bastaria: ela abre uma sequência, e a posição diz qual pessoa
-dentro dela. É a diferença entre "usei dados aleatórios" e um defeito que o time
-consegue reproduzir na primeira tentativa.
+Tudo funciona sem conexão. A extensão não faz requisições de rede, não usa
+bibliotecas externas e não coleta dado nenhum.
 
 
-DOCUMENTOS DE 12 PAÍSES
+DADOS QUE SE REPRODUZEM
 
-Brasil, Estados Unidos, Canadá, Argentina, México, China, Arábia Saudita, Índia,
-Alemanha, Austrália, Japão e Coreia do Sul.
+Cada pessoa gerada tem um endereço curto, mostrado no rodapé. Copie esse
+endereço para o relatório de defeito e quem for reproduzir verá exatamente a
+mesma pessoa, com os mesmos documentos.
 
-Cada documento usa o algoritmo de dígito verificador publicado pelo órgão que o
-emite — CPF, CNPJ (numérico e alfanumérico, no padrão vigente desde julho de
-2026), RG, CNH, Inscrição Estadual, SSN, EIN, CUIT, CURP, Aadhaar, PAN, IBAN,
-TFN, ABN, ACN, マイナンバー, 法人番号, 주민등록번호 e outros.
-
-A persona é coerente: o e-mail deriva do nome, o CEP corresponde à UF, a data de
-admissão nunca precede os 16 anos da pessoa, e filiais compartilham a raiz do
-CNPJ da matriz.
-
-Os CEPs brasileiros existem de verdade. São 540 endereços reais, conferidos um a
-um — um CEP inventado passa no formato e é recusado por quem valida contra a base
-dos Correios, o que interrompe o teste por culpa da massa, não do sistema.
+É a diferença entre anotar "usei dados aleatórios" e entregar um defeito que o
+time reproduz na primeira tentativa.
 
 
-MAPEAR ELEMENTOS
+DOCUMENTOS DE DOZE PAÍSES
 
-Ative o modo, clique nos elementos da tela e um bloco de notas ao lado monta as
-declarações de variável prontas para colar na IDE.
+A extensão gera documentos equivalentes aos de doze países, entre eles Brasil,
+Estados Unidos, Alemanha, Japão e Austrália. Cada número segue o algoritmo de
+dígito verificador publicado pelo órgão que o emite, então passa nas validações
+do sistema em teste.
 
-São 9 alvos: Selenium (Java, Python, C#), Playwright (JavaScript, TypeScript,
-Python), Cypress, Robot Framework e texto puro. Cinco convenções de nome
-(camelCase, PascalCase, snake_case, UPPER_SNAKE_CASE, kebab-case), com o padrão
-de cada linguagem já selecionado.
+A pessoa gerada é coerente: o e-mail deriva do nome, o endereço corresponde à
+região, e a data de admissão nunca vem antes de a pessoa ter idade para
+trabalhar.
 
-O localizador respeita o alvo: Selenium recebe By.id e By.name quando cabe,
-Cypress e Playwright nunca recebem XPath. O nome da variável vem do papel do
-elemento e da pista mais estável disponível, e identificadores gerados por build
-são descartados por não sobreviverem ao próximo deploy.
-
-O painel é arrastável e redimensionável pelas oito pontas, e o texto é editável:
-é um rascunho seu, não um resultado fechado.
+Os códigos postais brasileiros existem de verdade. São endereços reais,
+conferidos um a um, porque um código inventado passa no formato e é recusado por
+quem consulta a base dos Correios — e aí o teste para por causa do dado, não do
+sistema.
 
 
-SELETORES CONFERIDOS
+MAPEAR ELEMENTOS DA TELA
 
-Clique com o botão direito em qualquer elemento para copiar o melhor seletor CSS,
-XPath relativo, XPath absoluto, por id ou por texto.
+Ative o modo, clique nos elementos que pretende automatizar e um bloco de notas
+ao lado monta as declarações prontas para colar no seu projeto.
 
-O painel do DevTools mostra cada estratégia com a contagem real de elementos que
-ela encontra, verificada na página. Um seletor que casa com quatro elementos é um
-teste que passa hoje e falha quando a tela ganhar mais um item igual — e aqui
-isso fica visível antes de virar código.
+O resultado sai no formato da ferramenta de automação que você usa, na convenção
+de nome que preferir. O localizador respeita o destino: cada ferramenta recebe a
+sintaxe que de fato executa.
 
-Funciona dentro de Shadow DOM aberto e de iframes de mesma origem.
+O nome da variável vem do papel do elemento e da pista mais estável disponível.
+Identificadores gerados automaticamente pelo build são descartados, porque não
+sobrevivem ao próximo deploy.
+
+
+LOCALIZADORES CONFERIDOS
+
+Clique com o botão direito em qualquer elemento para copiar o melhor localizador
+disponível.
+
+O painel de desenvolvedor mostra cada estratégia com a quantidade real de
+elementos que ela encontra, verificada na página aberta. Um localizador que
+encontra quatro elementos é um teste que passa hoje e falha quando a tela ganhar
+mais um item parecido — e isso fica visível antes de virar código.
 
 
 PREENCHER FORMULÁRIOS
 
-Um clique preenche todos os campos reconhecidos com a persona atual. Funciona com
-React, Vue, Angular e formulários nativos. Campos de senha, somente leitura,
-desabilitados e de upload nunca são tocados.
+Um clique preenche os campos reconhecidos com a pessoa atual, inclusive em telas
+feitas com frameworks modernos. Campos de senha, somente leitura, desabilitados
+e de envio de arquivo nunca são tocados.
 
 
-TEXTO E CASOS-LIMITE
+TEXTO E CASOS DE FRONTEIRA
 
-Geração de texto com tamanho exato em grafemas, code points, code units ou bytes
-UTF-8 — porque "100 caracteres" é ambíguo e é justamente onde a validação
-costuma divergir do servidor.
+Geração de texto com tamanho exato na unidade de contagem que você escolher,
+porque "cem caracteres" é ambíguo e é justamente onde a validação da tela costuma
+divergir da validação do servidor.
 
-Biblioteca de entradas que quebram sistemas, cada uma com a explicação do porquê:
-Unicode de fronteira, payloads de segurança para teste defensivo, números e datas
-extremos, espaços e caracteres de controle invisíveis, formatos inválidos e
-sobrecarga de tamanho.
-
-
-AUTOMAÇÃO INSTANTÂNEA NO CONSOLE
-
-Grave um cadastro uma vez e receba um script em JavaScript puro, colável no
-console do navegador (F12). Sem runner, sem dependência, sem projeto montado:
-roda na aba que já está aberta.
-
-Defina quantas repetições quer e o script executa o fluxo em laço. A cada volta
-ele consome uma persona diferente da massa embutida, porque repetir o mesmo
-cadastro esbarra em unicidade de CPF, e-mail ou matrícula já na segunda tentativa.
-
-É o caminho para popular um ambiente de homologação com trinta produtos ou
-cinquenta clientes em minutos, sem escrever uma linha de automação.
-
-O script espera cada elemento aparecer antes de agir e escreve nos campos de um
-modo que React e Vue reconhecem — o valor não some no próximo render.
+Há também uma biblioteca de entradas que costumam quebrar sistemas, cada uma
+acompanhada da explicação do motivo: caracteres especiais, números e datas
+extremos, espaços invisíveis e formatos inválidos.
 
 
-GRAVADOR PARA SUÍTES DE TESTE
+AUTOMAÇÃO IMEDIATA
 
-Grava a navegação e exporta o roteiro em Selenium (Java, Python) e Playwright
-(JavaScript, Python), incluindo a travessia de Shadow DOM e a troca de iframe que
-gravadores comuns omitem.
+Grave um cadastro uma vez e receba um roteiro que roda no próprio navegador, sem
+instalar nada e sem montar projeto.
+
+Escolha quantas repetições quer e o roteiro executa o fluxo em sequência. A cada
+volta ele usa uma pessoa diferente, porque repetir o mesmo cadastro esbarra em
+duplicidade logo na segunda tentativa.
+
+É o caminho para popular um ambiente de homologação com dezenas de registros em
+minutos, sem escrever automação.
+
+Para quem já tem uma suíte de testes, o mesmo roteiro pode ser exportado no
+formato das ferramentas de automação mais usadas, incluindo a travessia de
+componentes encapsulados e a troca de quadros que gravadores comuns esquecem.
 
 
-INTERFACE EM 7 IDIOMAS
+SETE IDIOMAS
 
-Português, espanhol, inglês, chinês, árabe (com layout da direita para a
-esquerda), hindi e alemão. O idioma acompanha o país por padrão e pode ser fixado
-— é possível gerar dados da China e ler os rótulos em português.
+A interface acompanha o país escolhido e pode ser fixada em um idioma. É possível
+gerar dados de um país e ler os rótulos no seu próprio idioma.
 
 
 PRIVACIDADE
 
-Nenhuma requisição de rede. Nenhuma coleta. Nenhuma dependência externa.
+Sem requisições de rede. Sem coleta. Sem dependências externas.
 
-Quatro permissões na instalação, e nenhuma delas dá acesso ao conteúdo das
-páginas. O acesso que o menu de seletores e o modo Mapear precisam é opcional e
-só é solicitado quando você liga esses recursos.
+São quatro permissões na instalação, e nenhuma delas dá acesso ao conteúdo das
+páginas. O acesso necessário para o menu de localizadores e para o mapeamento é
+opcional, e só é solicitado quando você ativa esses recursos.
 
-Código aberto sob Apache 2.0, auditável em github.com/JonnasFigueiredo/proteu
+Código aberto sob licença Apache 2.0, auditável em
+github.com/JonnasFigueiredo/proteu
 ```
 
 ---
