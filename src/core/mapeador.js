@@ -233,28 +233,87 @@ const aspasPy = (v) => `"${String(v).replace(/\\/g, "\\\\").replace(/"/g, '\\"')
 const aspasJs = (v) =>
   `'${String(v).replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
 
+// O Selenium tem estrategia dedicada para id e name: alem de mais rapidas que
+// o motor de CSS, deixam a intencao explicita em quem le o Page Object. Antes
+// daqui saia By.cssSelector("#login") mesmo quando By.id("login") servia.
+const SO_ID = /^#([A-Za-z_][\w-]*)$/;
+const SO_NAME = /^\[name="([^"\\]+)"\]$/;
+
 /** Localizador → sintaxe do By do Selenium. */
 function byJava(sel) {
   if (sel.sintaxe === "xpath") return `By.xpath(${aspasJava(sel.valor)})`;
   if (sel.sintaxe === "texto-link") return `By.linkText(${aspasJava(sel.valor)})`;
+  const id = sel.valor.match(SO_ID);
+  if (id) return `By.id(${aspasJava(id[1])})`;
+  const nome = sel.valor.match(SO_NAME);
+  if (nome) return `By.name(${aspasJava(nome[1])})`;
   return `By.cssSelector(${aspasJava(sel.valor)})`;
 }
 
 function byPython(sel) {
   if (sel.sintaxe === "xpath") return `(By.XPATH, ${aspasPy(sel.valor)})`;
   if (sel.sintaxe === "texto-link") return `(By.LINK_TEXT, ${aspasPy(sel.valor)})`;
+  const id = sel.valor.match(SO_ID);
+  if (id) return `(By.ID, ${aspasPy(id[1])})`;
+  const nome = sel.valor.match(SO_NAME);
+  if (nome) return `(By.NAME, ${aspasPy(nome[1])})`;
   return `(By.CSS_SELECTOR, ${aspasPy(sel.valor)})`;
 }
 
 function byCsharp(sel) {
   if (sel.sintaxe === "xpath") return `By.XPath(${aspasJava(sel.valor)})`;
   if (sel.sintaxe === "texto-link") return `By.LinkText(${aspasJava(sel.valor)})`;
+  const id = sel.valor.match(SO_ID);
+  if (id) return `By.Id(${aspasJava(id[1])})`;
+  const nome = sel.valor.match(SO_NAME);
+  if (nome) return `By.Name(${aspasJava(nome[1])})`;
   return `By.CssSelector(${aspasJava(sel.valor)})`;
 }
 
 /** Playwright aceita CSS direto e exige o prefixo `xpath=` para XPath. */
 function alvoPlaywright(sel) {
   return sel.sintaxe === "xpath" ? `xpath=${sel.valor}` : sel.valor;
+}
+
+// --- Escolha do localizador por linguagem ------------------------------------
+//
+// Misturar CSS e XPath no mesmo Page Object era o comportamento antigo: a
+// escolha olhava so a estabilidade e ignorava para onde o codigo ia. Isso
+// produzia arquivo alternando By.cssSelector e By.xpath sem criterio visivel —
+// e, pior, XPath para Cypress, que nao tem suporte nativo e nao roda sem plugin.
+//
+// Cada lista abaixo segue a recomendacao do proprio projeto:
+//  - Selenium: id > name > CSS > XPath (id e a estrategia mais rapida e estavel)
+//  - Playwright: a doc desaconselha XPath; CSS da conta
+//  - Cypress: data-* primeiro, e XPath nem entra
+//  - Robot Framework: aceita os tres, com prefixo
+const SEM_XPATH = new Set(["js-cypress", "js-playwright", "ts-playwright", "python-playwright"]);
+
+/**
+ * Escolhe o candidato para a linguagem pedida.
+ *
+ * A ordem base e a do MOTOR de seletores, nao uma lista fixa de tipos. Ele ja
+ * sabe coisas que uma lista nao saberia: id gerado por build leva 45 pontos de
+ * penalidade, classe utilitaria idem, e casar com varios elementos derruba o
+ * candidato. Uma primeira versao daqui ordenou so por tipo e jogou isso fora —
+ * o resultado foi By.id("a3f9c21e") num botao cujo id morre no proximo deploy,
+ * quando o motor ja tinha preferido o texto visivel.
+ *
+ * A linguagem entra como FILTRO, nao como nova ordem: tira o que ela nao roda.
+ */
+export function escolherCandidato(candidatos, linguagemId) {
+  const lista = Array.isArray(candidatos) ? candidatos.filter(Boolean) : [];
+  if (!lista.length) return null;
+
+  const semX = lista.filter((c) => c.sintaxe !== "xpath");
+  // Se sobrar nada sem XPath, e melhor entregar XPath com aviso do que linha
+  // nenhuma: o localizador esta certo, so precisa de plugin.
+  const permitidos = SEM_XPATH.has(linguagemId) && semX.length ? semX : lista;
+
+  return [...permitidos].sort((a, b) => {
+    if (!!b.unico !== !!a.unico) return b.unico ? 1 : -1;
+    return (b.pontos || 0) - (a.pontos || 0);
+  })[0];
 }
 
 export const LINGUAGENS = [
@@ -306,8 +365,14 @@ export const LINGUAGENS = [
     id: "robot-framework",
     rotulo: "Robot Framework",
     extensao: "robot",
-    linha: (nome, sel) =>
-      `\${${nome}}    ${sel.sintaxe === "xpath" ? "xpath" : "css"}=${sel.valor}`,
+    linha: (nome, sel) => {
+      // O SeleniumLibrary aceita o prefixo id=, que e a estrategia mais direta.
+      const id = sel.sintaxe !== "xpath" && sel.valor.match(SO_ID);
+      const alvo = id
+        ? `id=${id[1]}`
+        : `${sel.sintaxe === "xpath" ? "xpath" : "css"}=${sel.valor}`;
+      return `\${${nome}}    ${alvo}`;
+    },
   },
   {
     id: "texto",
@@ -347,12 +412,23 @@ export function gerarRascunho(elementos, linguagemId, convencaoId, opcoes = {}) 
 
   return lista
     .map((e, i) => {
-      const linha = lang.linha(nomes[i], e.seletor);
+      // Elemento capturado antes desta versao so tem `seletor`; o novo tem a
+      // lista e deixa a linguagem escolher.
+      const sel = escolherCandidato(e.candidatos, lang.id) || e.seletor;
+      if (!sel) return "";
+      const linha = lang.linha(nomes[i], sel);
       // Um localizador que casa com vários elementos passa nos testes de hoje e
       // quebra quando a tela ganhar mais um item igual. Marcar na linha é o
       // único momento em que a QA ainda tem a página aberta para conferir.
-      if (anotar && typeof e.matches === "number" && e.matches > 1) {
-        return `${linha}  ${cmt} atenção: casa com ${e.matches} elementos`;
+      // Sobrou so XPath numa linguagem que nao executa XPath. Entregar mesmo
+      // assim e melhor do que linha nenhuma — o localizador esta certo, so
+      // precisa de plugin —, mas calar seria entregar codigo que nao roda.
+      if (sel.sintaxe === "xpath" && SEM_XPATH.has(lang.id)) {
+        return `${linha}  ${cmt} XPath: ${lang.id.includes("cypress") ? "exige plugin no Cypress" : "prefira um seletor CSS"}`;
+      }
+      const quantos = typeof sel.matches === "number" ? sel.matches : e.matches;
+      if (anotar && typeof quantos === "number" && quantos > 1) {
+        return `${linha}  ${cmt} atenção: casa com ${quantos} elementos`;
       }
       return linha;
     })
