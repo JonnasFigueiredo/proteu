@@ -8,19 +8,21 @@ seed reproduz exatamente a mesma massa, então um bug encontrado com dados gerad
 deixa de ser "não reproduzível".
 
 **100% local** · sem requisições de rede · sem coleta de dados · sem dependências
-em runtime · 4 permissões na instalação · Vanilla JS (sem build) · 804 testes.
+em runtime · 4 permissões na instalação · Vanilla JS (sem build) · 921 testes.
 
 Ela cobre o ciclo inteiro de quem automatiza: **gerar** a massa, **preencher** o
 formulário com ela, **mapear** os elementos da tela em variáveis e **gravar** o
 fluxo como script rodável.
 
-**Multi-país:** um seletor de país (bandeira no cabeçalho) define de qual país os
-dados gerados são equivalentes, e a interface acompanha o idioma (Brasil → pt;
-EUA e Canadá → en; hispano-americanos → es; China → zh; Arábia Saudita → ar,
-com layout **RTL**; Índia → hi; Alemanha → de). Prontos: **Brasil, Estados
-Unidos, Canadá, Argentina, China, Arábia Saudita, México, Índia e Alemanha**.
-**Chile, Uruguai e Paraguai** entram em seguida (a arquitetura já suporta —
-cada país é um arquivo em `src/core/paises/`).
+**Multi-país:** um seletor de país (bandeira no cabeçalho) define de qual país
+os dados gerados são equivalentes, e a interface acompanha o idioma. São **12
+países, todos implementados** — nenhum "em breve" na tela: **Brasil, Estados
+Unidos, Canadá, Argentina, México, China, Arábia Saudita, Índia, Alemanha,
+Austrália, Japão e Coreia do Sul**.
+
+> Japão e Coreia mostram a interface em inglês: o projeto ainda não tem tradução
+> de UI para japonês e coreano. Os **nomes dos documentos** ficam nativos
+> (マイナンバー, 주민등록번호), como CPF e CNPJ no Brasil.
 
 ---
 
@@ -58,14 +60,15 @@ cada país é um arquivo em `src/core/paises/`).
 |------|------------|
 | **Perfil + preencher formulário** | Uma **pessoa fictícia coerente** com **todos os documentos do país** (o e-mail sai do nome; os documentos têm DV válido) e um botão que **preenche o formulário inteiro** com ela. A persona toda é uma única geração, então a seed reproduz a pessoa completa. **Senha, readonly, disabled e upload nunca são tocados.** |
 | **Exportar em lote** | Até 1000 personas em **CSV**, **JSON** ou **fixture de Playwright/Cypress** — com a **seed dentro do arquivo**, para quem receber regerar exatamente os mesmos dados. |
-| **Pessoa** | Nome · data de nascimento (sempre maior de idade) · data de admissão · CPF · RG (SSP-SP) · CNH · CEP coerente por UF · telefone fixo/celular com DDD real. |
+| **Pessoa** | Nome · data de nascimento (sempre maior de idade) · data de admissão (**nunca antes dos 16 anos** da pessoa) · CPF · RG (SSP-SP) · CNH · **CEP que existe de verdade** · telefone fixo/celular com DDD real. |
 | **Empresa** | **CNPJ numérico *e* alfanumérico na mesma função** (novo padrão jul/2026, incl. o caso oficial SERPRO `12.ABC.345/01DE-35`) · **CNPJ com a mesma raiz** (matriz 0001 + filiais 0002, 0003… compartilhando os 8 primeiros dígitos) · razão social · Inscrição Estadual (SP). Com e sem máscara. |
+| **Austrália · Japão · Coreia** | TFN, ABN, ACN e Medicare · マイナンバー e 法人番号 · 주민등록번호, 사업자등록번호 e 법인등록번호 — todos com o **dígito verificador oficial**. Os algoritmos australianos são conferidos contra números públicos reais (o ABN do próprio ATO e o ABN/ACN da Telstra), então um erro de implementação reprova no teste. |
 | **Detecção → fronteira** | Chips clicáveis a partir do campo focado: `maxlength` ±1, `number` min/max + `1e999`/`NaN`, datas de fronteira, e-mails que passam na regex mas quebram no servidor, strings Unicode. |
 | **Texto** | 9 idiomas (pt, es, ar, tr, ru, zh, hi, ja, he — cada um cobrindo um problema real de i18n) · geração **por tamanho exata** nas 4 unidades de contagem · **pseudolocale** (`Save` → `Šávé`) com expansão, marcadores `⟦…⟧`, preservação de placeholders e modo `fakebidi`. |
 | **4 unidades de contagem** | grafemas · code points · code units UTF-16 · bytes UTF-8, lado a lado — porque "100 caracteres" é ambíguo. Quem não quer entrar nesse mérito escolhe a unidade **caracteres (ASCII)**: o texto sai em ASCII puro e as quatro contagens dão o mesmo número. |
 | **Casos-limite** | Arsenal de entradas que quebram sistemas, cada uma com o **porquê**: fronteiras Unicode (contagens inline), payloads XSS/SQLi/formato (**uso defensivo**), números & datas de borda, espaços/controle invisíveis, formatos inválidos e overflow. Busca + "copiar todos"; 1 clique insere no campo. |
 | **Inspecionar** (DevTools) | Para o elemento selecionado, várias estratégias de seletor — `data-testid`, id, name, aria-label, texto, caminho CSS, XPath relativo e absoluto — **cada uma com a contagem real de matches**. Classe gerada por ferramenta (`css-1a2b3c`, `sc-bdVaJa`, `_ngcontent-*`) e id com hash são **rebaixados**, porque quebram no próximo build. Mostra a cadeia de **Shadow DOM** e de **iframe**, e tem um campo para testar seletor à mão com destaque na página. |
-| **Mapear** (página + DevTools) | Modo de captura por clique: cada elemento vira uma **declaração de variável** num rascunho **editável**, ao lado da tela. **9 linguagens** (Selenium Java/Python/C#, Playwright JS/TS/Python, Cypress, Robot Framework, texto puro) e **5 convenções** de nome (camelCase, PascalCase, snake_case, UPPER_SNAKE, kebab), com o padrão de cada linguagem já escolhido. Localizador ambíguo sai **marcado na linha** com a contagem real. |
+| **Mapear** (página + DevTools) | Modo de captura por clique: cada elemento vira uma **declaração de variável** num rascunho **editável**, ao lado da tela. **9 linguagens** (Selenium Java/Python/C#, Playwright JS/TS/Python, Cypress, Robot Framework, texto puro) e **5 convenções** de nome (camelCase, PascalCase, snake_case, UPPER_SNAKE, kebab), com o padrão de cada linguagem já escolhido. Localizador ambíguo sai **marcado na linha** com a contagem real. O quadro é **redimensionável nos dois eixos** e lembra o tamanho — caminho CSS passa fácil dos 80 caracteres. |
 | **Gravador** (DevTools) | Grava a navegação e exporta **Selenium (Java/Python)** e **Playwright (JS/Python)**. A digitação vira um `fill` com o valor final, o clique que só focou o campo some, e cada passo deixa **trocar o seletor** por outro candidato. Modo verificação: clicar em algo cria uma asserção em vez de acionar a página. |
 
 Mais: **interface em pt/es/en/zh/ar/hi/de** (segue o país por padrão, mas o QA
@@ -203,6 +206,30 @@ Nenhuma parte da geração usa `Math.random()` — e há um teste que **falha** 
 alguma passar a usar, porque uma única chamada quebraria a promessa inteira sem
 que nenhuma comparação de igualdade percebesse.
 
+## Dados que não mentem
+
+Massa de teste que passa no formato mas falha na validação do sistema testado
+não economiza tempo: gasta. Três casos que já morderam e viraram teste:
+
+- **CEP que existe.** O gerador sorteava um número dentro da faixa da UF —
+  formato válido, CEP que os Correios nunca atribuíram, e "não encontrado" para
+  quem valida contra o ViaCEP. Hoje sai de uma tabela de **540 CEPs reais** (20
+  por UF), coletados e **conferidos um a um**. A coleta é ferramenta de
+  desenvolvimento (`tools/coletar-ceps.mjs`) e roda fora da extensão: o que
+  entra em `src/` é array literal. Quem precisa de CEP inexistente de propósito
+  — para exercitar o caminho de erro — pede `sintetico: true`.
+
+- **Admissão depois do nascimento.** As duas datas eram sorteadas sem se
+  enxergarem, e apareceu gente admitida três anos antes de nascer. Agora saem da
+  mesma derivação, com piso de 16 anos conferindo mês e dia.
+
+- **Dígito verificador oficial, não inventado.** Cada documento usa o algoritmo
+  publicado pelo órgão que o emite. Onde existe número público real — o ABN do
+  ATO, o ABN e o ACN da Telstra — ele está no teste, então um erro de
+  implementação reprova. E quando o algoritmo oficial é fraco (o 法人番号 japonês
+  usa módulo 9 e não distingue 0 de 9), isso fica **registrado no teste** para
+  ninguém "consertar" e passar a gerar número que a Receita japonesa recusaria.
+
 ## Arquitetura
 
 ```
@@ -222,7 +249,7 @@ reproduzivel/
 │   │   ├── mapeador.js               # elemento → nome de variável + declaração (9 linguagens)
 │   │   ├── gravador/                 # acoes.js (normalização), selenium.js,
 │   │   │                             #   playwright.js, codigo.js (despacho)
-│   │   ├── paises/                   # um arquivo por país (br, us, ca, ar, cn, sa, mx, in, de)
+│   │   ├── paises/                   # um arquivo por país (br us ca ar mx cn sa in de au jp kr)
 │   │   ├── field.js                  # descritor do campo → set de fronteira
 │   │   ├── documents/                # nome, datas, cpf, cnpj (+raiz), rg, cnh, ie,
 │   │   │                             #   cep, telefone, razao-social
@@ -241,6 +268,8 @@ reproduzivel/
 │   │   └── agente.js                 # roda NA página via inspectedWindow.eval
 │   └── popup/                        # popup.html / .css / .js (Vanilla JS, sem framework)
 ├── sincronizar.mjs                   # espelha a extensão para a pasta do "Load unpacked"
+├── tools/                            # ferramentas de desenvolvimento, FORA do pacote
+│   └── coletar-ceps.mjs              #   busca CEPs reais para embutir em documents/cep.js
 └── tests/                            # Vitest (unitário) + e2e no navegador
     ├── *.test.js                     # espelha src/core + storage + service-worker
     ├── documents/  text/             # testes por documento e por módulo de texto
