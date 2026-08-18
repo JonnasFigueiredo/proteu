@@ -462,21 +462,6 @@ ambientes de teste sob sua responsabilidade**. **Não** as use contra sistemas d
 terceiros sem autorização — isso pode ser ilegal. A ferramenta não realiza
 nenhum ataque: apenas coloca strings em campos que você mesmo escolhe.
 
-## Publicar uma atualização
-
-A extensão está no ar na [Chrome Web Store](https://chromewebstore.google.com/detail/proteu-qa/edpjppimngkekieldgokejdccfpiehgn).
-Para enviar uma versão nova:
-
-1. Suba o `version` no `manifest.json` — o Google recusa versão igual ou menor
-   que a publicada.
-2. Rode a suíte: `npm test`.
-3. Compacte a pasta espelhada por `node sincronizar.mjs`, com o
-   **`manifest.json` na raiz do zip** (dentro de uma subpasta o Google recusa).
-4. No painel de desenvolvedor: item → **Pacote** → **Enviar novo pacote** →
-   **Enviar para revisão**.
-
-Atualização não refaz a listagem nem as justificativas de permissão: só o
-pacote. O Chrome distribui sozinho para quem já instalou, em algumas horas.
 
 ## Licença
 
