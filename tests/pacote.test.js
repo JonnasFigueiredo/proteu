@@ -1,78 +1,51 @@
 // O que compõe a extensão distribuída.
 //
-// O empacotador saiu do projeto; quem define o conteúdo agora é o
-// `sincronizar.mjs`, e é a lista dele que estes testes travam. As regras que o
-// Google verifica continuam aqui: manifest na raiz, nada de teste/dependência
-// junto, e os campos obrigatórios da listagem preenchidos.
+// Os scripts de empacotar e sincronizar saíram do projeto, então não há mais
+// uma lista de arquivos para conferir. Estes testes passaram a validar o que
+// realmente importa e independe de ferramenta: todo caminho declarado no
+// manifest existe, aponta para dentro das pastas distribuídas, e os campos que
+// o Google verifica estão preenchidos.
 
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 
 const RAIZ = path.resolve(import.meta.dirname, "..");
-const sincronizador = fs.readFileSync(path.join(RAIZ, "sincronizar.mjs"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(RAIZ, "manifest.json"), "utf8"));
 
-const ESPERADO_NO_PACOTE = ["manifest.json", "devtools.html", "icons", "src", "LICENSE", "NOTICE"];
+describe("pacote — o que a extensão carrega existe de fato", () => {
+  // Um caminho quebrado no manifest impede a extensão de carregar, e o sintoma
+  // aparece só na hora de instalar — depois de o pacote já ter subido.
 
-/** Extrai uma lista de strings declarada como `const NOME = [...]`. */
-function listaDe(fonte, nome) {
-  const m = fonte.match(new RegExp(`const ${nome} = \\[([^\\]]+)\\]`));
-  return m ? m[1].match(/"([^"]+)"/g).map((s) => s.replace(/"/g, "")) : null;
-}
-
-describe("sincronizar — a pasta carregada é a extensão inteira", () => {
-  // Bug real e caro de achar: a pasta que o Chrome carregava ficou parada numa
-  // versão antiga enquanto o repositório seguia em frente. O sintoma chegou
-  // como bug de interface ("removi o selo e ele continua na tela").
-
-  it("o sincronizador falha alto em vez de fingir sucesso", () => {
-    // A causa raiz não foi copiar errado: foi copiar errado em silêncio.
-    expect(sincronizador).toMatch(/process\.exit\(1\)/);
-    expect(sincronizador, "precisa conferir a versão que chegou no destino")
-      .toMatch(/versaoDestino/);
-  });
-
-  it("remove sobras de sincronizações antigas", () => {
-    // node_modules e tests/ já ficaram parados na pasta de destino, engordando
-    // o que se carrega no Chrome com coisa que não é da extensão.
-    expect(sincronizador, "precisa espelhar, não só copiar por cima")
-      .toMatch(/unlinkSync|rmdirSync/);
-  });
-});
-
-describe("pacote — o que compõe a extensão", () => {
-  it("inclui o que a extensão roda, mais LICENSE e NOTICE", () => {
-    const itens = listaDe(sincronizador, "INCLUIR");
-    expect(itens, "constante INCLUIR não encontrada").toBeTruthy();
-    expect(itens).toEqual(ESPERADO_NO_PACOTE);
-  });
-
-  it("os arquivos listados existem de fato", () => {
-    for (const alvo of ESPERADO_NO_PACOTE) {
-      expect(fs.existsSync(path.join(RAIZ, alvo)), alvo).toBe(true);
-    }
-  });
-
-  it("a licença acompanha a distribuição (Apache 2.0, seção 4a)", () => {
-    // Distribuir sem a licença descumpriria a própria licença escolhida.
-    const itens = listaDe(sincronizador, "INCLUIR");
-    expect(itens).toContain("LICENSE");
-    expect(itens).toContain("NOTICE");
-  });
-
-  it("todo arquivo que a extensão carrega está dentro do que é empacotado", () => {
-    // Se um caminho do manifest apontar para fora de src/ ou icons/, o pacote
-    // sai quebrado e a extensão nem carrega.
+  it("todo caminho do manifest existe e mora nas pastas distribuídas", () => {
     const caminhos = [
       manifest.background?.service_worker,
       manifest.action?.default_popup,
+      manifest.devtools_page,
       ...Object.values(manifest.icons || {}),
+      ...(manifest.web_accessible_resources || []).flatMap((r) => r.resources || []),
     ].filter(Boolean);
+
+    expect(caminhos.length, "manifest sem nenhum caminho declarado").toBeGreaterThan(5);
     for (const c of caminhos) {
       expect(fs.existsSync(path.join(RAIZ, c)), `${c} não existe`).toBe(true);
-      expect(/^(src|icons)\//.test(c), `${c} fora das pastas empacotadas`).toBe(true);
+      expect(/^(src\/|icons\/|devtools\.html$)/.test(c), `${c} fora do que é distribuído`)
+        .toBe(true);
     }
+  });
+
+  it("LICENSE e NOTICE acompanham a distribuição", () => {
+    // A seção 4(a) da Apache 2.0 exige que a licença siga cada cópia.
+    for (const arq of ["LICENSE", "NOTICE"]) {
+      expect(fs.existsSync(path.join(RAIZ, arq)), arq).toBe(true);
+    }
+  });
+
+  it("o gerador de ícones não é referenciado pela extensão", () => {
+    // Ele mora em icons/ mas é ferramenta de desenvolvimento: se entrasse no
+    // manifest, iria junto para a loja.
+    const tudo = JSON.stringify(manifest);
+    expect(tudo).not.toContain("gerar-icones");
   });
 });
 
@@ -247,33 +220,5 @@ describe("manifest — a página do DevTools mora na raiz", () => {
       expect(daPagina, `${rel} resolve diferente conforme a interpretação`).toBe(daRaiz);
       expect(fs.existsSync(path.join(RAIZ, rel)), `${rel} não existe`).toBe(true);
     }
-  });
-});
-
-describe("pacote — ferramenta de desenvolvimento não vaza", () => {
-  // O gerador de ícones é uma página HTML dentro de icons/. O filtro antigo
-  // excluía por extensão (.ps1, .md), e por isso ele entrou na distribuição
-  // quando o gerador deixou de ser PowerShell — a extensão também é HTML.
-  //
-  // Antes isto conferia o .zip pronto. Sem empacotador, a checagem passou a
-  // ser na regra que decide o que sai: é ela que precisa estar certa, e vale
-  // sem depender de alguém ter rodado um build antes do teste.
-
-  const excluir = sincronizador.match(/const EXCLUIR = \[([\s\S]*?)\];/);
-
-  it("o gerador de ícones é excluído por nome, não por extensão", () => {
-    expect(excluir, "constante EXCLUIR não encontrada").toBeTruthy();
-    expect(excluir[1]).toMatch(/gerar-icones/);
-  });
-
-  it("os quatro ícones do manifest existem para ser copiados", () => {
-    for (const rel of Object.values(manifest.icons)) {
-      expect(fs.existsSync(path.join(RAIZ, rel)), `${rel} não existe`).toBe(true);
-    }
-  });
-
-  it("a página do DevTools está na raiz, dentro do que é copiado", () => {
-    expect(fs.existsSync(path.join(RAIZ, manifest.devtools_page))).toBe(true);
-    expect(listaDe(sincronizador, "INCLUIR")).toContain(manifest.devtools_page);
   });
 });
