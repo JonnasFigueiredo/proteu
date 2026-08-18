@@ -17,10 +17,10 @@ Proteu QA
 ## Descrição breve (máx. 132 caracteres)
 
 ```
-Massa de teste, seletores e mapeamento de elementos para QA. Documentos válidos de 12 países. 100% offline.
+Massa de teste, mapeamento de elementos e automação no console. Documentos de 12 países. 100% offline.
 ```
 
-*(106 caracteres)*
+*(102 caracteres, limite 132)*
 
 ## Categoria
 
@@ -35,9 +35,10 @@ Português (Brasil)
 ## Descrição completa
 
 ```
-Proteu QA reúne, numa extensão só, as quatro tarefas que consomem o tempo de quem
-testa software: gerar massa de dados, preencher formulários, mapear elementos da
-tela e gravar o fluxo como script.
+Proteu QA reúne, numa extensão só, as tarefas que consomem o tempo de quem testa
+software: gerar massa de dados, preencher formulários, mapear elementos da tela,
+gravar o fluxo como script e repetir esse fluxo dezenas de vezes para popular a
+base — tudo sem sair do navegador.
 
 Tudo funciona sem conexão. A extensão não faz nenhuma requisição de rede, não usa
 bibliotecas de terceiros e não coleta dado nenhum.
@@ -124,7 +125,24 @@ extremos, espaços e caracteres de controle invisíveis, formatos inválidos e
 sobrecarga de tamanho.
 
 
-GRAVADOR
+AUTOMAÇÃO INSTANTÂNEA NO CONSOLE
+
+Grave um cadastro uma vez e receba um script em JavaScript puro, colável no
+console do navegador (F12). Sem runner, sem dependência, sem projeto montado:
+roda na aba que já está aberta.
+
+Defina quantas repetições quer e o script executa o fluxo em laço. A cada volta
+ele consome uma persona diferente da massa embutida, porque repetir o mesmo
+cadastro esbarra em unicidade de CPF, e-mail ou matrícula já na segunda tentativa.
+
+É o caminho para popular um ambiente de homologação com trinta produtos ou
+cinquenta clientes em minutos, sem escrever uma linha de automação.
+
+O script espera cada elemento aparecer antes de agir e escreve nos campos de um
+modo que React e Vue reconhecem — o valor não some no próximo render.
+
+
+GRAVADOR PARA SUÍTES DE TESTE
 
 Grava a navegação e exporta o roteiro em Selenium (Java, Python) e Playwright
 (JavaScript, Python), incluindo a travessia de Shadow DOM e a troca de iframe que
@@ -163,5 +181,5 @@ Código aberto sob Apache 2.0, auditável em github.com/JonnasFigueiredo/proteu
 
 **Uso de código remoto:** Não.
 **Coleta de dados:** Nenhuma.
-**Finalidade única:** Gerar massa de dados de teste, copiar seletores e mapear
-elementos de página para automação de testes.
+**Finalidade única:** Gerar massa de dados de teste, mapear elementos de página e
+automatizar fluxos repetitivos para testes de software.
