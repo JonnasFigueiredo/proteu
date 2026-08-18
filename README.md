@@ -18,9 +18,8 @@ fluxo como script rodável.
 
 **Multi-país:** um seletor de país (bandeira no cabeçalho) define de qual país
 os dados gerados são equivalentes, e a interface acompanha o idioma. São **12
-países, todos implementados** — nenhum "em breve" na tela: **Brasil, Estados
-Unidos, Canadá, Argentina, México, China, Arábia Saudita, Índia, Alemanha,
-Austrália, Japão e Coreia do Sul**.
+países**: Brasil, Estados Unidos, Canadá, Argentina, México, China, Arábia
+Saudita, Índia, Alemanha, Austrália, Japão e Coreia do Sul.
 
 > Japão e Coreia mostram a interface em inglês: o projeto ainda não tem tradução
 > de UI para japonês e coreano. Os **nomes dos documentos** ficam nativos
@@ -47,8 +46,8 @@ Austrália, Japão e Coreia do Sul**.
    elementos é um teste que falha amanhã, e aqui isso fica visível antes.
 5. **Gravador que gera script rodável** — o roteiro sai em Selenium (Java e
    Python) e Playwright (JavaScript e Python), já com o salto de **Shadow DOM**
-   e a troca de **iframe** que gravador comum esquece — e por isso cospe script
-   que estoura `NoSuchElementException` num elemento visível na tela.
+   e a troca de **iframe** que gravadores comuns omitem — origem de scripts que
+   lançam `NoSuchElementException` em elementos visíveis na tela.
 6. **Mapear a tela clicando** — antes de escrever o teste vem a pergunta "quais
    elementos vou automatizar, e como vou chamá-los?". Liga o modo, clica nos
    elementos e o bloco de notas ao lado vai montando as **declarações de
@@ -219,29 +218,27 @@ Nenhuma parte da geração usa `Math.random()` — e há um teste que **falha** 
 alguma passar a usar, porque uma única chamada quebraria a promessa inteira sem
 que nenhuma comparação de igualdade percebesse.
 
-## Dados que não mentem
+## Integridade dos dados gerados
 
-Massa de teste que passa no formato mas falha na validação do sistema testado
-não economiza tempo: gasta. Três casos que já morderam e viraram teste:
+Massa de teste que satisfaz o formato mas é recusada pela validação do sistema
+testado não economiza tempo: gasta. Três garantias, cada uma coberta por teste:
 
-- **CEP que existe.** O gerador sorteava um número dentro da faixa da UF —
-  formato válido, CEP que os Correios nunca atribuíram, e "não encontrado" para
-  quem valida contra o ViaCEP. Hoje sai de uma tabela de **540 CEPs reais** (20
+- **CEP existente.** O CEP sai de uma tabela de **540 CEPs reais** (20
   por UF), coletados e **conferidos um a um**. A coleta é ferramenta de
   desenvolvimento (`tools/coletar-ceps.mjs`) e roda fora da extensão: o que
   entra em `src/` é array literal. Quem precisa de CEP inexistente de propósito
   — para exercitar o caminho de erro — pede `sintetico: true`.
 
-- **Admissão depois do nascimento.** As duas datas eram sorteadas sem se
-  enxergarem, e apareceu gente admitida três anos antes de nascer. Agora saem da
-  mesma derivação, com piso de 16 anos conferindo mês e dia.
+- **Datas coerentes entre si.** Nascimento e admissão saem da mesma derivação,
+  com piso de 16 anos na admissão — conferindo mês e dia, não só o ano.
 
-- **Dígito verificador oficial, não inventado.** Cada documento usa o algoritmo
-  publicado pelo órgão que o emite. Onde existe número público real — o ABN do
-  ATO, o ABN e o ACN da Telstra — ele está no teste, então um erro de
-  implementação reprova. E quando o algoritmo oficial é fraco (o 法人番号 japonês
-  usa módulo 9 e não distingue 0 de 9), isso fica **registrado no teste** para
-  ninguém "consertar" e passar a gerar número que a Receita japonesa recusaria.
+- **Dígito verificador oficial.** Cada documento usa o algoritmo publicado pelo
+  órgão emissor. Onde existe número público real — o ABN do próprio ATO, o ABN e
+  o ACN da Telstra — ele integra a suíte, de modo que um erro de implementação é
+  reprovado. Limitações do algoritmo oficial ficam documentadas no teste: o
+  法人番号 japonês usa módulo 9 e não distingue 0 de 9, e a expectativa está
+  fixada para que ninguém a "corrija" e passe a gerar números que a autoridade
+  fiscal japonesa recusaria.
 
 ## Arquitetura
 
@@ -291,9 +288,10 @@ reproduzivel/
                                       #   screenshots.html, preview.html, servir.mjs
 ```
 
-> `sincronizar.mjs` confere a versão que chegou no destino e falha alto se não
-> bater. A pasta carregada no Chrome já ficou parada numa versão antiga sem
-> ninguém notar, e o sintoma apareceu como bug de interface.
+> `sincronizar.mjs` verifica a versão presente no destino e falha com código de
+> saída diferente de zero quando ela não corresponde. Uma cópia desatualizada na
+> pasta carregada pelo Chrome se manifesta como defeito de interface, e é cara
+> de diagnosticar.
 
 ### Decisões de arquitetura
 
