@@ -17,10 +17,10 @@ Proteu QA
 ## Descrição breve (máx. 132 caracteres)
 
 ```
-Massa de teste, mapeamento de elementos e automação no console. Documentos de 12 países. 100% offline.
+Massa de teste, senhas, mapeamento de elementos e automação. Documentos de 12 países. 100% offline.
 ```
 
-*(102 caracteres, limite 132)*
+*(99 caracteres, limite 132)*
 
 ## Categoria
 
@@ -129,6 +129,18 @@ minutos, sem escrever automação.
 Para quem já tem uma suíte de testes, o mesmo roteiro pode ser exportado no
 formato das ferramentas de automação mais usadas, incluindo a travessia de
 componentes encapsulados e a troca de quadros que gravadores comuns esquecem.
+
+
+GERADOR DE SENHA
+
+Uma aba dedicada a criar senhas, com tamanho ajustável e escolha de quais tipos
+de caractere entram. O medidor ao lado mostra a força em bits, e a senha sai
+sempre com pelo menos um caractere de cada tipo escolhido — senha que não atende
+à política do sistema só seria descoberta quando o cadastro recusa.
+
+Diferente do restante da extensão, esta aba não é reproduzível: a senha vem de
+sorteio criptográfico do próprio navegador, porque uma senha que outra pessoa
+consegue prever não poderia ser chamada de forte.
 
 
 SETE IDIOMAS
