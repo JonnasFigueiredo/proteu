@@ -7,6 +7,8 @@ um diferencial: **toda geração usa uma seed determinística e visível**. A me
 seed reproduz exatamente a mesma massa, então um bug encontrado com dados gerados
 deixa de ser "não reproduzível".
 
+**[Instalar na Chrome Web Store](https://chromewebstore.google.com/detail/proteu-qa/edpjppimngkekieldgokejdccfpiehgn)**
+
 **100% local** · sem requisições de rede · sem coleta de dados · sem dependências
 em runtime · 4 permissões na instalação · Vanilla JS (sem build) · 921 testes.
 
@@ -84,7 +86,18 @@ para copiar seletores e atalhos de teclado.
 
 ## Como usar
 
-### Carregar no Chrome (Load unpacked)
+### Instalar
+
+[**Chrome Web Store — Proteu QA**](https://chromewebstore.google.com/detail/proteu-qa/edpjppimngkekieldgokejdccfpiehgn)
+
+Instale, fixe o ícone na barra e clique para abrir o popup. São 4 permissões, e
+nenhuma delas dá acesso a páginas: o acesso de que o menu de seletores e o modo
+Mapear precisam é **opcional** e só é pedido quando você liga esses recursos.
+Veja [Permissões](#permissões).
+
+### Carregar do código-fonte (Load unpacked)
+
+Para desenvolver, ou para rodar uma versão modificada:
 
 1. Abra `chrome://extensions`.
 2. Ative o **Modo do desenvolvedor** (canto superior direito).
@@ -450,6 +463,22 @@ existem para você exercitar a validação e o escaping **de sistemas próprios,
 ambientes de teste sob sua responsabilidade**. **Não** as use contra sistemas de
 terceiros sem autorização — isso pode ser ilegal. A ferramenta não realiza
 nenhum ataque: apenas coloca strings em campos que você mesmo escolhe.
+
+## Publicar uma atualização
+
+A extensão está no ar na [Chrome Web Store](https://chromewebstore.google.com/detail/proteu-qa/edpjppimngkekieldgokejdccfpiehgn).
+Para enviar uma versão nova:
+
+1. Suba o `version` no `manifest.json` — o Google recusa versão igual ou menor
+   que a publicada.
+2. Rode a suíte: `npm test`.
+3. Compacte a pasta espelhada por `node sincronizar.mjs`, com o
+   **`manifest.json` na raiz do zip** (dentro de uma subpasta o Google recusa).
+4. No painel de desenvolvedor: item → **Pacote** → **Enviar novo pacote** →
+   **Enviar para revisão**.
+
+Atualização não refaz a listagem nem as justificativas de permissão: só o
+pacote. O Chrome distribui sozinho para quem já instalou, em algumas horas.
 
 ## Licença
 
