@@ -10,7 +10,7 @@ deixa de ser "não reproduzível".
 **[Instalar na Chrome Web Store](https://chromewebstore.google.com/detail/proteu-qa/edpjppimngkekieldgokejdccfpiehgn)**
 
 **100% local** · sem requisições de rede · sem coleta de dados · sem dependências
-em runtime · 4 permissões na instalação · Vanilla JS (sem build) · 921 testes.
+em runtime · 4 permissões na instalação · Vanilla JS (sem build) · 948 testes.
 
 Ela cobre o ciclo inteiro de quem automatiza: **gerar** a massa, **preencher** o
 formulário com ela, **mapear** os elementos da tela em variáveis e **gravar** o
@@ -103,13 +103,6 @@ Para desenvolver, ou para rodar uma versão modificada:
 3. Clique em **Carregar sem compactação** (*Load unpacked*).
 4. Selecione a pasta raiz do projeto (a que contém o `manifest.json`).
 5. Fixe o ícone do Proteu QA na barra e clique para abrir o popup.
-
-Para espelhar a extensão numa pasta separada — útil para carregar no Chrome sem
-apontar para o repositório inteiro:
-
-```bash
-node sincronizar.mjs [destino]     # padrão: D:/Projetos/proteu
-```
 
 ### O popup
 
@@ -277,7 +270,6 @@ reproduzivel/
 │   │   ├── painel.html/.css/.js      # a interface das três abas
 │   │   └── agente.js                 # roda NA página via inspectedWindow.eval
 │   └── popup/                        # popup.html / .css / .js (Vanilla JS, sem framework)
-├── sincronizar.mjs                   # espelha a extensão para a pasta do "Load unpacked"
 ├── tools/                            # ferramentas de desenvolvimento, FORA do pacote
 │   └── coletar-ceps.mjs              #   busca CEPs reais para embutir em documents/cep.js
 └── tests/                            # Vitest (unitário) + e2e no navegador
@@ -287,11 +279,6 @@ reproduzivel/
                                       #   painel-runner.html, mapeador-runner.html,
                                       #   screenshots.html, preview.html, servir.mjs
 ```
-
-> `sincronizar.mjs` verifica a versão presente no destino e falha com código de
-> saída diferente de zero quando ela não corresponde. Uma cópia desatualizada na
-> pasta carregada pelo Chrome se manifesta como defeito de interface, e é cara
-> de diagnosticar.
 
 ### Decisões de arquitetura
 
