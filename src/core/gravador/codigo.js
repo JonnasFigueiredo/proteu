@@ -4,6 +4,7 @@
 import { normalizar } from "./acoes.js";
 import { paraSeleniumJava, paraSeleniumPython } from "./selenium.js";
 import { paraPlaywrightJs, paraPlaywrightPython } from "./playwright.js";
+import { paraConsole } from "./console.js";
 
 /** Formatos oferecidos na aba Gravador, na ordem em que aparecem. */
 export const FORMATOS = [
@@ -24,6 +25,14 @@ export const FORMATOS = [
     rotulo: "Playwright · JavaScript",
     extensao: "spec.js",
     gerar: paraPlaywrightJs,
+  },
+  {
+    // Roda no console da propria aba, sem runner nem dependencia: e o formato
+    // para quem quer massa AGORA, repetindo um cadastro que acabou de gravar.
+    id: "console-js",
+    rotulo: "Console do navegador (JS)",
+    extensao: "js",
+    gerar: paraConsole,
   },
   {
     id: "playwright-python",

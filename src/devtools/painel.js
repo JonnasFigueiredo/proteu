@@ -348,13 +348,69 @@ function renderizarAcoes() {
   });
 }
 
-function atualizarCodigo() {
+/**
+ * Personas para o laço do script de console.
+ *
+ * O script roda no navegador sem acesso ao core, então a massa vai EMBUTIDA:
+ * geramos aqui e o script consome uma por volta. Repetir o mesmo cadastro com
+ * o mesmo CPF esbarra na unicidade já na segunda iteração.
+ */
+async function personasParaOLaco(quantas) {
+  const { gerarPersona } = await import("../core/persona.js");
+  const { carregarConfig } = await import("../storage.js");
+  const config = await carregarConfig();
+  const saida = [];
+  for (let i = 0; i < quantas; i++) {
+    const p = gerarPersona({ ...config, contador: (config.contador || 0) + i });
+    saida.push(p.porSlot);
+  }
+  return saida;
+}
+
+/**
+ * Liga os campos preenchidos aos slots da persona, pelo nome do campo.
+ *
+ * Sem isso o laço repetiria o valor gravado em todas as voltas. A pista é o
+ * rótulo do alvo — o mesmo caminho que o preenchimento de formulário usa.
+ */
+function mapearCamposParaPersona(acoes, persona) {
+  if (!persona) return null;
+  const slots = Object.keys(persona);
+  const mapa = {};
+  for (const a of acoes) {
+    if (a.tipo !== "preencher" || !a.alvoId) continue;
+    const pista = `${a.rotuloAlvo || ""} ${a.seletor?.valor || ""}`.toLowerCase();
+    const achado = slots.find((s) => pista.includes(s.toLowerCase()));
+    if (achado) mapa[a.alvoId] = achado;
+  }
+  return Object.keys(mapa).length ? mapa : null;
+}
+
+async function atualizarCodigo() {
   const limpas = normalizar(estado.acoes);
-  const codigo = gerarCodigo(limpas, estado.formato, {
-    nome: "fluxo gravado",
-    jaNormalizado: true,
-  });
-  $("#codigo").textContent = codigo;
+  const ehConsole = estado.formato === "console-js";
+  $("#opcoes-console").hidden = !ehConsole;
+
+  const opcoes = { nome: "fluxo gravado", jaNormalizado: true };
+
+  if (ehConsole) {
+    const repeticoes = Math.max(1, Number($("#console-repeticoes").value) || 1);
+    opcoes.repeticoes = repeticoes;
+    opcoes.pausaMs = Math.max(0, Number($("#console-pausa").value) || 0);
+    opcoes.pararNoErro = $("#console-parar").checked;
+
+    if ($("#console-massa").checked) {
+      try {
+        opcoes.personas = await personasParaOLaco(Math.min(repeticoes, 200));
+        opcoes.mapaDeCampos = mapearCamposParaPersona(limpas, opcoes.personas[0]);
+      } catch (e) {
+        // Sem massa o script ainda serve: repete os valores gravados.
+        avisar("não consegui gerar a massa: " + e.message);
+      }
+    }
+  }
+
+  $("#codigo").textContent = gerarCodigo(limpas, estado.formato, opcoes);
 }
 
 async function alternarGravacao() {
@@ -434,6 +490,9 @@ function ligarEventos() {
   $("#aba-inspecionar").addEventListener("click", () => trocarAba("inspecionar"));
   $("#aba-gravador").addEventListener("click", () => trocarAba("gravador"));
   $("#aba-mapear").addEventListener("click", () => trocarAba("mapear"));
+  for (const id of ["#console-repeticoes", "#console-pausa", "#console-massa", "#console-parar"]) {
+    $(id).addEventListener("change", () => atualizarCodigo());
+  }
   // Falhar aqui não pode derrubar Inspecionar e Gravador: são recursos
   // independentes, e uma promise rejeitada e solta deixaria a aba Mapear morta
   // sem dizer por quê.

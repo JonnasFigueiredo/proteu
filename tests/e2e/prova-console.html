@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Prova — script de console</title></head>
+<body>
+<h1>Cadastro de produto</h1>
+<form id="f">
+  <input id="nome" placeholder="Nome">
+  <input id="cpf" placeholder="CPF">
+  <select id="uf"><option value="">--</option><option value="SP">SP</option><option value="RJ">RJ</option></select>
+  <label><input type="checkbox" id="aceito"> Aceito</label>
+  <button type="button" id="salvar">Salvar</button>
+</form>
+<h2>Salvos: <span id="contador">0</span></h2>
+<ul id="lista"></ul>
+<script>
+  // Simula o backend: cada "Salvar" grava e limpa o formulario.
+  document.getElementById('salvar').addEventListener('click', () => {
+    const nome = document.getElementById('nome').value;
+    const cpf = document.getElementById('cpf').value;
+    const uf = document.getElementById('uf').value;
+    const ok = document.getElementById('aceito').checked;
+    if (!nome || !cpf || !uf || !ok) { console.warn('formulario incompleto'); return; }
+    const li = document.createElement('li');
+    li.textContent = `${nome} | ${cpf} | ${uf}`;
+    document.getElementById('lista').appendChild(li);
+    document.getElementById('contador').textContent = document.querySelectorAll('#lista li').length;
+    document.getElementById('f').reset();
+  });
+</script>
+</body></html>
