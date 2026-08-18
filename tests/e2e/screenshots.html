@@ -142,14 +142,14 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
 <div class="slide" id="slide1">
   <div class="conteudo">
     <div class="texto-lado">
-      <h2>Personas realistas com documentos v&aacute;lidos</h2>
-      <p>CPF, CNPJ, RG, CNH, SSN, DNI e mais &mdash; para 9 pa&iacute;ses. Mesma seed, mesma pessoa. Sempre.</p>
+      <h2>Documentos v&aacute;lidos de 12 pa&iacute;ses</h2>
+      <p>CPF, CNPJ, SSN, CUIT, Aadhaar, TFN, マイナンバー, 주민등록번호 &mdash; cada um com o dígito verificador oficial. A referência no rodapé reproduz a pessoa inteira.</p>
       <div class="badges">
-        <span class="badge">BR Brasil</span>
-        <span class="badge">US EUA</span>
-        <span class="badge">AR Argentina</span>
-        <span class="badge">DE Alemanha</span>
-        <span class="badge">+5 pa&iacute;ses</span>
+        <span class="badge">Brasil</span>
+        <span class="badge">Austr&aacute;lia</span>
+        <span class="badge">Jap&atilde;o</span>
+        <span class="badge">Coreia do Sul</span>
+        <span class="badge">+8 pa&iacute;ses</span>
       </div>
     </div>
     <div class="popup-frame">
@@ -157,7 +157,7 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
     </div>
   </div>
   <div class="marca">Proteu QA</div>
-  <span class="num">1/5</span>
+  <span class="num">1/7</span>
 </div>
 
 <!-- Slide 2: Aba Texto -->
@@ -177,7 +177,7 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
     </div>
   </div>
   <div class="marca">Proteu QA</div>
-  <span class="num">2/5</span>
+  <span class="num">2/7</span>
 </div>
 
 <!-- Slide 3: Casos-limite -->
@@ -197,45 +197,53 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
     </div>
   </div>
   <div class="marca">Proteu QA</div>
-  <span class="num">3/5</span>
+  <span class="num">3/7</span>
 </div>
 
 <!-- Slide 4: Seletores -->
 <div class="slide" id="slide4">
   <div class="conteudo">
     <div class="texto-lado">
-      <h2>Copie seletores direto da p&aacute;gina</h2>
-      <p>Clique com o bot&atilde;o direito em qualquer elemento &rarr; Proteu QA oferece o melhor seletor autom&aacute;tico. Avisa quando o seletor &eacute; amb&iacute;guo para evitar testes fr&aacute;geis.</p>
+      <h2>A tela vira vari&aacute;veis, clicando</h2>
+      <p>Ligue o modo Mapear e clique nos elementos. O bloco de notas ao lado monta as declara&ccedil;&otilde;es prontas para colar na IDE &mdash; edit&aacute;veis, em 9 linguagens.</p>
       <div class="badges">
-        <span class="badge">CSS selector</span>
-        <span class="badge">XPath relativo</span>
-        <span class="badge">XPath absoluto</span>
-        <span class="badge">Por texto</span>
+        <span class="badge">Selenium</span>
+        <span class="badge">Playwright</span>
+        <span class="badge">Cypress</span>
+        <span class="badge">Robot Framework</span>
       </div>
       <div class="badges">
-        <span class="badge">Shadow DOM</span>
-        <span class="badge">iframes</span>
-        <span class="badge">Alerta de ambiguidade</span>
+        <span class="badge">5 conven&ccedil;&otilde;es de nome</span>
+        <span class="badge">Painel redimension&aacute;vel</span>
+        <span class="badge">Rascunho edit&aacute;vel</span>
       </div>
     </div>
-    <div class="popup-frame" style="display:flex;align-items:center;justify-content:center;background:#1e293b;">
-      <div style="padding:30px 40px;">
-        <!-- Simula&ccedil;&atilde;o visual do menu de contexto -->
-        <div style="background:#2d3748;border-radius:8px;padding:6px 0;box-shadow:0 8px 32px rgba(0,0,0,0.5);width:280px;margin:0 auto 24px;">
-          <div style="padding:8px 16px;color:#e2e8f0;font-size:14px;font-weight:600;border-bottom:1px solid #4a5568;">Proteu QA</div>
-          <div style="padding:8px 16px;color:#60a5fa;font-size:13px;background:rgba(96,165,250,0.1);cursor:default;">&#10003; Copiar melhor seletor</div>
-          <div style="height:1px;background:#4a5568;margin:4px 0;"></div>
-          <div style="padding:7px 16px;color:#cbd5e0;font-size:13px;">Copiar id</div>
-          <div style="padding:7px 16px;color:#cbd5e0;font-size:13px;">Copiar seletor CSS</div>
-          <div style="padding:7px 16px;color:#cbd5e0;font-size:13px;">Copiar XPath relativo</div>
-          <div style="padding:7px 16px;color:#cbd5e0;font-size:13px;">Copiar XPath absoluto</div>
-          <div style="padding:7px 16px;color:#cbd5e0;font-size:13px;">Copiar XPath por texto</div>
+    <div class="popup-frame" style="background:#1b1f24;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #333a42;">
+        <span style="font-weight:600;font-size:13px;color:#e6e6e6;">Proteu QA &middot; Mapear</span>
+        <span style="font-size:11px;color:#9aa4af;background:#262c33;padding:2px 8px;border-radius:100px;">6</span>
+        <span style="flex:1"></span>
+        <span style="color:#9aa4af;font-size:15px;">&ndash;</span>
+        <span style="color:#9aa4af;font-size:15px;">&times;</span>
+      </div>
+      <div style="padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1;">
+        <div style="display:flex;gap:6px;">
+          <div style="flex:1;padding:5px 8px;font-size:12px;background:#262c33;border:1px solid #3a424b;border-radius:6px;color:#e6e6e6;">Java &middot; Selenium</div>
+          <div style="flex:1;padding:5px 8px;font-size:12px;background:#262c33;border:1px solid #3a424b;border-radius:6px;color:#e6e6e6;">camelCase</div>
         </div>
-        <!-- Toast de feedback -->
-        <div style="background:#1565c0;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.3);max-width:280px;margin:0 auto;">
-          #login-form &gt; input.email
+        <div style="flex:1;background:#12161a;border:1px solid #3a424b;border-radius:6px;padding:10px;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;line-height:1.75;color:#e6e6e6;white-space:pre;overflow:hidden;">private final By <span style="color:#7fd1b9">campoEmail</span> = By.id(<span style="color:#e5c07b">"email"</span>);
+private final By <span style="color:#7fd1b9">campoSenha</span> = By.id(<span style="color:#e5c07b">"senha"</span>);
+private final By <span style="color:#7fd1b9">comboUf</span> = By.id(<span style="color:#e5c07b">"uf"</span>);
+private final By <span style="color:#7fd1b9">caixaLembrar</span> = By.name(<span style="color:#e5c07b">"lembrar"</span>);
+private final By <span style="color:#7fd1b9">botaoEntrar</span> =
+    By.cssSelector(<span style="color:#e5c07b">"[data-testid=\"entrar\"]"</span>);
+private final By <span style="color:#7fd1b9">botaoSalvar</span> =
+    By.xpath(<span style="color:#e5c07b">"//button[.='Salvar']"</span>);</div>
+        <div style="display:flex;gap:6px;">
+          <div style="flex:1;text-align:center;padding:6px;font-size:12px;background:#1565c0;color:#fff;border-radius:6px;">Copiar</div>
+          <div style="flex:1;text-align:center;padding:6px;font-size:12px;background:#262c33;color:#e6e6e6;border:1px solid #3a424b;border-radius:6px;">Regerar</div>
+          <div style="flex:1;text-align:center;padding:6px;font-size:12px;background:#262c33;color:#e6e6e6;border:1px solid #3a424b;border-radius:6px;">Limpar</div>
         </div>
-        <p style="color:#475569;font-size:12px;text-align:center;margin-top:12px;">&uarr; seletor copiado para a &aacute;rea de transfer&ecirc;ncia</p>
       </div>
     </div>
   </div>
@@ -247,16 +255,16 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
 <div class="slide centro" id="slide5">
   <div class="conteudo">
     <div class="texto-lado">
-      <h2>Seletores inteligentes para automa&ccedil;&atilde;o</h2>
-      <p>O Proteu QA analisa o elemento e escolhe o seletor mais est&aacute;vel: prefere atributos de teste, depois id, depois CSS com desambigua&ccedil;&atilde;o autom&aacute;tica. Funciona dentro de Shadow DOM e iframes.</p>
+      <h2>O localizador respeita o alvo</h2>
+      <p>Selenium recebe <code>By.id</code> e <code>By.name</code> quando cabe. Cypress e Playwright nunca recebem XPath. Id gerado por build &eacute; descartado &mdash; ele n&atilde;o sobrevive ao pr&oacute;ximo deploy.</p>
       <div class="badges" style="justify-content:center;">
+        <span class="badge">By.id no Selenium</span>
+        <span class="badge">S&oacute; CSS no Cypress</span>
         <span class="badge">data-testid priorizado</span>
-        <span class="badge">CSS com :nth-of-type</span>
-        <span class="badge">XPath sem cruzar Shadow DOM</span>
       </div>
       <div class="badges" style="justify-content:center;margin-top:0;">
-        <span class="badge">Contagem de matches em tempo real</span>
-        <span class="badge">Selenium / Playwright / Cypress</span>
+        <span class="badge">Contagem real de matches</span>
+        <span class="badge">Shadow DOM e iframes</span>
       </div>
     </div>
   </div>
@@ -294,13 +302,13 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
 <div class="slide centro" id="slide7">
   <div class="conteudo">
     <div class="texto-lado">
-      <h2>100% offline. Zero coleta de dados.</h2>
-      <p>Nenhuma requisi&ccedil;&atilde;o de rede. Nenhuma depend&ecirc;ncia externa. Tudo roda no seu navegador. Seus dados nunca saem da m&aacute;quina.</p>
+      <h2>100% offline</h2>
+      <p>Nenhuma requisi&ccedil;&atilde;o de rede, nenhuma coleta, nenhuma depend&ecirc;ncia externa. As 4 permiss&otilde;es da instala&ccedil;&atilde;o n&atilde;o d&atilde;o acesso ao conte&uacute;do das p&aacute;ginas. C&oacute;digo aberto sob Apache 2.0.</p>
       <div class="badges" style="justify-content:center;">
-        <span class="badge">Zero requisi&ccedil;&otilde;es de rede</span>
-        <span class="badge">Zero depend&ecirc;ncias</span>
+        <span class="badge">Zero rede</span>
         <span class="badge">Zero coleta</span>
-        <span class="badge">Zero telemetria</span>
+        <span class="badge">Zero depend&ecirc;ncias</span>
+        <span class="badge">C&oacute;digo aberto</span>
       </div>
     </div>
   </div>
