@@ -108,6 +108,29 @@
             <button id="btn-copiar-codigo" class="botao pequeno" type="button">Copiar</button>
             <button id="btn-baixar-codigo" class="botao pequeno" type="button">Baixar</button>
           </div>
+          <!-- Só faz sentido para o script de console: os outros formatos
+               rodam num runner, que já tem laço e massa próprios. -->
+          <div id="opcoes-console" class="barra" hidden>
+            <label class="check">
+              repetir
+              <input id="console-repeticoes" type="number" min="1" max="500" value="10"
+                     style="width:64px" />
+              vezes
+            </label>
+            <label class="check">
+              pausa
+              <input id="console-pausa" type="number" min="0" max="10000" step="100" value="300"
+                     style="width:72px" /> ms
+            </label>
+            <label class="check">
+              <input id="console-massa" type="checkbox" checked />
+              dados novos a cada volta
+            </label>
+            <label class="check">
+              <input id="console-parar" type="checkbox" checked />
+              parar no primeiro erro
+            </label>
+          </div>
           <pre id="codigo" class="codigo"></pre>
         </div>
       </div>
