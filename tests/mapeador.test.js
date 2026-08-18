@@ -8,6 +8,7 @@ import {
   desambiguar,
   gerarRascunho,
   nomeArquivoRascunho,
+  escolherCandidato,
 } from "../src/core/mapeador.js";
 
 /** Descritor no formato que leitura-dom.descreverNo devolve. */
@@ -193,13 +194,14 @@ describe("gerarRascunho — uma linha por elemento", () => {
 
   it("Java declara By", () => {
     const t = gerarRascunho(elementos, "java-selenium", "camelCase");
-    expect(t).toContain('private final By campoEmail = By.cssSelector("#email");');
+    // #email vira By.id: e a estrategia nativa, e o teste acompanha a mudanca.
+    expect(t).toContain('private final By campoEmail = By.id("email");');
     expect(t).toContain('private final By botaoEntrar = By.cssSelector(".btn-entrar");');
   });
 
   it("Python Selenium usa tupla (By.X, valor)", () => {
     const t = gerarRascunho(elementos, "python-selenium", "snake_case");
-    expect(t).toContain('campo_email = (By.CSS_SELECTOR, "#email")');
+    expect(t).toContain('campo_email = (By.ID, "email")');
   });
 
   it("Playwright JS usa page.locator", () => {
@@ -214,7 +216,7 @@ describe("gerarRascunho — uma linha por elemento", () => {
 
   it("Robot Framework usa a sintaxe de variável", () => {
     const t = gerarRascunho(elementos, "robot-framework", "snake_case");
-    expect(t).toContain("${campo_email}    css=#email");
+    expect(t).toContain("${campo_email}    id=email");
   });
 
   it("XPath ganha o prefixo que o Playwright exige", () => {
@@ -247,7 +249,8 @@ describe("gerarRascunho — uma linha por elemento", () => {
     for (const l of LINGUAGENS) {
       const t = gerarRascunho(elementos, l.id, CONVENCAO_PADRAO[l.id]);
       expect(t.split("\n"), l.id).toHaveLength(2);
-      expect(t, l.id).toContain("#email");
+      // Selenium e Robot passam a usar a estrategia de id; os demais seguem com CSS.
+      expect(t, l.id).toMatch(/#email|"email"|id=email/);
     }
   });
 });
@@ -337,5 +340,132 @@ describe("mapeador — catálogo consistente", () => {
     expect(new Set(ids).size).toBe(ids.length);
     const cs = CONVENCOES.map((c) => c.id);
     expect(new Set(cs).size).toBe(cs.length);
+  });
+});
+
+describe("escolha do localizador por linguagem", () => {
+  // Bug relatado testando: o rascunho alternava CSS e XPath sem critério
+  // visível. A escolha antiga olhava só a estabilidade e ignorava para onde o
+  // código ia — e chegava a entregar XPath para Cypress, que não executa XPath
+  // sem plugin.
+
+  /** Mesmo elemento oferecendo XPath primeiro, id e name depois. */
+  const comId = {
+    no: no({ attrs: { name: "email" } }),
+    candidatos: [
+      // Pontos como o motor atribui: id 90, name 78, texto 60, todos +200 por
+      // serem únicos. A ordem da lista é de propósito a "errada", para provar
+      // que a escolha não é posicional.
+      { tipo: "texto", sintaxe: "xpath", valor: '//input[@name="email"]', matches: 1, unico: true, pontos: 260 },
+      { tipo: "id", sintaxe: "css", valor: "#login-email", matches: 1, unico: true, pontos: 290 },
+      { tipo: "name", sintaxe: "css", valor: '[name="email"]', matches: 1, unico: true, pontos: 278 },
+    ],
+  };
+
+  it("Selenium usa a estratégia nativa de id, não cssSelector", () => {
+    // By.id é mais rápido que o motor de CSS e diz a intenção a quem lê.
+    expect(gerarRascunho([comId], "java-selenium", "camelCase"))
+      .toContain('By.id("login-email")');
+    expect(gerarRascunho([comId], "python-selenium", "snake_case"))
+      .toContain('(By.ID, "login-email")');
+    expect(gerarRascunho([comId], "csharp-selenium", "PascalCase"))
+      .toContain('By.Id("login-email")');
+  });
+
+  it("Selenium usa By.name quando a âncora é o name", () => {
+    const soName = { no: no(), candidatos: [
+      { tipo: "name", sintaxe: "css", valor: '[name="cpf"]', matches: 1, unico: true, pontos: 278 },
+    ] };
+    expect(gerarRascunho([soName], "java-selenium", "camelCase")).toContain('By.name("cpf")');
+    expect(gerarRascunho([soName], "python-selenium", "snake_case")).toContain('(By.NAME, "cpf")');
+  });
+
+  it("Robot Framework usa o prefixo id=", () => {
+    expect(gerarRascunho([comId], "robot-framework", "snake_case")).toContain("id=login-email");
+  });
+
+  it("o id vence o XPath mesmo vindo depois na lista", () => {
+    for (const l of LINGUAGENS) {
+      const t = gerarRascunho([comId], l.id, CONVENCAO_PADRAO[l.id]);
+      expect(t, `${l.id} preferiu XPath a id`).not.toContain("//input");
+    }
+  });
+
+  it("Cypress e Playwright nunca recebem XPath quando existe CSS", () => {
+    for (const l of ["js-cypress", "js-playwright", "ts-playwright", "python-playwright"]) {
+      expect(gerarRascunho([comId], l, CONVENCAO_PADRAO[l]), l).not.toContain("xpath");
+    }
+  });
+
+  it("sem CSS disponível, entrega o XPath mas avisa", () => {
+    // Calar seria entregar código que não roda; omitir a linha seria perder o
+    // elemento que a QA mapeou. Entregar com aviso é o único caminho honesto.
+    const soXpath = { no: no({ tag: "button" }), candidatos: [
+      { tipo: "texto", sintaxe: "xpath", valor: '//button[.="Salvar"]', matches: 1, unico: true, pontos: 260 },
+    ] };
+    const cy = gerarRascunho([soXpath], "js-cypress", "camelCase");
+    expect(cy).toContain("//button");
+    expect(cy).toContain("plugin");
+  });
+
+  it("único sempre vence ambíguo, mesmo com tipo pior", () => {
+    const misto = { no: no(), candidatos: [
+      { tipo: "id", sintaxe: "css", valor: "#repetido", matches: 4, unico: false, pontos: 46 },
+      { tipo: "css-caminho", sintaxe: "css", valor: "form > input:nth-of-type(2)", matches: 1, unico: true, pontos: 234 },
+    ] };
+    const t = gerarRascunho([misto], "java-selenium", "camelCase");
+    expect(t).toContain("nth-of-type(2)");
+    expect(t).not.toContain("#repetido");
+  });
+
+  it("escolherCandidato aguenta lista vazia ou ausente", () => {
+    expect(escolherCandidato([], "java-selenium")).toBeNull();
+    expect(escolherCandidato(null, "java-selenium")).toBeNull();
+    expect(escolherCandidato(undefined, "js-cypress")).toBeNull();
+  });
+
+  it("elemento capturado antes desta versão continua gerando", () => {
+    // Só tem `seletor`, sem a lista de candidatos. Perder essas linhas apagaria
+    // o rascunho de quem já estava usando.
+    const antigo = { no: no({ attrs: { name: "cpf" } }), seletor: css("#cpf"), matches: 1 };
+    expect(gerarRascunho([antigo], "java-selenium", "camelCase")).toContain("cpf");
+  });
+});
+
+describe("a preferência da linguagem não atropela o motor", () => {
+  // Regressão real: uma primeira versão ordenou por uma lista fixa de tipos e
+  // jogou fora a pontuação do motor. O resultado foi By.id("a3f9c21e") num
+  // botão cujo id é hash de build — o motor já tinha penalizado esse id em 45
+  // pontos e preferido o texto visível, e a ordenação por tipo desfez isso.
+
+  it("id gerado por build perde para o texto, mesmo sendo 'id'", () => {
+    const el = { no: no({ tag: "button", texto: "Salvar" }), candidatos: [
+      // 90 − 45 (penalidade de id suspeito) + 200 (único) = 245
+      { tipo: "id", sintaxe: "css", valor: "#a3f9c21e", matches: 1, unico: true, pontos: 245 },
+      // 60 + 200 = 260
+      { tipo: "texto", sintaxe: "xpath", valor: '//button[.="Salvar"]', matches: 1, unico: true, pontos: 260 },
+    ] };
+    const t = gerarRascunho([el], "java-selenium", "camelCase");
+    expect(t, "voltou a usar o id de build").not.toContain("a3f9c21e");
+    expect(t).toContain("By.xpath");
+  });
+
+  it("id normal continua ganhando do texto", () => {
+    const el = { no: no(), candidatos: [
+      { tipo: "id", sintaxe: "css", valor: "#salvar", matches: 1, unico: true, pontos: 290 },
+      { tipo: "texto", sintaxe: "xpath", valor: '//button[.="Salvar"]', matches: 1, unico: true, pontos: 260 },
+    ] };
+    expect(gerarRascunho([el], "java-selenium", "camelCase")).toContain('By.id("salvar")');
+  });
+
+  it("a linguagem filtra, não reordena", () => {
+    // Cypress descarta o XPath e fica com o melhor CSS restante — não com o
+    // primeiro CSS que aparecer na lista.
+    const el = { no: no(), candidatos: [
+      { tipo: "texto", sintaxe: "xpath", valor: "//b", matches: 1, unico: true, pontos: 260 },
+      { tipo: "css-caminho", sintaxe: "css", valor: "div > b", matches: 1, unico: true, pontos: 234 },
+      { tipo: "id", sintaxe: "css", valor: "#alvo", matches: 1, unico: true, pontos: 290 },
+    ] };
+    expect(gerarRascunho([el], "js-cypress", "camelCase")).toContain("#alvo");
   });
 });

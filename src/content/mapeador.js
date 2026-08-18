@@ -98,11 +98,24 @@
     const candidatos = m.gerarCandidatos(ctx);
     const contagens = m.contarCandidatos(candidatos, ctx.caminhoShadow, ctx.caminhoFrame);
     const classificados = m.classificar(candidatos, contagens);
+    if (!classificados.length) return null;
+
+    // Guarda os candidatos, não só o vencedor: cada linguagem tem a sua ordem
+    // de preferência (Selenium usa By.id nativo; Cypress não roda XPath), e
+    // sem a lista o "Regerar" não teria como reescolher ao trocar de alvo.
+    const candidatosGuardados = classificados.slice(0, 8).map((c) => ({
+      tipo: c.tipo, sintaxe: c.sintaxe, valor: c.valor,
+      pontos: c.pontosFinais,
+      matches: typeof c.matches === "number" ? c.matches : null,
+      unico: !!c.unico,
+    }));
     const melhor = classificados.find((c) => c.unico) || classificados[0];
-    if (!melhor) return null;
+
     return {
       no: ctx.cadeia[0],
-      seletor: { valor: melhor.valor, sintaxe: melhor.sintaxe },
+      candidatos: candidatosGuardados,
+      // Mantido para o rascunho já capturado antes desta versão continuar lendo.
+      seletor: { tipo: melhor.tipo, valor: melhor.valor, sintaxe: melhor.sintaxe },
       matches: typeof melhor.matches === "number" ? melhor.matches : 1,
       resumo: m.resumir(ctx.cadeia[0]),
       em: Date.now(),
