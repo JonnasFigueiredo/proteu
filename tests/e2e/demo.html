@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proteu QA — laboratório de demonstração</title>
+<style>
+  :root {
+    --tinta: #16181d;
+    --tinta-fraca: #5b6472;
+    --papel: #ffffff;
+    --fundo: #f4f6fa;
+    --linha: #e3e8ef;
+    --azul: #1565c0;
+    --azul-claro: #e8f0fe;
+    --verde: #2e7d32;
+    --verde-claro: #e8f5e9;
+    --ambar: #b26a00;
+    --ambar-claro: #fff4e5;
+    --vermelho: #c62828;
+    --raio: 12px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--tinta);
+    background: var(--fundo);
+  }
+
+  /* ---------- Cabeçalho ---------- */
+  .capa {
+    padding: 44px 24px 36px;
+    text-align: center;
+    color: #fff;
+    background: linear-gradient(135deg, #16233d 0%, #1565c0 100%);
+  }
+  .capa h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: -0.4px; }
+  .capa p { margin: 0 auto; max-width: 620px; font-size: 16px; opacity: 0.88; }
+  .selos { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+  .selo {
+    font-size: 12.5px; font-weight: 600; padding: 5px 12px; border-radius: 100px;
+    background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.22);
+  }
+
+  .envolto { max-width: 900px; margin: 0 auto; padding: 24px; }
+
+  /* ---------- Cartão de recurso ---------- */
+  .recurso {
+    background: var(--papel);
+    border: 1px solid var(--linha);
+    border-radius: var(--raio);
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .recurso__cab {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--linha);
+    background: linear-gradient(180deg, #fbfcfe, #f6f8fb);
+  }
+  .num {
+    flex: none;
+    width: 28px; height: 28px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 13px; font-weight: 700; color: #fff; background: var(--azul);
+  }
+  .recurso__cab h2 { margin: 0; font-size: 17px; }
+  .recurso__cab .onde {
+    margin-left: auto; font-size: 12px; font-weight: 600;
+    color: var(--tinta-fraca); background: var(--fundo);
+    border: 1px solid var(--linha); border-radius: 100px; padding: 3px 10px;
+    white-space: nowrap;
+  }
+  .recurso__corpo { padding: 20px; }
+
+  .passos { margin: 0 0 18px; padding-left: 20px; color: var(--tinta-fraca); }
+  .passos li { margin-bottom: 4px; }
+  .passos strong { color: var(--tinta); }
+
+  .nota {
+    display: flex; gap: 10px;
+    font-size: 13.5px; line-height: 1.5;
+    padding: 11px 14px; border-radius: 8px;
+    background: var(--azul-claro); color: #0d3c6e;
+    border-left: 3px solid var(--azul);
+  }
+  .nota--atencao { background: var(--ambar-claro); color: #6b3f00; border-left-color: var(--ambar); }
+
+  /* ---------- Formulário ---------- */
+  .grade { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grade--cheia { grid-template-columns: 1fr; }
+  @media (max-width: 640px) { .grade { grid-template-columns: 1fr; } }
+
+  label.campo { display: block; }
+  label.campo > span {
+    display: block; font-size: 12px; font-weight: 600;
+    color: var(--tinta-fraca); margin-bottom: 5px;
+  }
+  input, select, textarea {
+    width: 100%; padding: 9px 11px; font: inherit; font-size: 14px;
+    color: var(--tinta); background: var(--papel);
+    border: 1px solid #d5dbe4; border-radius: 8px;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--azul); box-shadow: 0 0 0 3px var(--azul-claro);
+  }
+  .dica-campo { font-size: 11.5px; color: var(--tinta-fraca); margin-top: 4px; }
+
+  button {
+    padding: 9px 18px; font: inherit; font-size: 14px; font-weight: 600;
+    border-radius: 8px; cursor: pointer; border: 1px solid transparent;
+  }
+  .btn-primario { color: #fff; background: var(--azul); }
+  .btn-primario:hover { background: #0d4d9e; }
+  .btn-neutro { color: var(--tinta); background: var(--papel); border-color: #d5dbe4; }
+  .btn-neutro:hover { background: var(--fundo); }
+  .linha-botoes { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+  /* ---------- Resultado dos cadastros ---------- */
+  .placar {
+    display: flex; align-items: center; gap: 14px;
+    margin-top: 18px; padding: 14px 16px;
+    background: var(--verde-claro); border: 1px solid #c8e6c9; border-radius: 8px;
+  }
+  .placar__n { font-size: 26px; font-weight: 700; color: var(--verde); line-height: 1; }
+  .placar__rot { font-size: 13px; color: #2b5a2e; }
+  .registros {
+    margin: 12px 0 0; padding: 0; list-style: none;
+    max-height: 190px; overflow-y: auto;
+    border: 1px solid var(--linha); border-radius: 8px;
+  }
+  .registros:empty { display: none; }
+  .registros li {
+    padding: 8px 12px; font-size: 13px; font-family: ui-monospace, Consolas, monospace;
+    border-bottom: 1px solid var(--linha);
+  }
+  .registros li:last-child { border-bottom: none; }
+  .registros li:nth-child(odd) { background: #fafbfd; }
+
+  /* ---------- Casos difíceis ---------- */
+  .cartoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+  .cartao {
+    flex: 1 1 150px; padding: 12px; text-align: center;
+    background: var(--fundo); border: 1px solid var(--linha); border-radius: 8px;
+    font-size: 13px;
+  }
+  .legenda {
+    font-size: 12px; color: var(--tinta-fraca); margin-top: 8px;
+  }
+  code {
+    font-family: ui-monospace, Consolas, monospace; font-size: 12.5px;
+    background: var(--fundo); border: 1px solid var(--linha);
+    border-radius: 4px; padding: 1px 5px;
+  }
+
+  iframe { width: 100%; height: 190px; border: 1px solid var(--linha); border-radius: 8px; }
+
+  .rodape {
+    text-align: center; padding: 28px 24px 40px;
+    font-size: 13px; color: var(--tinta-fraca);
+  }
+</style>
+</head>
+<body>
+
+<header class="capa">
+  <h1>Proteu QA — laboratório</h1>
+  <p>
+    Uma página feita para exercitar cada recurso da extensão. Os campos abaixo
+    incluem de propósito os casos que costumam quebrar ferramentas de teste.
+  </p>
+  <div class="selos">
+    <span class="selo">Preencher formulário</span>
+    <span class="selo">Copiar seletores</span>
+    <span class="selo">Mapear elementos</span>
+    <span class="selo">Automação no console</span>
+    <span class="selo">Casos-limite</span>
+  </div>
+</header>
+
+<div class="envolto">
+
+  <!-- 1. Preencher formulário -->
+  <section class="recurso">
+    <div class="recurso__cab">
+      <span class="num">1</span>
+      <h2>Preencher o formulário com uma pessoa</h2>
+      <span class="onde">Popup → Perfil</span>
+    </div>
+    <div class="recurso__corpo">
+      <ol class="passos">
+        <li>Abra a extensão e vá na aba <strong>Perfil</strong>.</li>
+        <li>Clique em <strong>Preencher formulário</strong>.</li>
+        <li>Confira que os dados combinam entre si: o e-mail sai do nome, o CEP corresponde à UF.</li>
+      </ol>
+
+      <form id="form-cliente">
+        <div class="grade">
+          <label class="campo">
+            <span>Nome completo</span>
+            <input type="text" id="nome" name="nome" data-testid="cliente-nome" autocomplete="name">
+          </label>
+          <label class="campo">
+            <span>E-mail</span>
+            <input type="email" id="email" name="email" data-testid="cliente-email" autocomplete="email">
+          </label>
+          <label class="campo">
+            <span>CPF</span>
+            <input type="text" id="cpf" name="cpf" maxlength="14" placeholder="000.000.000-00">
+          </label>
+          <label class="campo">
+            <span>Telefone</span>
+            <input type="tel" id="telefone" name="telefone" autocomplete="tel">
+          </label>
+          <label class="campo">
+            <span>Data de nascimento</span>
+            <input type="text" id="nascimento" name="nascimento" placeholder="dd/mm/aaaa">
+          </label>
+          <label class="campo">
+            <span>CEP</span>
+            <input type="text" id="cep" name="cep" maxlength="9" placeholder="00000-000">
+            <span class="dica-campo">Cole no site dos Correios: o CEP gerado existe de verdade.</span>
+          </label>
+          <label class="campo">
+            <span>Razão social</span>
+            <input type="text" id="razao" name="razao_social">
+          </label>
+          <label class="campo">
+            <span>CNPJ</span>
+            <input type="text" id="cnpj" name="cnpj" maxlength="18">
+          </label>
+          <label class="campo">
+            <span>Estado</span>
+            <select id="uf" name="uf">
+              <option value="">Selecione…</option>
+              <option value="SP">São Paulo</option>
+              <option value="RJ">Rio de Janeiro</option>
+              <option value="MG">Minas Gerais</option>
+              <option value="RS">Rio Grande do Sul</option>
+            </select>
+          </label>
+          <label class="campo">
+            <span>Senha</span>
+            <input type="password" id="senha" name="senha">
+            <span class="dica-campo">Campo de senha nunca é preenchido automaticamente — use a aba Senha.</span>
+          </label>
+        </div>
+      </form>
+
+      <div class="nota" style="margin-top:16px">
+        <span>💡</span>
+        <span>
+          Os campos <strong>senha</strong>, <strong>somente leitura</strong>,
+          <strong>desabilitado</strong> e <strong>upload</strong> ficam intocados
+          de propósito. Preencher senha automaticamente atrapalharia mais do que ajuda.
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Senha -->
+  <section class="recurso">
+    <div class="recurso__cab">
+      <span class="num">2</span>
+      <h2>Gerar uma senha</h2>
+      <span class="onde">Popup → Senha</span>
+    </div>
+    <div class="recurso__corpo">
+      <ol class="passos">
+        <li>Vá na aba <strong>Senha</strong>, ajuste o tamanho e as classes de caractere.</li>
+        <li>Repare no medidor: ele mostra a força em <strong>bits de entropia</strong>, não só uma palavra.</li>
+        <li>Copie e cole no campo abaixo, que exige maiúscula, número e símbolo.</li>
+      </ol>
+
+      <label class="campo" style="max-width:340px">
+        <span>Senha do sistema</span>
+        <input type="text" id="senha-politica" name="senha_politica"
+               pattern="(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}"
+               placeholder="mínimo 12, com maiúscula, número e símbolo">
+        <span class="dica-campo" id="senha-veredito">Cole uma senha para validar.</span>
+      </label>
+
+      <div class="nota" style="margin-top:14px">
+        <span>🔐</span>
+        <span>
+          A senha é o único item que <strong>não</strong> vem da seed. Derivá-la de
+          uma seed visível na tela tornaria previsível justamente o que o medidor
+          chama de forte.
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Seletores -->
+  <section class="recurso">
+    <div class="recurso__cab">
+      <span class="num">3</span>
+      <h2>Copiar seletores e mapear elementos</h2>
+      <span class="onde">Botão direito · Popup → Mapear</span>
+    </div>
+    <div class="recurso__corpo">
+      <ol class="passos">
+        <li>Clique com o <strong>botão direito</strong> em qualquer elemento → <em>Proteu QA</em>.</li>
+        <li>Ou ligue <strong>Mapear elementos</strong> e clique nos itens abaixo em sequência.</li>
+        <li>Troque a linguagem no painel e veja o localizador mudar de formato.</li>
+      </ol>
+
+      <p style="margin:0 0 6px;font-size:13px;color:var(--tinta-fraca)">
+        Estes quatro botões existem para mostrar <strong>como a extensão escolhe</strong>:
+      </p>
+      <div class="linha-botoes">
+        <button type="button" class="btn-primario" data-testid="acao-salvar">Salvar</button>
+        <button type="button" class="btn-neutro" id="btn-cancelar">Cancelar</button>
+        <button type="button" class="btn-neutro" id="a7f3c91e">Exportar relatório</button>
+        <button type="button" class="btn-neutro css-1x2y3z9">Não aplicável</button>
+      </div>
+      <p class="legenda">
+        O 1º tem <code>data-testid</code> — vence tudo. O 2º tem <code>id</code> legível.
+        O 3º tem <code>id="a7f3c91e"</code>, gerado pelo build: é <strong>descartado</strong>,
+        e a extensão prefere o texto visível. O 4º só tem classe de CSS-in-JS, também descartada.
+      </p>
+
+      <p style="margin:20px 0 6px;font-size:13px;color:var(--tinta-fraca)">
+        Quatro irmãos idênticos — o localizador precisa desambiguar:
+      </p>
+      <div class="cartoes">
+        <div class="cartao">Item A</div>
+        <div class="cartao">Item B</div>
+        <div class="cartao">Item C</div>
+        <div class="cartao">Item D</div>
+      </div>
+
+      <p style="margin:20px 0 6px;font-size:13px;color:var(--tinta-fraca)">
+        Dentro de <strong>Shadow DOM</strong> — onde muita ferramenta não enxerga:
+      </p>
+      <div id="hospede-shadow"></div>
+
+      <p style="margin:20px 0 6px;font-size:13px;color:var(--tinta-fraca)">
+        Dentro de <strong>iframe</strong> de mesma origem:
+      </p>
+      <iframe id="quadro" title="Formulário em iframe" srcdoc='
+        <!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><style>
+          body{font:14px/1.5 "Segoe UI",system-ui;margin:0;padding:14px;color:#16181d}
+          label{display:block;font-size:12px;font-weight:600;color:#5b6472;margin-bottom:5px}
+          input{width:100%;padding:8px 10px;font:inherit;border:1px solid #d5dbe4;border-radius:8px;box-sizing:border-box}
+          p{margin:0 0 10px;font-size:12.5px;color:#5b6472}
+        </style></head><body>
+          <p>Este formulário está num documento separado.</p>
+          <label for="obs-iframe">Observação</label>
+          <input id="obs-iframe" name="observacao" data-testid="iframe-observacao">
+        </body></html>'></iframe>
+    </div>
+  </section>
+
+  <!-- 4. Automação no console -->
+  <section class="recurso">
+    <div class="recurso__cab">
+      <span class="num">4</span>
+      <h2>Automatizar um cadastro em laço</h2>
+      <span class="onde">F12 → Proteu QA → Gravador</span>
+    </div>
+    <div class="recurso__corpo">
+      <ol class="passos">
+        <li>Abra o <strong>DevTools (F12)</strong> → aba <strong>Proteu QA</strong> → <strong>Gravador</strong>.</li>
+        <li>Clique em <strong>Gravar</strong> e cadastre <strong>um</strong> produto abaixo.</li>
+        <li><strong>Parar</strong> → escolha o formato <strong>Console do navegador (JS)</strong>.</li>
+        <li>Defina <strong>20 repetições</strong>, copie e cole no console.</li>
+        <li>Veja a lista encher sozinha, com dados diferentes a cada volta.</li>
+      </ol>
+
+      <form id="form-produto">
+        <div class="grade">
+          <label class="campo">
+            <span>Nome do produto</span>
+            <input type="text" id="prod-nome" name="produto_nome" data-testid="produto-nome" required>
+          </label>
+          <label class="campo">
+            <span>Código interno</span>
+            <input type="text" id="prod-codigo" name="produto_codigo" required>
+          </label>
+          <label class="campo">
+            <span>Preço</span>
+            <input type="number" id="prod-preco" name="produto_preco" min="0" max="99999" step="0.01" value="10">
+          </label>
+          <label class="campo">
+            <span>Categoria</span>
+            <select id="prod-categoria" name="produto_categoria">
+              <option value="">Selecione…</option>
+              <option value="eletronicos">Eletrônicos</option>
+              <option value="vestuario">Vestuário</option>
+              <option value="alimentos">Alimentos</option>
+            </select>
+          </label>
+        </div>
+        <label class="campo" style="margin-top:14px">
+          <span>Descrição</span>
+          <textarea id="prod-descricao" name="produto_descricao" rows="2" maxlength="120"></textarea>
+          <span class="dica-campo">Limite de 120 caracteres — bom alvo para a aba Texto.</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px">
+          <input type="checkbox" id="prod-ativo" name="produto_ativo" style="width:auto">
+          Produto ativo
+        </label>
+
+        <div class="linha-botoes">
+          <button type="button" class="btn-primario" id="btn-salvar-produto" data-testid="salvar-produto">Salvar produto</button>
+          <button type="button" class="btn-neutro" id="btn-limpar-lista">Limpar lista</button>
+        </div>
+      </form>
+
+      <div class="placar">
+        <span class="placar__n" id="contador">0</span>
+        <span class="placar__rot">produtos cadastrados<br><span id="ultimo-aviso">nenhum ainda</span></span>
+      </div>
+      <ul class="registros" id="lista-produtos"></ul>
+
+      <div class="nota nota--atencao" style="margin-top:14px">
+        <span>⚠️</span>
+        <span>
+          O <strong>código interno</strong> não aceita repetição. É de propósito:
+          mostra por que o roteiro precisa usar uma pessoa diferente a cada volta,
+          em vez de repetir o mesmo cadastro.
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Casos-limite -->
+  <section class="recurso">
+    <div class="recurso__cab">
+      <span class="num">5</span>
+      <h2>Campos que quebram sistemas</h2>
+      <span class="onde">Popup → Casos-limite e Texto</span>
+    </div>
+    <div class="recurso__corpo">
+      <ol class="passos">
+        <li>Clique num campo abaixo — a extensão detecta e oferece valores de fronteira.</li>
+        <li>Ou vá na aba <strong>Casos-limite</strong> e insira Unicode, espaços invisíveis, números extremos.</li>
+      </ol>
+
+      <div class="grade">
+        <label class="campo">
+          <span>Nome curto (máx. 10)</span>
+          <input type="text" id="curto" name="apelido" maxlength="10">
+          <span class="dica-campo">Teste com 9, 10 e 11 caracteres.</span>
+        </label>
+        <label class="campo">
+          <span>Idade (18 a 120)</span>
+          <input type="number" id="idade" name="idade" min="18" max="120">
+          <span class="dica-campo">Teste 17, 121, <code>1e999</code> e <code>NaN</code>.</span>
+        </label>
+        <label class="campo">
+          <span>Data de validade</span>
+          <input type="date" id="validade" name="validade" min="2020-01-01" max="2030-12-31">
+        </label>
+        <label class="campo">
+          <span>Percentual</span>
+          <input type="number" id="percentual" name="percentual" min="0" max="100" step="0.01">
+        </label>
+        <label class="campo">
+          <span>Somente leitura</span>
+          <input type="text" id="protegido" name="protegido" value="não deve ser alterado" readonly>
+        </label>
+        <label class="campo">
+          <span>Desabilitado</span>
+          <input type="text" id="desabilitado" name="desabilitado" value="intocável" disabled>
+        </label>
+      </div>
+
+      <label class="campo" style="margin-top:14px">
+        <span>Texto longo</span>
+        <textarea id="texto-longo" name="texto_longo" rows="3"
+                  placeholder="Cole aqui o texto gerado por tamanho exato — grafemas, bytes, code points…"></textarea>
+      </label>
+    </div>
+  </section>
+
+</div>
+
+<footer class="rodape">
+  Proteu QA · massa de teste, seletores e automação · 100% offline
+</footer>
+
+<script>
+  // --- Shadow DOM aberto: o motor de seletores atravessa, muita ferramenta não.
+  const hospede = document.getElementById("hospede-shadow");
+  const sombra = hospede.attachShadow({ mode: "open" });
+  sombra.innerHTML = `
+    <style>
+      .caixa { padding: 14px; background: #f4f6fa; border: 1px solid #e3e8ef; border-radius: 8px; }
+      label { display:block; font: 600 12px "Segoe UI", system-ui; color:#5b6472; margin-bottom:5px; }
+      input { width:100%; padding:8px 10px; font:14px "Segoe UI", system-ui;
+              border:1px solid #d5dbe4; border-radius:8px; box-sizing:border-box; }
+      button { margin-top:10px; padding:8px 16px; font:600 14px "Segoe UI", system-ui;
+               color:#fff; background:#1565c0; border:0; border-radius:8px; cursor:pointer; }
+    </style>
+    <div class="caixa">
+      <label for="cupom">Cupom de desconto</label>
+      <input id="cupom" name="cupom" data-testid="shadow-cupom" placeholder="dentro do Shadow DOM">
+      <button type="button" id="aplicar">Aplicar cupom</button>
+    </div>`;
+
+  // --- Cadastro de produto: guarda o que foi salvo, para o laço ficar visível.
+  const codigosUsados = new Set();
+  const lista = document.getElementById("lista-produtos");
+  const contador = document.getElementById("contador");
+  const aviso = document.getElementById("ultimo-aviso");
+
+  document.getElementById("btn-salvar-produto").addEventListener("click", () => {
+    const nome = document.getElementById("prod-nome").value.trim();
+    const codigo = document.getElementById("prod-codigo").value.trim();
+    const categoria = document.getElementById("prod-categoria").value;
+
+    if (!nome || !codigo) {
+      aviso.textContent = "nome e código são obrigatórios";
+      return;
+    }
+    // Unicidade de propósito: é o que obriga o laço a variar os dados.
+    if (codigosUsados.has(codigo)) {
+      aviso.textContent = `código "${codigo}" já cadastrado`;
+      return;
+    }
+    codigosUsados.add(codigo);
+
+    const li = document.createElement("li");
+    li.textContent = `${codigo} · ${nome}${categoria ? " · " + categoria : ""}`;
+    lista.appendChild(li);
+    lista.scrollTop = lista.scrollHeight;
+    contador.textContent = String(codigosUsados.size);
+    aviso.textContent = "último: " + nome;
+
+    document.getElementById("form-produto").reset();
+  });
+
+  document.getElementById("btn-limpar-lista").addEventListener("click", () => {
+    codigosUsados.clear();
+    lista.textContent = "";
+    contador.textContent = "0";
+    aviso.textContent = "nenhum ainda";
+  });
+
+  // --- Valida a senha contra a política do campo, para o teste ter retorno.
+  const campoSenha = document.getElementById("senha-politica");
+  const veredito = document.getElementById("senha-veredito");
+  campoSenha.addEventListener("input", () => {
+    const v = campoSenha.value;
+    if (!v) { veredito.textContent = "Cole uma senha para validar."; veredito.style.color = ""; return; }
+    const faltam = [];
+    if (v.length < 12) faltam.push("12 caracteres");
+    if (!/[A-Z]/.test(v)) faltam.push("maiúscula");
+    if (!/\d/.test(v)) faltam.push("número");
+    if (!/[^A-Za-z0-9]/.test(v)) faltam.push("símbolo");
+    if (faltam.length) {
+      veredito.textContent = "Falta: " + faltam.join(", ");
+      veredito.style.color = "#c62828";
+    } else {
+      veredito.textContent = "Atende à política ✓";
+      veredito.style.color = "#2e7d32";
+    }
+  });
+</script>
+</body>
+</html>
