@@ -129,6 +129,75 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
   color: #475569;
   font-weight: 600;
 }
+
+/* Maquete de janela do navegador, para o slide do painel lateral. */
+.janela {
+  flex-shrink: 0;
+  width: 668px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #1b1f24;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+}
+.janela__barra {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  background: #14171b;
+  border-bottom: 1px solid #2a2f36;
+}
+.ponto { width: 11px; height: 11px; border-radius: 50%; }
+.janela__aba {
+  margin-left: 14px;
+  padding: 4px 14px;
+  font-size: 12px;
+  color: #cbd5e1;
+  background: #232830;
+  border-radius: 7px 7px 0 0;
+}
+.janela__corpo { display: flex; height: 560px; }
+.janela__pagina {
+  flex: 1;
+  padding: 26px 24px;
+  background: #f7f8fa;
+  border-right: 1px solid #2a2f36;
+}
+.ff-rot { font-size: 12px; color: #64748b; margin-bottom: 5px; }
+.ff-campo {
+  padding: 9px 11px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #1a1d21;
+  background: #fff;
+  border: 1px solid #d5dae1;
+  border-radius: 6px;
+}
+.ff-campo--foco { border-color: #1565c0; box-shadow: 0 0 0 3px rgba(21,101,192,0.18); }
+.ff-botao {
+  display: inline-block;
+  padding: 9px 20px;
+  font-size: 13px;
+  color: #fff;
+  background: #1565c0;
+  border-radius: 6px;
+}
+.janela__corpo iframe {
+  flex-shrink: 0;
+  width: 378px;
+  height: 560px;
+  border: none;
+  border-left: 1px solid #2a2f36;
+}
+
+/* Modo captura: `?slide=N` deixa só aquele slide, colado no canto superior
+   esquerdo, para o Chrome headless fotografar a viewport de 1280x800 inteira
+   sem margem nem instrução por perto. */
+body.captura { background: #1a1a2e; }
+body.captura .instrucao { display: none; }
+body.captura .slide { display: none; margin: 0; }
+body.captura .slide.alvo { display: flex; }
+body.captura .num { display: none; }
 </style>
 </head>
 <body>
@@ -143,7 +212,7 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
   <div class="conteudo">
     <div class="texto-lado">
       <h2>Documentos v&aacute;lidos de 12 pa&iacute;ses</h2>
-      <p>CPF, CNPJ, SSN, CUIT, Aadhaar, TFN, マイナンバー, 주민등록번호 &mdash; cada um com o dígito verificador oficial. A referência no rodapé reproduz a pessoa inteira.</p>
+      <p>CPF, CNPJ, SSN, CUIT, Aadhaar, TFN, マイナンバー, 주민등록번호. Cada um sai com o dígito verificador oficial. A referência no rodapé reproduz a pessoa inteira.</p>
       <div class="badges">
         <span class="badge">Brasil</span>
         <span class="badge">Austr&aacute;lia</span>
@@ -157,7 +226,7 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
     </div>
   </div>
   <div class="marca">Proteu QA</div>
-  <span class="num">1/7</span>
+  <span class="num">1/9</span>
 </div>
 
 <!-- Slide 2: Aba Texto -->
@@ -177,7 +246,7 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
     </div>
   </div>
   <div class="marca">Proteu QA</div>
-  <span class="num">2/7</span>
+  <span class="num">2/9</span>
 </div>
 
 <!-- Slide 3: Casos-limite -->
@@ -197,7 +266,7 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
     </div>
   </div>
   <div class="marca">Proteu QA</div>
-  <span class="num">3/7</span>
+  <span class="num">3/9</span>
 </div>
 
 <!-- Slide 4: Seletores -->
@@ -205,7 +274,7 @@ body { background: #111; font-family: 'Segoe UI', system-ui, sans-serif; color: 
   <div class="conteudo">
     <div class="texto-lado">
       <h2>A tela vira vari&aacute;veis, clicando</h2>
-      <p>Ligue o modo Mapear e clique nos elementos. O bloco de notas ao lado monta as declara&ccedil;&otilde;es prontas para colar na IDE &mdash; edit&aacute;veis, em 9 linguagens.</p>
+      <p>Ligue o modo Mapear e clique nos elementos. O bloco de notas ao lado monta as declara&ccedil;&otilde;es prontas para colar na IDE, edit&aacute;veis, em 9 linguagens.</p>
       <div class="badges">
         <span class="badge">Selenium</span>
         <span class="badge">Playwright</span>
@@ -248,7 +317,7 @@ private final By <span style="color:#7fd1b9">botaoSalvar</span> =
     </div>
   </div>
   <div class="marca">Proteu QA</div>
-  <span class="num">4/7</span>
+  <span class="num">4/9</span>
 </div>
 
 <!-- Slide 5: Seletores — detalhes técnicos -->
@@ -256,7 +325,7 @@ private final By <span style="color:#7fd1b9">botaoSalvar</span> =
   <div class="conteudo">
     <div class="texto-lado">
       <h2>O localizador respeita o alvo</h2>
-      <p>Selenium recebe <code>By.id</code> e <code>By.name</code> quando cabe. Cypress e Playwright nunca recebem XPath. Id gerado por build &eacute; descartado &mdash; ele n&atilde;o sobrevive ao pr&oacute;ximo deploy.</p>
+      <p>Selenium recebe <code>By.id</code> e <code>By.name</code> quando cabe. Cypress e Playwright nunca recebem XPath. Id gerado por build &eacute; descartado, porque n&atilde;o sobrevive ao pr&oacute;ximo deploy.</p>
       <div class="badges" style="justify-content:center;">
         <span class="badge">By.id no Selenium</span>
         <span class="badge">S&oacute; CSS no Cypress</span>
@@ -269,7 +338,7 @@ private final By <span style="color:#7fd1b9">botaoSalvar</span> =
     </div>
   </div>
   <div class="marca">Proteu QA</div>
-  <span class="num">5/7</span>
+  <span class="num">5/9</span>
 </div>
 
 <!-- Slide 6: 7 idiomas -->
@@ -295,15 +364,76 @@ private final By <span style="color:#7fd1b9">botaoSalvar</span> =
     </div>
   </div>
   <div class="marca">Proteu QA</div>
-  <span class="num">6/7</span>
+  <span class="num">6/9</span>
 </div>
 
-<!-- Slide 7: Offline + privacidade -->
-<div class="slide centro" id="slide7">
+<!-- Slide 7: Aba Senha -->
+<div class="slide" id="slide7">
+  <div class="conteudo">
+    <div class="texto-lado">
+      <h2>Senhas fortes na mesma janela</h2>
+      <p>Comprimento, conjuntos de caracteres e a for&ccedil;a em bits calculada na hora. Sorteio pelo <code>crypto</code> do navegador, sem v&iacute;cio de distribui&ccedil;&atilde;o.</p>
+      <div class="badges">
+        <span class="badge">For&ccedil;a em bits</span>
+        <span class="badge">Sem caracteres amb&iacute;guos</span>
+        <span class="badge">Sorteio criptogr&aacute;fico</span>
+      </div>
+    </div>
+    <div class="popup-frame">
+      <iframe src="/previa/popup" id="iframe-senha"></iframe>
+    </div>
+  </div>
+  <div class="marca">Proteu QA</div>
+  <span class="num">7/9</span>
+</div>
+
+<!-- Slide 8: Painel lateral -->
+<div class="slide" id="slide8">
+  <div class="conteudo">
+    <div class="texto-lado">
+      <h2>Na lateral, sem fechar a cada clique</h2>
+      <p>O popup some quando voc&ecirc; clica na p&aacute;gina. O painel fica. Um bot&atilde;o no cabe&ccedil;alho leva a mesma interface para a lateral do navegador, do lado do formul&aacute;rio que voc&ecirc; est&aacute; preenchendo.</p>
+      <div class="badges">
+        <span class="badge">Continua aberto</span>
+        <span class="badge">Largura ajust&aacute;vel</span>
+        <span class="badge">Mesma interface</span>
+      </div>
+    </div>
+    <!-- Maquete de janela do navegador: sem ela o painel sai idêntico ao popup
+         na foto, e a imagem não conta o que a legenda promete. -->
+    <div class="janela">
+      <div class="janela__barra">
+        <span class="ponto" style="background:#ff5f57"></span>
+        <span class="ponto" style="background:#febc2e"></span>
+        <span class="ponto" style="background:#28c840"></span>
+        <span class="janela__aba">Cadastro (homologa&ccedil;&atilde;o)</span>
+      </div>
+      <div class="janela__corpo">
+        <div class="janela__pagina">
+          <div class="ff-rot">Nome completo</div>
+          <div class="ff-campo">Patr&iacute;cia Carvalho Silva</div>
+          <div class="ff-rot">CPF</div>
+          <div class="ff-campo">861.435.172-07</div>
+          <div class="ff-rot">E-mail</div>
+          <div class="ff-campo">patricia.silva@example.com</div>
+          <div class="ff-rot">CEP</div>
+          <div class="ff-campo ff-campo--foco">03238-020</div>
+          <div class="ff-botao">Continuar</div>
+        </div>
+        <iframe src="/previa/popup?lateral=1" id="iframe-lateral"></iframe>
+      </div>
+    </div>
+  </div>
+  <div class="marca">Proteu QA</div>
+  <span class="num">8/9</span>
+</div>
+
+<!-- Slide 9: Offline + privacidade -->
+<div class="slide centro" id="slide9">
   <div class="conteudo">
     <div class="texto-lado">
       <h2>100% offline</h2>
-      <p>Nenhuma requisi&ccedil;&atilde;o de rede, nenhuma coleta, nenhuma depend&ecirc;ncia externa. As 4 permiss&otilde;es da instala&ccedil;&atilde;o n&atilde;o d&atilde;o acesso ao conte&uacute;do das p&aacute;ginas. C&oacute;digo aberto sob Apache 2.0.</p>
+      <p>Nenhuma requisi&ccedil;&atilde;o de rede, nenhuma coleta, nenhuma depend&ecirc;ncia externa. As permiss&otilde;es da instala&ccedil;&atilde;o n&atilde;o d&atilde;o acesso ao conte&uacute;do das p&aacute;ginas: o acesso aos sites &eacute; opcional e s&oacute; &eacute; pedido quando voc&ecirc; usa os recursos que dependem dele. C&oacute;digo aberto sob Apache 2.0.</p>
       <div class="badges" style="justify-content:center;">
         <span class="badge">Zero rede</span>
         <span class="badge">Zero coleta</span>
@@ -312,45 +442,70 @@ private final By <span style="color:#7fd1b9">botaoSalvar</span> =
       </div>
     </div>
   </div>
-  <div class="marca">Proteu QA &mdash; dados de teste, seletores e formul&aacute;rios</div>
-  <span class="num">7/7</span>
+  <div class="marca">Proteu QA &middot; dados de teste, seletores e formul&aacute;rios</div>
+  <span class="num">9/9</span>
 </div>
 
 <script>
-// Depois que os iframes carregarem, clica nas abas corretas
+// `?slide=N` isola um slide para o Chrome headless fotografar.
+const alvo = new URLSearchParams(location.search).get('slide');
+if (alvo) {
+  document.body.classList.add('captura');
+  document.getElementById('slide' + alvo)?.classList.add('alvo');
+}
+
+/**
+ * Escolhe a aba pelo texto, não pela posição.
+ *
+ * Antes isto era `btns[2]`, e a chegada da aba Senha empurrou tudo um lugar
+ * para a direita: o slide de casos-limite passou a fotografar a aba errada,
+ * calado. Índice não sobrevive a menu que cresce.
+ */
+function abrirAba(iframe, rotulo) {
+  const doc = iframe?.contentDocument;
+  if (!doc) return false;
+  const aba = [...doc.querySelectorAll('nav button')]
+    .find((b) => b.textContent.trim().toLowerCase().startsWith(rotulo));
+  if (!aba) {
+    console.error('aba não encontrada:', rotulo, 'em', iframe.id);
+    return false;
+  }
+  aba.click();
+  return true;
+}
+
 window.addEventListener('load', () => {
   setTimeout(() => {
-    try {
-      // iframe 2 (slide 2) → aba Texto → "Por tamanho"
-      const iTexto = document.getElementById('iframe-texto');
-      if (iTexto && iTexto.contentDocument) {
-        const btns = iTexto.contentDocument.querySelectorAll('nav button');
-        if (btns[1]) btns[1].click(); // Texto
-        setTimeout(() => {
-          const porTam = [...iTexto.contentDocument.querySelectorAll('button')]
-            .find(b => b.textContent.includes('tamanho'));
-          if (porTam) porTam.click();
-        }, 500);
-      }
-      // iframe 3 (slide 3) → aba Casos-limite
-      const iLimites = document.getElementById('iframe-limites');
-      if (iLimites && iLimites.contentDocument) {
-        const btns = iLimites.contentDocument.querySelectorAll('nav button');
-        if (btns[2]) btns[2].click(); // Casos-limite
-      }
-      // iframe idioma (slide 6) → aba Configurações para mostrar seletor de idioma
-      const iIdioma = document.getElementById('iframe-idioma');
-      if (iIdioma && iIdioma.contentDocument) {
-        const cfg = iIdioma.contentDocument.querySelector('[data-aba="config"], .icone[aria-label*="onfig"], button[aria-label*="onfig"]');
-        if (cfg) cfg.click();
-        else {
-          // Tenta pelo ícone de engrenagem (último botão do cabeçalho)
-          const icones = iIdioma.contentDocument.querySelectorAll('.cabecalho .icone, header .icone');
-          if (icones.length) icones[icones.length - 1].click();
-        }
-      }
-    } catch(e) { console.warn('Não foi possível clicar nas abas:', e); }
-  }, 2000);
+    abrirAba(document.getElementById('iframe-texto'), 'texto');
+    setTimeout(() => {
+      const doc = document.getElementById('iframe-texto')?.contentDocument;
+      const porTam = doc && [...doc.querySelectorAll('button')]
+        .find((b) => b.textContent.includes('tamanho'));
+      if (porTam) porTam.click();
+    }, 400);
+
+    abrirAba(document.getElementById('iframe-limites'), 'casos');
+    abrirAba(document.getElementById('iframe-senha'), 'senha');
+
+    // Idioma: a engrenagem é o último ícone do cabeçalho.
+    const doc = document.getElementById('iframe-idioma')?.contentDocument;
+    const icones = doc?.querySelectorAll('header .icone');
+    if (icones?.length) icones[icones.length - 1].click();
+
+    // O popup tem a altura do próprio conteúdo, e as abas não têm todas a mesma
+    // altura. Com o frame travado em 600px, a aba Senha saía com uma faixa preta
+    // embaixo que parece defeito na foto da loja.
+    for (const f of document.querySelectorAll('.popup-frame iframe')) {
+      const alto = f.contentDocument?.body?.scrollHeight;
+      if (!alto) continue;
+      const h = Math.min(600, alto);
+      f.style.height = h + 'px';
+      f.parentElement.style.height = h + 'px';
+    }
+
+    // Sinaliza ao capturador que a tela já está no estado final.
+    setTimeout(() => document.body.setAttribute('data-pronto', '1'), 900);
+  }, 1600);
 });
 </script>
 
