@@ -100,8 +100,10 @@ http
     if (req.method === "POST" && req.url === "/gravar-icone") {
       return gravarIcone(req, res);
     }
-    if (req.url === "/previa/popup") return previaDoPopup(res);
+    // A query fica de fora da rota, mas chega à página: é por `?lateral=1` que
+    // o popup sabe que está sendo servido como painel lateral.
     const rel = decodeURIComponent(req.url.split("?")[0]);
+    if (rel === "/previa/popup") return previaDoPopup(res);
     const arquivo = path.resolve(raiz, "." + rel);
     if (!arquivo.startsWith(raiz)) return res.writeHead(403).end("403");
     fs.readFile(arquivo, (err, dados) => {
