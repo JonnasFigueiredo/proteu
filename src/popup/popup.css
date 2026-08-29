@@ -1045,12 +1045,14 @@ input:focus-visible {
 }
 
 .lim-caso__main {
+  position: relative;
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
   padding: 7px 9px;
+  padding-inline-end: 26px; /* espaço da marca de "clique copia" */
   text-align: start;
   background: transparent;
   border: 0;
@@ -1102,6 +1104,26 @@ input:focus-visible {
   font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
   font-size: 10.5px;
   color: var(--texto-fraco);
+}
+
+/* Marca de "clique copia". O espaço fica reservado desde sempre para o texto
+   não pular quando ela aparece no hover. */
+.lim-caso__dica {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
+  display: flex;
+  color: var(--texto-fraco);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.lim-caso__dica .ic {
+  width: 13px;
+  height: 13px;
+}
+.lim-caso__main:hover .lim-caso__dica,
+.lim-caso__main:focus-visible .lim-caso__dica {
+  opacity: 1;
 }
 
 .lim-caso__inserir {
@@ -1200,12 +1222,14 @@ input:focus-visible {
 }
 
 .pf-linha__main {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: 8px;
   flex: 1;
   min-width: 0;
   padding: 5px 9px;
+  padding-inline-end: 24px; /* espaço da marca de "clique copia" */
   text-align: start;
   background: var(--superficie);
   border: 1px solid var(--borda);
@@ -1235,6 +1259,26 @@ input:focus-visible {
   font-size: 12.5px;
   color: var(--texto);
   word-break: break-all;
+}
+
+/* Marca de "clique copia", no fim do próprio card. */
+.pf-linha__dica {
+  position: absolute;
+  inset-inline-end: 6px;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  color: var(--texto-fraco);
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.pf-linha__dica .ic {
+  width: 13px;
+  height: 13px;
+}
+.pf-linha__main:hover .pf-linha__dica,
+.pf-linha__main:focus-visible .pf-linha__dica {
+  opacity: 1;
 }
 
 /* O botão de inserir só aparece no hover/foco da linha, mantendo a lista limpa. */
