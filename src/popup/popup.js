@@ -54,6 +54,19 @@ const ICONE_COPIAR =
 // página", que é ação diferente de copiar para a área de transferência.
 const ICONE_INSERIR =
   '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M11 16l5-4-5-4"/><path d="M16 12H3"/></svg>';
+/**
+ * Marca de "clicar aqui copia" dentro do próprio card. Não é botão: o alvo é o
+ * card inteiro, e um segundo botão ao lado do de inserir só traria de volta a
+ * ambiguidade que a mudança resolveu.
+ */
+function dicaCopiar(classe) {
+  const dica = document.createElement("span");
+  dica.className = classe;
+  dica.innerHTML = ICONE_COPIAR;
+  dica.setAttribute("aria-hidden", "true");
+  return dica;
+}
+
 const ICONES_TEMA = {
   auto: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>',
   claro: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
@@ -196,6 +209,8 @@ function criarCasoLimite(caso, fam) {
     cont.textContent = contagensCompactas(caso.valor);
     main.appendChild(cont);
   }
+
+  main.appendChild(dicaCopiar("lim-caso__dica"));
 
   const inserir = document.createElement("button");
   inserir.className = "lim-caso__inserir";
@@ -344,7 +359,7 @@ function criarLinhaPerfil(campo) {
   val.className = "pf-linha__val";
   val.textContent = campo.valor;
   val.dir = "ltr"; // valores sempre LTR, mesmo com a UI em árabe
-  main.append(rot, val);
+  main.append(rot, val, dicaCopiar("pf-linha__dica"));
 
   const btnInserir = document.createElement("button");
   btnInserir.className = "pf-linha__inserir";
