@@ -62,8 +62,15 @@
   display: none !important;
 }
 
+/* O Chrome corta o popup em 600px de altura. Prendendo o body nesse limite e
+   deixando só o conteúdo rolar, a janela nunca ganha a própria barra: some a
+   rolagem dupla, e cabeçalho, abas e rodapé ficam sempre à vista. */
 body {
   width: 380px;
+  display: flex;
+  flex-direction: column;
+  max-height: 600px;
+  overflow: hidden;
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   font-size: 14px;
@@ -76,6 +83,11 @@ button {
 }
 
 /* ---------- Cabeçalho ---------- */
+/* Tudo que não é o conteúdo rolável mantém a altura natural. */
+body > *:not(.conteudo) {
+  flex: 0 0 auto;
+}
+
 .cabecalho {
   display: flex;
   align-items: center;
@@ -321,13 +333,13 @@ button {
 }
 
 /* ---------- Conteúdo / painéis ---------- */
-/* O Chrome corta o popup em 600px de altura. Em vez de deixar a janela inteira
-   rolar (o que esconderia a seed no rodapé e o seletor de país no topo), só o
-   conteúdo da aba rola — cabeçalho e rodapé ficam sempre à vista. */
+/* Fica com a altura que sobra do body. Sem número mágico: se o bloco de mapear
+   ou o aviso de permissão aparecerem, o conteúdo encolhe sozinho. O min-height:0
+   é o que autoriza um item de flex a encolher abaixo do próprio conteúdo. */
 .conteudo {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 14px;
-  min-height: 180px;
-  max-height: 430px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
