@@ -78,6 +78,15 @@ body {
   background: var(--fundo);
 }
 
+/* No painel lateral quem manda na largura é o usuário, arrastando a borda, e a
+   altura é a da janela inteira. Os 380px e o teto de 600px valem só no popup. */
+body.lateral {
+  width: auto;
+  min-width: 320px;
+  max-height: none;
+  height: 100vh;
+}
+
 button {
   font-family: inherit;
 }

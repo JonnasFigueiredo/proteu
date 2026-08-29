@@ -34,6 +34,9 @@ describe("carregamento — manifest", () => {
       manifest.background?.service_worker,
       manifest.action?.default_popup,
       manifest.devtools_page,
+      // O painel lateral leva `?lateral=1` para a página saber em qual dos dois
+      // contextos está rodando; o arquivo é o caminho sem a query.
+      manifest.side_panel?.default_path?.split("?")[0],
       ...Object.values(manifest.icons || {}),
       ...(manifest.web_accessible_resources || []).flatMap((r) => r.resources || []),
     ].filter(Boolean);
@@ -48,7 +51,7 @@ describe("carregamento — manifest", () => {
       "manifest_version", "name", "version", "description", "permissions",
       "optional_permissions", "host_permissions", "optional_host_permissions",
       "background", "action", "commands", "icons", "devtools_page",
-      "web_accessible_resources", "content_scripts", "options_page",
+      "web_accessible_resources", "content_scripts", "options_page", "side_panel",
       "default_locale", "content_security_policy", "minimum_chrome_version",
     ]);
     const estranhas = Object.keys(manifest).filter((k) => !CONHECIDAS.has(k));

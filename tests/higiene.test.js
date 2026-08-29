@@ -224,9 +224,13 @@ describe("higiene — JavaScript", () => {
 describe("higiene — manifest", () => {
   const manifest = JSON.parse(ler("manifest.json"));
 
-  it("mantém exatamente as 4 permissões acordadas", () => {
+  // `sidePanel` entrou na v1.3 para o modo lateral. Não lê nada da página nem
+  // da navegação: só autoriza abrir a própria interface na lateral, e por isso
+  // não muda o aviso de instalação. A lista continua fechada de propósito —
+  // qualquer permissão nova tem que passar por aqui.
+  it("mantém exatamente as 5 permissões acordadas", () => {
     expect(new Set(manifest.permissions)).toEqual(
-      new Set(["contextMenus", "storage", "activeTab", "scripting"])
+      new Set(["contextMenus", "storage", "activeTab", "scripting", "sidePanel"])
     );
   });
 

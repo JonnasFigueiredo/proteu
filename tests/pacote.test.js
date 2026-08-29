@@ -127,7 +127,22 @@ describe("manifest — recursos acessíveis pela página", () => {
     // permissao ligada. O menu nunca seria montado.
     expect(manifest.optional_host_permissions).toEqual(["http://*/*", "https://*/*"]);
     expect(manifest.optional_host_permissions).not.toContain("<all_urls>");
-    expect(manifest.permissions).toEqual(["contextMenus", "storage", "activeTab", "scripting"]);
+    expect(manifest.permissions).toEqual([
+      "contextMenus", "storage", "activeTab", "scripting", "sidePanel",
+    ]);
+  });
+
+  it("o painel lateral serve a mesma página do popup, marcada com ?lateral=1", () => {
+    // A marca na query é o único sinal que distingue os dois contextos: a URL é
+    // idêntica no resto. Se ela sumir do manifesto, o painel abre achando que é
+    // popup, fica travado em 380px de largura e ainda mostra o botão de "abrir
+    // na lateral" dentro da própria lateral.
+    const alvo = manifest.side_panel.default_path;
+    expect(alvo.split("?")[0]).toBe(manifest.action.default_popup);
+    expect(alvo).toContain("lateral=1");
+
+    const js = fs.readFileSync(path.join(RAIZ, "src/popup/popup.js"), "utf8");
+    expect(js).toMatch(/lateral["']\s*\)\s*===\s*["']1["']/);
   });
 });
 

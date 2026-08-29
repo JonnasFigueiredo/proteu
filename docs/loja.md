@@ -188,6 +188,7 @@ Todo o processamento acontece no navegador do próprio usuário. A extensão nã
 | `storage` | Guarda localmente as preferências do usuário (país, tema, idioma) e o histórico da sessão. |
 | `activeTab` | Insere o valor gerado no campo em foco quando o usuário aciona o atalho de teclado. |
 | `scripting` | Registra o content script que identifica em qual elemento o usuário clicou. |
+| `sidePanel` | Abre a mesma interface da extensão no painel lateral do navegador, quando o usuário clica no botão para isso. Não lê a página nem a navegação. |
 | Host (opcional) | Necessário para o menu de seletores e o modo Mapear: o navegador não informa em qual elemento o menu foi aberto, então é preciso estar observando o clique antes de ele acontecer. Solicitado apenas ao ativar esses recursos. |
 
 **Uso de código remoto:** Não.

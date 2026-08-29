@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Proteu QA",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Massa de teste, senhas, mapeamento de elementos e automação para QA. 100% offline, sem coleta.",
   "permissions": [
     "contextMenus",
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "sidePanel"
   ],
   "optional_host_permissions": [
     "http://*/*",
@@ -30,6 +31,9 @@
     "type": "module"
   },
   "devtools_page": "devtools.html",
+  "side_panel": {
+    "default_path": "src/popup/popup.html?lateral=1"
+  },
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_title": "Proteu QA — dados de teste, seletores e formulários"

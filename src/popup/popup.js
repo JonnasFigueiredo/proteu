@@ -83,6 +83,13 @@ let personaAtual = null;
 // Grupo de CNPJs da mesma empresa: matriz (0001) e filiais (0002, 0003…).
 let grupoRaiz = null;
 
+// A mesma página serve de popup e de painel lateral. O `?lateral=1` do manifesto
+// é o que distingue os dois, já que a URL é idêntica no resto.
+const NO_PAINEL = new URLSearchParams(location.search).get("lateral") === "1";
+// Guardado na abertura porque `sidePanel.open()` só vale dentro do gesto do
+// clique: consultar a aba na hora torna a chamada assíncrona e o Chrome recusa.
+let abaAoAbrir = null;
+
 // --- Inicialização ----------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -92,6 +99,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     config.pais = PAIS_PADRAO;
     config = await salvarConfig(config);
   }
+  prepararLateral();
   idiomaAtual = idiomaEfetivo();
   montarIdiomas();
   montarModalPaises();
@@ -649,6 +657,7 @@ function ligarEventos() {
   $("#btn-copiar-texto").addEventListener("click", () => copiar(ultimoTexto));
   $("#btn-inserir-texto").addEventListener("click", aoInserirTexto);
 
+  $("#btn-lateral").addEventListener("click", aoAbrirLateral);
   $("#btn-config").addEventListener("click", () => alternarView("config"));
   $("#btn-historico").addEventListener("click", () => alternarView("historico"));
   $("#btn-limpar-hist").addEventListener("click", async () => {
@@ -1378,6 +1387,44 @@ async function aoPedirPermissaoSeletor() {
     mostrarFeedback(t(idiomaAtual, "opt_menu_seletor_negado"), "erro");
   }
   await atualizarBotaoPermissao();
+}
+
+// --- Painel lateral ---------------------------------------------------------
+//
+// Vantagem sobre o popup: o painel não fecha quando se clica na página, então dá
+// para preencher formulário sem reabrir a extensão a cada campo.
+//
+// O que ele NÃO herda é o `activeTab`: essa permissão é concedida por gesto e
+// morre quando a aba navega, e abrir o painel não é um dos gestos que a
+// concedem. Por isso o painel depende do acesso de host, o mesmo que o menu de
+// seletores já pede. Não pedimos aqui: `permissions.request()` fecha o popup na
+// hora, o que mataria a abertura do painel no meio do caminho. Abrimos primeiro,
+// e o aviso que já existe no topo faz o pedido de dentro do painel, que ao
+// contrário do popup sobrevive ao diálogo do Chrome.
+
+function prepararLateral() {
+  const btn = $("#btn-lateral");
+  if (NO_PAINEL) {
+    document.body.classList.add("lateral");
+    btn.hidden = true;
+    return;
+  }
+  // Chrome 116 é quem trouxe o open(); em versões anteriores o botão some em vez
+  // de existir para falhar no clique.
+  if (!chrome.sidePanel?.open) {
+    btn.hidden = true;
+    return;
+  }
+  chrome.tabs.query({ active: true, currentWindow: true }).then(([aba]) => {
+    abaAoAbrir = aba?.id ?? null;
+  });
+}
+
+function aoAbrirLateral() {
+  if (abaAoAbrir == null) return;
+  // Sem await antes daqui: qualquer espera invalida o gesto do clique.
+  chrome.sidePanel.open({ tabId: abaAoAbrir });
+  window.close(); // dois exemplares da mesma tela lado a lado só confundiriam
 }
 
 // --- Utilitários de UI ------------------------------------------------------
