@@ -63,7 +63,11 @@ describe("licença — coerência com o que o projeto declara", () => {
     const publicos = ["README.md", "NOTICE"];
     const pastaDocs = path.join(RAIZ, "docs");
     if (fs.existsSync(pastaDocs)) {
-      for (const f of fs.readdirSync(pastaDocs)) publicos.push(`docs/${f}`);
+      // Só arquivos de texto: docs/ também guarda as imagens da listagem, e
+      // varrer a pasta inteira faria o teste tentar ler um diretório.
+      for (const e of fs.readdirSync(pastaDocs, { withFileTypes: true })) {
+        if (e.isFile() && /\.(md|txt)$/i.test(e.name)) publicos.push(`docs/${e.name}`);
+      }
     }
 
     const prometem = publicos.filter((rel) =>
