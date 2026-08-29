@@ -50,6 +50,10 @@ const BANDEIRAS_PAIS = {
 // Ícones SVG (sem emojis). Herdam a cor via currentColor.
 const ICONE_COPIAR =
   '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+// Seta entrando num campo: indica "levar este valor para dentro do campo da
+// página", que é ação diferente de copiar para a área de transferência.
+const ICONE_INSERIR =
+  '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M11 16l5-4-5-4"/><path d="M16 12H3"/></svg>';
 const ICONES_TEMA = {
   auto: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>',
   claro: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
@@ -165,8 +169,8 @@ function criarCasoLimite(caso, fam) {
 
   const main = document.createElement("button");
   main.className = "lim-caso__main";
-  main.title = t(idiomaAtual, "inserir_campo");
-  main.addEventListener("click", () => usarValorAvulso(caso.valor, caso.rotulo));
+  main.title = t(idiomaAtual, "copiar");
+  main.addEventListener("click", () => copiar(caso.valor));
 
   const linha1 = document.createElement("div");
   linha1.className = "lim-caso__l1";
@@ -193,23 +197,18 @@ function criarCasoLimite(caso, fam) {
     main.appendChild(cont);
   }
 
-  const copiar = document.createElement("button");
-  copiar.className = "lim-caso__copiar";
-  copiar.title = t(idiomaAtual, "copiar");
-  copiar.setAttribute("aria-label", t(idiomaAtual, "copiar"));
-  copiar.innerHTML = ICONE_COPIAR;
-  copiar.addEventListener("click", (e) => {
+  const inserir = document.createElement("button");
+  inserir.className = "lim-caso__inserir";
+  inserir.title = t(idiomaAtual, "inserir_campo");
+  inserir.setAttribute("aria-label", t(idiomaAtual, "inserir_campo"));
+  inserir.innerHTML = ICONE_INSERIR;
+  inserir.addEventListener("click", (e) => {
     e.stopPropagation();
-    copiar_(caso.valor);
+    usarValorAvulso(caso.valor, caso.rotulo);
   });
 
-  linha.append(main, copiar);
+  linha.append(main, inserir);
   return linha;
-}
-
-/** Copia um valor avulso para a área de transferência com feedback. */
-async function copiar_(valor) {
-  await copiar(valor);
 }
 
 /** Copia todos os valores de uma família, um por linha. */
@@ -323,7 +322,7 @@ function renderizarPerfil() {
   }
 }
 
-/** Uma linha do perfil: clique insere no campo (ou copia); o botão só copia. */
+/** Uma linha do perfil: clique copia; o botão ao lado tenta inserir no campo. */
 function criarLinhaPerfil(campo) {
   const linha = document.createElement("div");
   linha.className = "pf-linha";
@@ -333,8 +332,8 @@ function criarLinhaPerfil(campo) {
 
   const main = document.createElement("button");
   main.className = "pf-linha__main";
-  main.title = t(idiomaAtual, "inserir_campo");
-  main.addEventListener("click", () => usarValorAvulso(campo.valor, rotuloDoCampo(campo)));
+  main.title = t(idiomaAtual, "copiar");
+  main.addEventListener("click", () => copiar(campo.valor));
 
   const rot = document.createElement("span");
   rot.className = "pf-linha__rot";
@@ -347,17 +346,17 @@ function criarLinhaPerfil(campo) {
   val.dir = "ltr"; // valores sempre LTR, mesmo com a UI em árabe
   main.append(rot, val);
 
-  const btnCopiar = document.createElement("button");
-  btnCopiar.className = "pf-linha__copiar";
-  btnCopiar.title = t(idiomaAtual, "copiar");
-  btnCopiar.setAttribute("aria-label", t(idiomaAtual, "copiar"));
-  btnCopiar.innerHTML = ICONE_COPIAR;
-  btnCopiar.addEventListener("click", (e) => {
+  const btnInserir = document.createElement("button");
+  btnInserir.className = "pf-linha__inserir";
+  btnInserir.title = t(idiomaAtual, "inserir_campo");
+  btnInserir.setAttribute("aria-label", t(idiomaAtual, "inserir_campo"));
+  btnInserir.innerHTML = ICONE_INSERIR;
+  btnInserir.addEventListener("click", (e) => {
     e.stopPropagation();
-    copiar(campo.valor);
+    usarValorAvulso(campo.valor, rotuloDoCampo(campo));
   });
 
-  linha.append(main, btnCopiar);
+  linha.append(main, btnInserir);
   return linha;
 }
 
@@ -1040,14 +1039,15 @@ async function aoGerarOverflow() {
   mostrarFeedback(t(idiomaAtual, "fb_overflow", { n: tam }), "ok");
 }
 
-/** Insere um valor avulso (caso-limite) no campo ativo, ou copia. */
+/** Insere um valor avulso no campo ativo da página. */
 async function usarValorAvulso(valor, rotulo) {
   const r = await inserirNoCampoAtivo(valor, config.insercao.modo);
   if (r.ok) {
     mostrarFeedback(t(idiomaAtual, "fb_chip_inserido", { rotulo }), "ok");
   } else if (r.motivo === "sem-campo") {
-    // Sem campo focado: cai para a área de transferência.
-    await copiar(valor);
+    // Não cai mais para a área de transferência: copiar agora é o clique na
+    // linha, e silenciar a falha faria os dois botões parecerem o mesmo.
+    mostrarFeedback(t(idiomaAtual, "fb_sem_campo"), "erro");
   } else {
     mostrarFeedback(t(idiomaAtual, "fb_nao_inseriu"), "erro");
   }

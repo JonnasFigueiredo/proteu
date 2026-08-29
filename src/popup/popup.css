@@ -1104,7 +1104,7 @@ input:focus-visible {
   color: var(--texto-fraco);
 }
 
-.lim-caso__copiar {
+.lim-caso__inserir {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
@@ -1115,11 +1115,11 @@ input:focus-visible {
   border-inline-start: 1px solid var(--borda);
   cursor: pointer;
 }
-.lim-caso__copiar:hover {
+.lim-caso__inserir:hover {
   color: var(--azul);
   background: var(--superficie-2);
 }
-.lim-caso__copiar .ic {
+.lim-caso__inserir .ic {
   width: 15px;
   height: 15px;
 }
@@ -1237,8 +1237,8 @@ input:focus-visible {
   word-break: break-all;
 }
 
-/* O botão de copiar só aparece no hover/foco da linha — mantém a lista limpa. */
-.pf-linha__copiar {
+/* O botão de inserir só aparece no hover/foco da linha, mantendo a lista limpa. */
+.pf-linha__inserir {
   display: grid;
   place-items: center;
   flex: 0 0 30px;
@@ -1249,11 +1249,11 @@ input:focus-visible {
   cursor: pointer;
   opacity: 0;
 }
-.pf-linha:hover .pf-linha__copiar,
-.pf-linha__copiar:focus-visible {
+.pf-linha:hover .pf-linha__inserir,
+.pf-linha__inserir:focus-visible {
   opacity: 1;
 }
-.pf-linha__copiar:hover {
+.pf-linha__inserir:hover {
   background: var(--superficie-2);
   border-color: var(--borda);
 }
