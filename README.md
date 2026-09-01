@@ -111,7 +111,8 @@ Para desenvolver, ou para rodar uma versão modificada:
   *Histórico* e *Configurações*. Só um bloco aparece por vez.
 - **Perfil** — uma pessoa fictícia com todos os documentos do país, em seções
   Pessoa e Empresa. Os essenciais ficam à vista; o resto atrás de "mais N".
-  Exportar em lote e Opções ficam recolhidos no rodapé da aba.
+  Clicar na linha copia o valor; o botão ao lado tenta inseri-lo no campo
+  focado da página. Exportar em lote e Opções ficam recolhidos no rodapé da aba.
 - **Gerar → Copiar / Inserir no campo** — o valor aparece no card de resultado.
 - **Referência** no rodapé (editável), no formato `seed#posição` — ex.:
   `7f2a91#8`. Ela acompanha a pessoa que está na tela: clicar em *Nova pessoa*

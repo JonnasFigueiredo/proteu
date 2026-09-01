@@ -240,7 +240,7 @@ function criarCasoLimite(caso, fam) {
   // Com rótulo, não só ícone: aqui o cartão é alto e tem várias linhas de
   // texto, e uma seta solta na lateral lia como divisória, não como botão.
   // Sobra altura para a palavra, então ela paga o espaço que ocupa.
-  inserir.innerHTML = `${ICONE_INSERIR}<span>${t(idiomaAtual, "inserir_curto")}</span>`;
+  inserir.innerHTML = `${ICONE_INSERIR}<span>${t(idiomaAtual, "inserir")}</span>`;
   inserir.addEventListener("click", (e) => {
     e.stopPropagation();
     usarValorAvulso(caso.valor, caso.rotulo);
