@@ -10,7 +10,7 @@ deixa de ser "não reproduzível".
 **[Instalar na Chrome Web Store](https://chromewebstore.google.com/detail/proteu-qa/edpjppimngkekieldgokejdccfpiehgn)**
 
 **100% local** · sem requisições de rede · sem coleta de dados · sem dependências
-em runtime · 4 permissões na instalação · Vanilla JS (sem build) · 969 testes.
+em runtime · 5 permissões na instalação · Vanilla JS (sem build) · 974 testes.
 
 Ela cobre o ciclo inteiro de quem automatiza: **gerar** a massa, **preencher** o
 formulário com ela, **mapear** os elementos da tela em variáveis e **gravar** o
@@ -90,7 +90,7 @@ para copiar seletores e atalhos de teclado.
 
 [**Chrome Web Store — Proteu QA**](https://chromewebstore.google.com/detail/proteu-qa/edpjppimngkekieldgokejdccfpiehgn)
 
-Instale, fixe o ícone na barra e clique para abrir o popup. São 4 permissões, e
+Instale, fixe o ícone na barra e clique para abrir o popup. São 5 permissões, e
 nenhuma delas dá acesso a páginas: o acesso de que o menu de seletores e o modo
 Mapear precisam é **opcional** e só é pedido quando você liga esses recursos.
 Veja [Permissões](#permissões).
@@ -239,7 +239,7 @@ testado não economiza tempo: gasta. Três garantias, cada uma coberta por teste
 
 ```
 reproduzivel/
-├── manifest.json                     # MV3, service_worker, 4 permissões
+├── manifest.json                     # MV3, service_worker, 5 permissões
 ├── icons/                            # 16 / 32 / 48 / 128 px
 ├── src/
 │   ├── core/                         # lógica PURA: sem DOM, sem chrome.* → 100% testável
