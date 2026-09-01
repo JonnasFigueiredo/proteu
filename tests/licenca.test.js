@@ -11,27 +11,33 @@ import path from "node:path";
 const RAIZ = path.resolve(import.meta.dirname, "..");
 const ler = (rel) => fs.readFileSync(path.join(RAIZ, rel), "utf8");
 
-const LICENCA = "Apache-2.0";
+const LICENCA = "AGPL-3.0-or-later";
 const TITULAR = "Jonnas Figueiredo";
 
 describe("licença — os arquivos existem e são os oficiais", () => {
-  it("LICENSE é o texto da Apache License 2.0", () => {
+  it("LICENSE é o texto da GNU AGPL 3.0", () => {
     const txt = ler("LICENSE");
-    expect(txt).toContain("Apache License");
-    expect(txt).toContain("Version 2.0, January 2004");
-    // Seções que definem os deveres de quem redistribui e a isenção de garantia.
-    expect(txt).toContain("4. Redistribution");
-    expect(txt).toContain("7. Disclaimer of Warranty");
+    expect(txt).toContain("GNU AFFERO GENERAL PUBLIC LICENSE");
+    expect(txt).toContain("Version 3, 19 November 2007");
+    // A seção 13 é o que distingue a AGPL da GPL comum: quem roda o programa
+    // em rede também precisa oferecer a fonte. Copiar o texto errado aqui é um
+    // engano fácil e silencioso, porque o resto das duas licenças é igual.
+    expect(txt).toContain("13. Remote Network Interaction");
+    expect(txt).toContain("15. Disclaimer of Warranty");
     expect(txt).toContain("END OF TERMS AND CONDITIONS");
-    // O texto canônico tem ~11 KB; muito menos que isso indica versão truncada.
-    expect(txt.length).toBeGreaterThan(10000);
+    // O texto canônico tem ~34 KB; muito menos indica versão truncada.
+    expect(txt.length).toBeGreaterThan(30000);
   });
 
   it("NOTICE traz o titular do copyright e aponta para a licença", () => {
     const txt = ler("NOTICE");
     expect(txt).toContain(TITULAR);
-    expect(txt).toMatch(/Copyright \d{4}/);
-    expect(txt).toContain("Apache License");
+    expect(txt).toMatch(/Copyright \(C\) \d{4}/);
+    expect(txt).toContain("GNU Affero General Public License");
+  });
+
+  it("o NOTICE diz onde está a fonte — a AGPL exige que ela seja alcancavel", () => {
+    expect(ler("NOTICE")).toMatch(/github\.com\/\S+/);
   });
 
   it("o NOTICE preserva os avisos que protegem o autor e o usuário", () => {
@@ -51,7 +57,7 @@ describe("licença — coerência com o que o projeto declara", () => {
 
   it("o README aponta para a licença, sem 'a definir'", () => {
     const readme = ler("README.md");
-    expect(readme).toContain("Apache License 2.0");
+    expect(readme).toContain("AGPL-3.0");
     expect(readme).toContain("(LICENSE)");
     expect(readme).not.toMatch(/A definir/i);
   });
