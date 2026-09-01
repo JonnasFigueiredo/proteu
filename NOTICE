@@ -1,8 +1,24 @@
 Proteu QA
-Copyright 2026 Jonnas Figueiredo
+Copyright (C) 2026 Jonnas Figueiredo
 
-Este produto é licenciado sob a Apache License, Version 2.0. Uma cópia da
+Este programa é software livre: você pode redistribuí-lo e/ou modificá-lo sob os
+termos da GNU Affero General Public License, versão 3, publicada pela Free
+Software Foundation, ou (a seu critério) qualquer versão posterior. Uma cópia da
 licença acompanha esta distribuição, no arquivo LICENSE.
+
+Este programa é distribuído na esperança de ser útil, mas SEM NENHUMA GARANTIA,
+nem mesmo a garantia implícita de COMERCIABILIDADE ou ADEQUAÇÃO A UM PROPÓSITO
+ESPECÍFICO. Consulte a GNU Affero General Public License para mais detalhes.
+
+Código-fonte completo: github.com/JonnasFigueiredo/proteu
+
+--------------------------------------------------------------------------------
+
+VERSÕES ANTERIORES
+
+As versões 1.2.0 e anteriores foram publicadas sob a Apache License 2.0 e
+permanecem disponíveis sob aquela licença. A mudança para a AGPL-3.0 vale a
+partir da versão 1.2.5.
 
 --------------------------------------------------------------------------------
 
@@ -18,8 +34,8 @@ permitido e bem-vindo.
 DADOS GERADOS
 
 Todos os dados produzidos por este software são FICTÍCIOS e destinados a teste
-de software. Os documentos têm dígito verificador aritmeticamente válido — é o
-que permite exercitar validações reais — mas não correspondem a pessoas,
+de software. Os documentos têm dígito verificador aritmeticamente válido, que é
+o que permite exercitar validações reais, mas não correspondem a pessoas,
 empresas ou registros existentes, nem são consultados em qualquer base.
 
 --------------------------------------------------------------------------------
@@ -29,11 +45,11 @@ PAYLOADS DE TESTE (uso defensivo)
 A aba "Casos-limite" inclui payloads de XSS, injeção de SQL e outras classes de
 entrada maliciosa. Existem para você verificar a validação e o escaping de
 sistemas PRÓPRIOS, em ambientes de teste sob sua responsabilidade. Não os use
-contra sistemas de terceiros sem autorização explícita — isso pode ser ilegal.
+contra sistemas de terceiros sem autorização explícita: isso pode ser ilegal.
 
-O software não executa ataque nenhum: apenas coloca strings em campos que você
-mesmo escolhe. Conforme as seções 7 e 8 da Apache License 2.0, é distribuído
-"COMO ESTÁ", sem garantias, e o autor não responde pelo uso que se faz dele.
+O software não executa ataque nenhum. Ele apenas coloca strings em campos que
+você mesmo escolhe. Conforme as seções 15 e 16 da AGPL-3.0, é distribuído "COMO
+ESTÁ", sem garantias, e o autor não responde pelo uso que se faz dele.
 
 --------------------------------------------------------------------------------
 

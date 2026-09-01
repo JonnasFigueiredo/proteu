@@ -1,4 +1,4 @@
-# Chrome Web Store — texto da listagem
+# Chrome Web Store: texto da listagem
 
 Conteúdo para colar no painel de desenvolvedor. A loja renderiza **texto puro**:
 não há markdown, então quebras de linha e maiúsculas são a única formatação.
@@ -67,7 +67,7 @@ trabalhar.
 
 Os códigos postais brasileiros existem de verdade. São endereços reais,
 conferidos um a um, porque um código inventado passa no formato e é recusado por
-quem consulta a base dos Correios — e aí o teste para por causa do dado, não do
+quem consulta a base dos Correios, e aí o teste para por causa do dado, não do
 sistema.
 
 
@@ -93,7 +93,7 @@ disponível.
 O painel de desenvolvedor mostra cada estratégia com a quantidade real de
 elementos que ela encontra, verificada na página aberta. Um localizador que
 encontra quatro elementos é um teste que passa hoje e falha quando a tela ganhar
-mais um item parecido — e isso fica visível antes de virar código.
+mais um item parecido, e isso fica visível antes de virar código.
 
 
 PREENCHER FORMULÁRIOS
@@ -135,8 +135,8 @@ GERADOR DE SENHA
 
 Uma aba dedicada a criar senhas, com tamanho ajustável e escolha de quais tipos
 de caractere entram. O medidor ao lado mostra a força em bits, e a senha sai
-sempre com pelo menos um caractere de cada tipo escolhido — senha que não atende
-à política do sistema só seria descoberta quando o cadastro recusa.
+sempre com pelo menos um caractere de cada tipo escolhido, porque senha fora da
+política do sistema só seria descoberta quando o cadastro recusa.
 
 Diferente do restante da extensão, esta aba não é reproduzível: a senha vem de
 sorteio criptográfico do próprio navegador, porque uma senha que outra pessoa
@@ -157,7 +157,7 @@ São cinco permissões na instalação, e nenhuma delas dá acesso ao conteúdo 
 páginas. O acesso necessário para o menu de localizadores e para o mapeamento é
 opcional, e só é solicitado quando você ativa esses recursos.
 
-Código aberto sob licença Apache 2.0, auditável em
+Código aberto sob licença AGPL-3.0, auditável em
 github.com/JonnasFigueiredo/proteu
 ```
 
@@ -165,7 +165,7 @@ github.com/JonnasFigueiredo/proteu
 
 ## Descrição do único propósito
 
-Campo separado, no formulário de Privacidade. Limite de 1.000 caracteres — mas
+Campo separado, no formulário de Privacidade. Limite de 1.000 caracteres, mas
 encher o limite trabalha contra: o campo pede UM propósito claro, e um resumo de
 recursos argumenta que a extensão faz muitas coisas, que é o oposto do que a
 política de propósito único aceita. A lista de recursos já está na descrição.

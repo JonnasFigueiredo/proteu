@@ -3,7 +3,7 @@
   "version": "0.25.0",
   "private": true,
   "description": "Extensão de navegador para geração de massa de dados de teste com seed determinística. Sem dependências em runtime.",
-  "license": "Apache-2.0",
+  "license": "AGPL-3.0-or-later",
   "author": "Jonnas Figueiredo",
   "repository": {
     "type": "git",
