@@ -135,6 +135,14 @@
                 <option value="playwright" data-i18n="exp_playwright">Fixture (Playwright/Cypress)</option>
               </select>
             </div>
+            <!-- Só faz sentido no CSV; some nos outros formatos. -->
+            <div class="exp-linha" id="exp-linha-sep">
+              <label class="exp-rot" for="exp-separador" data-i18n="exp_separador">Separador</label>
+              <select id="exp-separador" data-i18n-aria="exp_separador" aria-label="Separador">
+                <option value=";" data-i18n="exp_sep_pv">Ponto e vírgula (Excel)</option>
+                <option value="," data-i18n="exp_sep_virgula">Vírgula (padrão CSV)</option>
+              </select>
+            </div>
             <div class="exp-linha">
               <button id="btn-exp-copiar" class="secundario" data-i18n="copiar">Copiar</button>
               <button id="btn-exp-baixar" class="secundario" data-i18n="exp_baixar">Baixar</button>

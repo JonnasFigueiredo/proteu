@@ -56,23 +56,39 @@ function colunasDo(personas) {
   return COLUNAS.filter((c) => personas.some((p) => p[c] !== undefined));
 }
 
-/** Escapa um campo conforme a RFC 4180: aspas, vírgula ou quebra de linha. */
-function campoCsv(valor) {
+/** Escapa um campo conforme a RFC 4180: aspas, separador ou quebra de linha. */
+function campoCsv(valor, sep) {
   const s = valor === undefined || valor === null ? "" : String(valor);
-  if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  // O separador entra na condição porque muda: com ponto e vírgula, um campo
+  // que contenha ";" precisa de aspas tanto quanto um com vírgula precisaria.
+  if (s.includes('"') || s.includes(sep) || /[\r\n]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
   return s;
 }
 
 /**
- * CSV (RFC 4180). Sem linha de comentário: CSV não tem comentário padrão e
- * qualquer coisa antes do cabeçalho quebraria o parser de quem consome.
+ * Separadores aceitos.
+ *
+ * A RFC 4180 diz vírgula, e é o que qualquer parser espera. Mas o Excel usa o
+ * separador de listas do Windows, que em português, espanhol e alemão é o ponto
+ * e vírgula: com vírgula ele joga a linha inteira na coluna A. Não dá para
+ * agradar aos dois com um arquivo só, então a escolha é da QA.
  */
-export function paraCsv(lote) {
+export const SEPARADORES = [",", ";"];
+
+/**
+ * CSV (RFC 4180). Sem linha de comentário: CSV não tem comentário padrão e
+ * qualquer coisa antes do cabeçalho quebraria o parser de quem consome. Isso
+ * inclui o truque do `sep=;`, que o Excel entende e o resto do mundo não.
+ */
+export function paraCsv(lote, sep = ",") {
+  const s = SEPARADORES.includes(sep) ? sep : ",";
   const { personas } = lote;
   const cols = colunasDo(personas);
-  const linhas = [cols.join(",")];
+  const linhas = [cols.join(s)];
   for (const p of personas) {
-    linhas.push(cols.map((c) => campoCsv(p[c])).join(","));
+    linhas.push(cols.map((c) => campoCsv(p[c], s)).join(s));
   }
   return linhas.join("\n");
 }
@@ -112,7 +128,21 @@ export const FORMATOS = {
 };
 
 /** Serializa o lote no formato pedido (cai em CSV se o id for desconhecido). */
-export function serializar(lote, formato) {
+export function serializar(lote, formato, opcoes = {}) {
   const f = FORMATOS[formato] || FORMATOS.csv;
-  return f.serializar(lote);
+  return f.serializar(lote, opcoes.separador);
+}
+
+/**
+ * Separador que o Excel do usuário provavelmente espera.
+ *
+ * O Excel lê o separador de listas do sistema, não do arquivo. Nestes idiomas
+ * o padrão do Windows é ponto e vírgula, e abrir com vírgula joga tudo na
+ * coluna A. É só o valor inicial: a QA troca no seletor quando o destino for
+ * um script em vez de uma planilha.
+ */
+const IDIOMAS_PONTO_E_VIRGULA = new Set(["pt", "es", "de"]);
+
+export function separadorSugerido(idioma) {
+  return IDIOMAS_PONTO_E_VIRGULA.has(idioma) ? ";" : ",";
 }
