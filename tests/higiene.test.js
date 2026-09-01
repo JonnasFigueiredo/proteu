@@ -149,6 +149,26 @@ describe("higiene — o JS só busca elementos que existem", () => {
     );
     expect(inexistentes, `ids inexistentes: ${inexistentes.join(", ")}`).toEqual([]);
   });
+
+  // Bug real: `mostrarView("documentos")` apontava para um nome de view que não
+  // existe mais. Nenhum painel casava, todos ficavam escondidos e o conteúdo
+  // sumia — sem erro no console, porque tirar a classe de todo mundo é uma
+  // operação válida. Falha silenciosa é exatamente o que teste pega melhor.
+  it("toda view pedida por mostrarView existe no HTML", () => {
+    const views = new Set(
+      [...popupHtml.matchAll(/data-view="([\w-]+)"/g)].map((m) => m[1])
+    );
+    const literais = [...codigo.matchAll(/mostrarView\(\s*["'`]([\w-]+)["'`]\s*\)/g)]
+      .map((m) => m[1]);
+    // Constantes: `mostrarView(VIEW_INICIAL)` só é segura se a constante
+    // apontar para uma view de verdade.
+    const constantes = [...codigo.matchAll(/const\s+VIEW_\w+\s*=\s*["'`]([\w-]+)["'`]/g)]
+      .map((m) => m[1]);
+
+    const inexistentes = [...new Set([...literais, ...constantes])]
+      .filter((v) => !views.has(v));
+    expect(inexistentes, `views inexistentes: ${inexistentes.join(", ")}`).toEqual([]);
+  });
 });
 
 describe("higiene — JavaScript", () => {
