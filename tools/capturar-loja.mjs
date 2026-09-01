@@ -29,18 +29,20 @@ if (!CHROME) {
   process.exit(1);
 }
 
-// A ordem aqui é a ordem da listagem. O nome do arquivo carrega o número porque
-// a loja ordena por upload e é fácil errar a sequência no meio do envio.
+// A loja aceita no máximo 5 capturas, então só estas cinco viram arquivo. A
+// página tem nove slides: os outros quatro (texto, localizadores, idiomas e
+// privacidade) continuam lá como alternativas, e trocar a listagem é trocar uma
+// linha daqui.
+//
+// O primeiro número é o slide na página; o segundo é a posição na listagem, que
+// vira o prefixo do arquivo. A loja ordena por upload e é fácil errar a
+// sequência no meio do envio, então o nome carrega a ordem.
 const SLIDES = [
   [1, "documentos"],
-  [2, "texto"],
   [3, "casos-limite"],
   [4, "mapear"],
-  [5, "localizadores"],
-  [6, "idiomas"],
   [7, "senhas"],
   [8, "painel-lateral"],
-  [9, "privacidade"],
 ];
 
 fs.mkdirSync(DESTINO, { recursive: true });
@@ -48,8 +50,14 @@ fs.mkdirSync(DESTINO, { recursive: true });
 // Sem isto o Chrome reaproveita um processo já aberto e ignora o headless.
 const PERFIL = path.join(process.env.TEMP || "/tmp", "proteu-captura");
 
-for (const [num, nome] of SLIDES) {
-  const saida = path.join(DESTINO, `${String(num).padStart(2, "0")}-${nome}.png`);
+// Só os arquivos gerados agora ficam na pasta: sobra de uma execução anterior
+// com outra seleção seria fácil de subir por engano.
+for (const antigo of fs.readdirSync(DESTINO).filter((f) => f.endsWith(".png"))) {
+  fs.unlinkSync(path.join(DESTINO, antigo));
+}
+
+for (const [i, [num, nome]] of SLIDES.entries()) {
+  const saida = path.join(DESTINO, `${String(i + 1).padStart(2, "0")}-${nome}.png`);
   const url = `${SERVIDOR}/tests/e2e/screenshots.html?slide=${num}`;
   execFileSync(CHROME, [
     "--headless=new",
