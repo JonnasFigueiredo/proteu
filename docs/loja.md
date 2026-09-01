@@ -143,6 +143,17 @@ sorteio criptográfico do próprio navegador, porque uma senha que outra pessoa
 consegue prever não poderia ser chamada de forte.
 
 
+AO LADO DO FORMULÁRIO
+
+A extensão também abre no painel lateral do navegador, por um botão no
+cabeçalho. Ao contrário da janela flutuante, o painel não fecha quando você
+clica na página, então ele fica visível enquanto você preenche o cadastro. O
+mesmo botão devolve a extensão ao formato de janela.
+
+O bloco de notas do mapeamento pode ser encaixado nesse painel, arrastando-o
+para a borda da tela, o que libera a área do formulário.
+
+
 SETE IDIOMAS
 
 A interface acompanha o país escolhido e pode ser fixada em um idioma. É possível
