@@ -31,6 +31,14 @@
       </div>
     </header>
 
+    <!-- O Chrome deixa o popup abrir com o painel lateral já aberto, e aí ficam
+         duas cópias da mesma tela editando o mesmo estado. Não dá para impedir,
+         então pelo menos avisamos e oferecemos o caminho para uma só. -->
+    <div id="aviso-duplicado" class="aviso-duplicado" hidden>
+      <span data-i18n="lateral_duplicado">Também aberto no painel lateral</span>
+      <button id="btn-fechar-popup" class="link" data-i18n="lateral_usar">Usar só o painel</button>
+    </div>
+
     <!-- Ancora o aviso logo abaixo das abas. Preso a este bloco, e não a uma
          posição fixa em pixels, ele acompanha a altura do cabeçalho. -->
     <div class="topo">
