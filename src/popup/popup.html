@@ -327,6 +327,29 @@
         <ul id="lista-historico" class="lista-historico"></ul>
         <p id="historico-vazio" class="ajuda" data-i18n="hist_vazio">Nada gerado ainda.</p>
       </section>
+
+      <!-- Mapear fixado: o mesmo bloco de notas da caixa flutuante, aqui do
+           lado do formulário em vez de por cima dele. A captura continua
+           acontecendo na página. -->
+      <section class="painel" data-view="mapear" role="tabpanel">
+        <div class="cabecalho-historico">
+          <span class="rot-mini" data-i18n="mapear_rascunho">Rascunho do mapeamento</span>
+          <button id="btn-mapear-soltar" class="link" data-i18n="mapear_soltar">Soltar na página</button>
+        </div>
+        <div class="mp-linha">
+          <select id="mapear-linguagem" data-i18n-aria="mapear_linguagem" aria-label="Linguagem"></select>
+          <select id="mapear-convencao" data-i18n-aria="mapear_convencao" aria-label="Padrão do nome"></select>
+        </div>
+        <textarea id="mapear-rascunho" class="mp-rascunho" spellcheck="false"
+          data-i18n-ph="mapear_vazio"
+          placeholder="Clique nos elementos da página. As variáveis aparecem aqui, e você pode editar à vontade."></textarea>
+        <div class="mp-acoes">
+          <button id="btn-mapear-copiar" class="secundario" data-i18n="copiar">Copiar</button>
+          <button id="btn-mapear-regerar" class="secundario" data-i18n="mapear_regerar">Regerar</button>
+          <button id="btn-mapear-limpar" class="secundario" data-i18n="limpar">Limpar</button>
+          <span id="mapear-contagem" class="mp-contagem">0</span>
+        </div>
+      </section>
     </main>
 
     <footer class="rodape">

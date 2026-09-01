@@ -1323,6 +1323,42 @@ input:focus-visible {
   border-color: var(--borda);
 }
 
+/* ---------- Mapear fixado na lateral ---------- */
+/* Ocupa a altura toda que sobra: o rascunho é o conteúdo, e um textarea baixo
+   com espaço vazio embaixo seria pior que a caixa flutuante que ele substitui. */
+.painel--ativo[data-view="mapear"] {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+}
+.mp-linha { display: flex; gap: 6px; }
+.mp-linha select { flex: 1; min-width: 0; }
+.mp-rascunho {
+  flex: 1;
+  min-height: 160px;
+  padding: 9px 10px;
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--texto);
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  resize: none;
+  white-space: pre;
+  overflow: auto;
+}
+.mp-rascunho:focus-visible { outline: 2px solid var(--azul); outline-offset: -1px; }
+.mp-acoes { display: flex; align-items: center; gap: 6px; }
+.mp-acoes .secundario { flex: 1; }
+.mp-contagem {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-fraco);
+}
+
 /* "mostrar mais N" dentro de cada seção */
 .pf-mais {
   margin-top: 2px;

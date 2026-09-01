@@ -412,6 +412,7 @@
         <span class="titulo">Proteu QA · Mapear</span>
         <span class="contagem" data-contagem>0</span>
         <span class="crescer"></span>
+        <button class="icone" data-fixar title="Fixar na lateral do navegador">⇥</button>
         <button class="icone" data-recolher title="Recolher">–</button>
         <button class="icone" data-fechar title="Sair do modo mapear (Esc)">×</button>
       </div>
@@ -520,6 +521,7 @@
     caixa.querySelector("[data-recolher]").addEventListener("click", () => {
       caixa.classList.toggle("recolhido");
     });
+    caixa.querySelector("[data-fixar]").addEventListener("click", fixarNaLateral);
 
     arrastavel(caixa, caixa.querySelector("[data-arrastar]"));
     redimensionavel(caixa);
@@ -753,13 +755,55 @@
       // QA capturava enquanto os <select> ainda estavam vazios, e a linguagem
       // exibida passava a discordar da que gerou as linhas.
       if (!painel) await criarPainel();
-      else painel.host.style.display = "";
+      ligado = true;
+      aplicarFixado(); // fixado na lateral: liga o modo sem trazer a caixa de volta
     }
     ligado = true;
     instalarOuvintes();
     document.documentElement.style.cursor = "crosshair";
     renderizar();
     return true;
+  }
+
+  /**
+   * Manda o bloco de notas para o painel lateral e some com a caixa flutuante.
+   *
+   * A captura continua aqui: o que muda é só onde o texto aparece. Numa tela
+   * cheia de formulário a caixa flutuante cobre justamente o que se quer
+   * clicar, e arrastar para o canto resolve mal, porque o canto também é
+   * página. Na lateral ela sai de cima do conteúdo de uma vez.
+   */
+  async function fixarNaLateral() {
+    estado.fixado = true;
+    await gravarEstado();
+    aplicarFixado();
+    // O content script não abre o painel sozinho. Se o gesto não chegar íntegro
+    // ao service worker, o painel simplesmente não abre — e aí a caixa volta,
+    // porque sumir com ela sem ter para onde ir deixaria a QA sem nada na tela.
+    const r = await chrome.runtime
+      .sendMessage({ app: "proteu", tipo: "ABRIR_LATERAL" })
+      .catch(() => null);
+    if (!r || !r.ok) {
+      estado.fixado = false;
+      await gravarEstado();
+      aplicarFixado();
+      avisarNaCaixa("abra o painel lateral pelo ícone da extensão");
+    }
+  }
+
+  /** Esconde ou mostra a caixa conforme o destino escolhido para o rascunho. */
+  function aplicarFixado() {
+    if (!painel) return;
+    painel.host.style.display = ligado && !estado.fixado ? "" : "none";
+  }
+
+  /** Recado curto no rodapé da própria caixa, onde a QA está olhando. */
+  function avisarNaCaixa(texto) {
+    const dica = painel?.caixa.querySelector(".dica");
+    if (!dica) return;
+    const antes = dica.textContent;
+    dica.textContent = texto;
+    setTimeout(() => { dica.textContent = antes; }, 4000);
   }
 
   function desligar() {
@@ -784,6 +828,9 @@
       painel.linguagem.value = estado.linguagem;
       painel.convencao.value = estado.convencao;
     }
+    // O "soltar na página" mora no painel lateral: é por esta mudança de
+    // storage que a caixa flutuante reaparece.
+    aplicarFixado();
     renderizar();
   });
 
