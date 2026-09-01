@@ -224,7 +224,7 @@ describe("higiene — JavaScript", () => {
 describe("higiene — manifest", () => {
   const manifest = JSON.parse(ler("manifest.json"));
 
-  // `sidePanel` entrou na v1.3 para o modo lateral. Não lê nada da página nem
+  // `sidePanel` entrou na v1.2.5 para o modo lateral. Não lê nada da página nem
   // da navegação: só autoriza abrir a própria interface na lateral, e por isso
   // não muda o aviso de instalação. A lista continua fechada de propósito —
   // qualquer permissão nova tem que passar por aqui.
