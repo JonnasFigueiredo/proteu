@@ -153,7 +153,7 @@ PRIVACIDADE
 
 Sem requisições de rede. Sem coleta. Sem dependências externas.
 
-São quatro permissões na instalação, e nenhuma delas dá acesso ao conteúdo das
+São cinco permissões na instalação, e nenhuma delas dá acesso ao conteúdo das
 páginas. O acesso necessário para o menu de localizadores e para o mapeamento é
 opcional, e só é solicitado quando você ativa esses recursos.
 
