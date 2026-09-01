@@ -116,6 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await detectarCampo();
   await sincronizarBotaoMapear(); // o modo pode ter ficado ligado na página
   ligarAbaSenha();
+  responderSeForPainel();
   await ligarMapear();
 });
 
@@ -663,6 +664,7 @@ function ligarEventos() {
   $("#btn-inserir-texto").addEventListener("click", aoInserirTexto);
 
   $("#btn-lateral").addEventListener("click", aoAlternarLateral);
+  $("#btn-fechar-popup").addEventListener("click", () => window.close());
   $("#btn-config").addEventListener("click", () => alternarView("config"));
   $("#btn-historico").addEventListener("click", () => alternarView("historico"));
   $("#btn-limpar-hist").addEventListener("click", async () => {
@@ -1438,6 +1440,44 @@ function prepararLateral() {
   chrome.tabs.query({ active: true, currentWindow: true }).then(([aba]) => {
     abaAoAbrir = aba?.id ?? null;
   });
+  avisarSeDuplicado();
+}
+
+/**
+ * Só o painel responde. O popup pergunta ao abrir; se vier resposta, existem
+ * duas cópias da mesma tela e ele avisa.
+ *
+ * Registrado dentro de uma função, e não no corpo do módulo: uma exceção no
+ * topo aborta o resto da avaliação, e aí declarações que vêm depois ficam na
+ * zona morta. Foi assim que um erro nesta linha derrubou o `mostrarFeedback`,
+ * que não tem relação nenhuma com painel lateral.
+ */
+function responderSeForPainel() {
+  if (!NO_PAINEL || !chrome.runtime?.onMessage) return;
+  chrome.runtime.onMessage.addListener((msg, _remetente, responder) => {
+    if (!msg || msg.app !== "proteu" || msg.tipo !== "PAINEL_VIVO") return false;
+    responder({ painel: true });
+    return false;
+  });
+}
+
+/**
+ * Descobre se a outra cópia está aberta, perguntando a ela.
+ *
+ * Sem flag no storage de propósito: flag fica velha quando o painel é fechado
+ * de um jeito que não dispara o evento de saída, e aí o popup avisaria sobre um
+ * painel que não existe mais. Se alguém responde, alguém está vivo.
+ */
+async function painelEstaAberto() {
+  const r = await chrome.runtime
+    .sendMessage({ app: "proteu", tipo: "PAINEL_VIVO" })
+    .catch(() => null);
+  return !!(r && r.painel);
+}
+
+async function avisarSeDuplicado() {
+  if (NO_PAINEL || !(await painelEstaAberto())) return;
+  $("#aviso-duplicado").hidden = false;
 }
 
 function aoAlternarLateral() {
@@ -1504,14 +1544,27 @@ async function ligarMapear() {
   refletir();
   seguirFixado();
 
-  chrome.storage.onChanged.addListener((mudancas, area) => {
+  chrome.storage.onChanged?.addListener((mudancas, area) => {
     if (area !== "local" || !mudancas[CHAVE_MAPEAMENTO]) return;
     const novo = mudancas[CHAVE_MAPEAMENTO].newValue;
     if (!novo) return;
     mapa = { ...mapa, ...novo };
     refletir();
     seguirFixado();
+    // O storage é global e o modo é por aba, então ele serve de gatilho, não de
+    // resposta: quem sabe se ESTA aba está mapeando é o content script dela.
+    sincronizarBotaoMapear();
   });
+
+  // O painel sobrevive à troca de aba; o modo mapear, não. Sem isto o botão
+  // continuaria aceso depois de mudar para uma aba que nunca ligou o modo.
+  if (NO_PAINEL && chrome.tabs?.onActivated) {
+    chrome.tabs.onActivated.addListener(() => sincronizarBotaoMapear());
+    chrome.tabs.onUpdated.addListener((_id, info, aba) => {
+      // Recarregar a página derruba o content script junto com o modo.
+      if (info.status === "complete" && aba.active) sincronizarBotaoMapear();
+    });
+  }
 
   $("#mapear-linguagem").addEventListener("change", () => {
     mapa.linguagem = $("#mapear-linguagem").value;

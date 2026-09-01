@@ -73,12 +73,26 @@ function previaDoPopup(res) {
         tema: "auto", idiomaFixo: null,
         documentos: { mascara: false, cnpjAlfanumerico: false, cnpjExcluirAmbiguas: false },
         insercao: { modo: "valor" } } }, local: {} };
+      // onChanged de verdade: é por ele que o painel lateral descobre o que o
+      // content script capturou. Sem emitir, a prévia mostrava a tela parada e
+      // dava a impressão de que a sincronia estava quebrada.
+      const ouvintes = [];
       const loja = (b) => ({
         async get(k) { return k in mem[b] ? { [k]: structuredClone(mem[b][k]) } : {}; },
-        async set(o) { Object.assign(mem[b], structuredClone(o)); },
+        async set(o) {
+          const mudancas = {};
+          for (const [k, v] of Object.entries(o)) {
+            mudancas[k] = { oldValue: structuredClone(mem[b][k]), newValue: structuredClone(v) };
+          }
+          Object.assign(mem[b], structuredClone(o));
+          for (const f of ouvintes) f(mudancas, b);
+        },
       });
       window.chrome = {
-        storage: { sync: loja("sync"), local: loja("local") },
+        storage: {
+          sync: loja("sync"), local: loja("local"),
+          onChanged: { addListener: (f) => ouvintes.push(f) },
+        },
         tabs: { async query() { return [{ id: 1 }]; },
                 async sendMessage() { return { ok: false, erro: "sem-campo" }; } },
         scripting: { async executeScript() { return []; } },

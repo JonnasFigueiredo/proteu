@@ -1323,6 +1323,19 @@ input:focus-visible {
   border-color: var(--borda);
 }
 
+/* Aviso de que a mesma tela está aberta nos dois lugares. */
+.aviso-duplicado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--texto-fraco);
+  background: var(--superficie-2);
+  border-bottom: 1px solid var(--borda);
+}
+
 /* ---------- Mapear fixado na lateral ---------- */
 /* Ocupa a altura toda que sobra: o rascunho é o conteúdo, e um textarea baixo
    com espaço vazio embaixo seria pior que a caixa flutuante que ele substitui. */

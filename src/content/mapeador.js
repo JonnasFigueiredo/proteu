@@ -539,6 +539,8 @@
 
     arrastavel(caixa, caixa.querySelector("[data-arrastar]"));
     redimensionavel(caixa);
+    // Abrir ou arrastar a borda do painel lateral redimensiona a página.
+    window.addEventListener("resize", () => trazerParaDentro(caixa));
     aplicarTamanhoSalvo(caixa);
     observarTamanho(caixa);
     renderizar();
@@ -726,6 +728,31 @@
     }
   }
 
+  // Sobra mínima da caixa que precisa continuar visível. Menos que isso e não há
+  // barra de título para agarrar: a caixa fica na tela mas fora de alcance.
+  const SOBRA_VISIVEL = 80;
+
+  /**
+   * Traz a caixa de volta para dentro da janela.
+   *
+   * Abrir o painel lateral encolhe a viewport da página. A caixa não se mexe, e
+   * uma que estivesse encostada à direita passa a ficar inteira atrás do painel:
+   * visível para o CSS, inalcançável para o mouse. Só reposicionamos o que
+   * saiu, para não puxar de volta uma caixa que a QA deixou onde queria.
+   */
+  function trazerParaDentro(caixa) {
+    const r = caixa.getBoundingClientRect();
+    const maxLeft = window.innerWidth - SOBRA_VISIVEL;
+    const maxTop = window.innerHeight - SOBRA_VISIVEL;
+    const left = Math.min(Math.max(0, r.left), Math.max(0, maxLeft));
+    const top = Math.min(Math.max(0, r.top), Math.max(0, maxTop));
+    if (left === r.left && top === r.top) return;
+    caixa.style.left = `${left}px`;
+    caixa.style.top = `${top}px`;
+    caixa.style.right = "auto";
+    salvarGeometria(caixa);
+  }
+
   /** Guarda tamanho e posição. */
   function salvarGeometria(caixa) {
     if (caixa.classList.contains("recolhido")) return;
@@ -813,6 +840,11 @@
     instalarOuvintes();
     document.documentElement.style.cursor = "crosshair";
     renderizar();
+    // Avisa as outras janelas. O painel lateral fica aberto por muito tempo e
+    // consultava o estado só ao carregar: sem este aviso ele mostrava "ligar
+    // modo mapear" com o modo já rodando.
+    estado.ligado = true;
+    gravarEstado();
     return true;
   }
 
@@ -864,6 +896,9 @@
     limparRealce();
     document.documentElement.style.cursor = "";
     if (painel) painel.host.style.display = "none";
+    // Sair pelo Esc também precisa chegar às outras janelas.
+    estado.ligado = false;
+    gravarEstado();
     return false;
   }
 
