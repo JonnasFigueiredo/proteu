@@ -1150,8 +1150,14 @@ input:focus-visible {
 .lim-caso__inserir {
   flex: 0 0 auto;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 0 9px;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
   color: var(--texto-fraco);
   background: transparent;
   border: 0;
@@ -1161,6 +1167,10 @@ input:focus-visible {
 .lim-caso__inserir:hover {
   color: var(--azul);
   background: var(--superficie-2);
+}
+.lim-caso__inserir:focus-visible {
+  outline: 2px solid var(--azul);
+  outline-offset: -2px;
 }
 .lim-caso__inserir .ic {
   width: 15px;
