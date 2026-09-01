@@ -675,7 +675,14 @@ function ligarEventos() {
 
 // Views acionadas por abas; config/histórico entram pelos ícones do cabeçalho.
 const VIEWS_ABA = new Set(["perfil", "texto", "invalidos"]);
-let viewAtual = "documentos";
+
+// Para onde se volta ao fechar uma view de ícone. Era o literal "documentos",
+// nome que a view do perfil teve um dia: como não existe `data-view` com esse
+// nome, `mostrarView` não encontrava painel nenhum e o conteúdo ficava em
+// branco — sem erro no console, porque apagar todas as classes é uma operação
+// perfeitamente válida.
+const VIEW_INICIAL = "perfil";
+let viewAtual = VIEW_INICIAL;
 
 function mostrarView(nome) {
   viewAtual = nome;
@@ -693,7 +700,7 @@ function mostrarView(nome) {
 /** Ícone do cabeçalho: abre a view; clicar de novo volta para Documentos. */
 async function alternarView(nome) {
   if (viewAtual === nome) {
-    mostrarView("documentos");
+    mostrarView(VIEW_INICIAL);
     return;
   }
   if (nome === "historico") await renderizarHistorico();
@@ -1544,7 +1551,7 @@ async function ligarMapear() {
   $("#btn-mapear-soltar").addEventListener("click", () => {
     mapa.fixado = false;
     gravar();
-    mostrarView("documentos");
+    mostrarView(VIEW_INICIAL);
   });
 }
 
@@ -1555,7 +1562,7 @@ async function ligarMapear() {
 function seguirFixado() {
   if (!NO_PAINEL || !mapearLigado) return;
   if (mapa.fixado && viewAtual !== "mapear") mostrarView("mapear");
-  else if (!mapa.fixado && viewAtual === "mapear") mostrarView("documentos");
+  else if (!mapa.fixado && viewAtual === "mapear") mostrarView(VIEW_INICIAL);
 }
 
 // --- Utilitários de UI ------------------------------------------------------

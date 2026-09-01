@@ -302,6 +302,20 @@
   const CSS_PAINEL = `
     :host { all: initial; }
     * { box-sizing: border-box; font-family: "Segoe UI", system-ui, sans-serif; }
+    /* Prévia do encaixe: aparece enquanto a caixa é arrastada para a direita,
+       ocupando a faixa onde o painel do Chrome vai nascer. */
+    .encaixe {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 340px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 16px; text-align: center;
+      font-size: 13px; font-weight: 600; color: #cfe2ff;
+      background: rgba(21, 101, 192, .22);
+      border-left: 2px solid #1565c0;
+      pointer-events: none;
+      opacity: 0; transition: opacity .12s;
+      z-index: 2147483646;
+    }
+    .encaixe.visivel { opacity: 1; }
     /* Redimensionável pelas OITO pontas. O "resize" do CSS só entrega o canto
        inferior direito, e quem encosta o painel num canto da tela precisa puxar
        justamente pelo lado oposto. Daí as alças próprias, abaixo. */
@@ -530,9 +544,20 @@
     renderizar();
   }
 
+  // Faixa junto à borda direita que vale como "encaixar na lateral". É larga o
+  // bastante para acertar sem mira, e o painel do Chrome nasce mais largo que
+  // isso, então a QA está mirando onde ele realmente vai aparecer.
+  const FAIXA_ENCAIXE = 120;
+
   /** Deixa o painel ser arrastado: ele pode estar cobrindo o que a QA quer clicar. */
   function arrastavel(caixa, punho) {
     let dx = 0, dy = 0, arrastando = false;
+
+    // Arrastar para a direita encaixa. O botão ⇥ continua existindo para quem
+    // prefere um clique, mas arrastar é o gesto que a pessoa já tenta primeiro
+    // quando quer tirar a caixa da frente.
+    const naFaixa = (ev) => ev.clientX > window.innerWidth - FAIXA_ENCAIXE;
+
     punho.addEventListener("mousedown", (ev) => {
       if (ev.target.closest("button")) return;
       arrastando = true;
@@ -547,8 +572,34 @@
       caixa.style.left = `${ev.clientX - dx}px`;
       caixa.style.top = `${ev.clientY - dy}px`;
       caixa.style.right = "auto";
+      // A prévia precisa aparecer antes de soltar: sem ela o encaixe seria um
+      // efeito colateral surpresa de largar a caixa perto da borda.
+      mostrarPrevia(naFaixa(ev));
     }, true);
-    document.addEventListener("mouseup", () => { arrastando = false; }, true);
+    document.addEventListener("mouseup", (ev) => {
+      if (!arrastando) return;
+      arrastando = false;
+      const encaixar = naFaixa(ev);
+      mostrarPrevia(false);
+      if (encaixar) fixarNaLateral();
+    }, true);
+  }
+
+  /** Sombra na borda direita mostrando onde a caixa vai encaixar. */
+  function mostrarPrevia(ligada) {
+    if (!painel) return;
+    let alvo = painel.raiz.querySelector(".encaixe");
+    if (!ligada) {
+      alvo?.classList.remove("visivel");
+      return;
+    }
+    if (!alvo) {
+      alvo = document.createElement("div");
+      alvo.className = "encaixe";
+      alvo.textContent = "Encaixar na lateral";
+      painel.raiz.appendChild(alvo);
+    }
+    alvo.classList.add("visivel");
   }
 
   const MIN_LARGURA = 320;
