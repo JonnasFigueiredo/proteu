@@ -67,6 +67,10 @@ function dicaCopiar(classe) {
   return dica;
 }
 
+// Janelinha destacada: o caminho de volta, do painel para o popup.
+const ICONE_POPUP =
+  '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="13" height="10" rx="2"/><path d="M8 19h11a2 2 0 0 0 2-2V9"/></svg>';
+
 const ICONES_TEMA = {
   auto: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/></svg>',
   claro: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
@@ -112,6 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await detectarCampo();
   await sincronizarBotaoMapear(); // o modo pode ter ficado ligado na página
   ligarAbaSenha();
+  await ligarMapear();
 });
 
 // Marcadores visuais para caracteres invisíveis (só na exibição; o valor
@@ -657,7 +662,7 @@ function ligarEventos() {
   $("#btn-copiar-texto").addEventListener("click", () => copiar(ultimoTexto));
   $("#btn-inserir-texto").addEventListener("click", aoInserirTexto);
 
-  $("#btn-lateral").addEventListener("click", aoAbrirLateral);
+  $("#btn-lateral").addEventListener("click", aoAlternarLateral);
   $("#btn-config").addEventListener("click", () => alternarView("config"));
   $("#btn-historico").addEventListener("click", () => alternarView("historico"));
   $("#btn-limpar-hist").addEventListener("click", async () => {
@@ -1404,9 +1409,17 @@ async function aoPedirPermissaoSeletor() {
 
 function prepararLateral() {
   const btn = $("#btn-lateral");
+
+  // No painel o mesmo botão faz o caminho de volta. Sumir com ele deixaria o
+  // modo lateral sem saída visível: para voltar ao popup a QA teria que fechar
+  // o painel pela barra do Chrome, que não é onde ela vai procurar.
   if (NO_PAINEL) {
     document.body.classList.add("lateral");
-    btn.hidden = true;
+    btn.innerHTML = ICONE_POPUP;
+    // Troca a chave de tradução em vez do texto: assim o rótulo continua certo
+    // quando a QA muda o idioma com o painel aberto.
+    btn.dataset.i18nTitle = "t_popup";
+    btn.dataset.i18nAria = "t_popup";
     return;
   }
   // Chrome 116 é quem trouxe o open(); em versões anteriores o botão some em vez
@@ -1420,11 +1433,129 @@ function prepararLateral() {
   });
 }
 
-function aoAbrirLateral() {
+function aoAlternarLateral() {
+  // Fechar a página do painel fecha o painel. Voltar ao popup é só isso: na
+  // próxima vez que a QA clicar no ícone da extensão, ela cai no popup de novo.
+  if (NO_PAINEL) {
+    window.close();
+    return;
+  }
   if (abaAoAbrir == null) return;
   // Sem await antes daqui: qualquer espera invalida o gesto do clique.
   chrome.sidePanel.open({ tabId: abaAoAbrir });
   window.close(); // dois exemplares da mesma tela lado a lado só confundiriam
+}
+
+// --- Mapear fixado na lateral -----------------------------------------------
+//
+// Terceira janela para a mesma lista, junto da caixa flutuante e do painel do
+// DevTools. A captura acontece no content script; aqui é só exibição e edição.
+// O ponto de encontro continua sendo chrome.storage.local, porque os três
+// rodam em mundos JS diferentes.
+
+const CHAVE_MAPEAMENTO = "mapeamento";
+let mapa = { elementos: [], linguagem: null, convencao: null, rascunho: "", fixado: false };
+let mapearLigado = false;
+
+async function ligarMapear() {
+  const { LINGUAGENS, CONVENCOES, CONVENCAO_PADRAO, LINGUAGEM_PADRAO, gerarRascunho } =
+    await import("../core/mapeador.js");
+
+  for (const l of LINGUAGENS) {
+    const o = document.createElement("option");
+    o.value = l.id;
+    o.textContent = l.rotulo;
+    $("#mapear-linguagem").appendChild(o);
+  }
+  for (const c of CONVENCOES) {
+    const o = document.createElement("option");
+    o.value = c.id;
+    o.textContent = c.rotulo;
+    $("#mapear-convencao").appendChild(o);
+  }
+
+  const gravar = () => chrome.storage.local.set({ [CHAVE_MAPEAMENTO]: mapa });
+
+  function refletir() {
+    $("#mapear-contagem").textContent = t(idiomaAtual, "mapear_contagem", {
+      n: mapa.elementos.length,
+    });
+    $("#mapear-linguagem").value = mapa.linguagem;
+    $("#mapear-convencao").value = mapa.convencao;
+    // Não sobrescreve enquanto se digita: o cursor saltaria para o fim.
+    const ta = $("#mapear-rascunho");
+    if (document.activeElement !== ta && ta.value !== mapa.rascunho) {
+      ta.value = mapa.rascunho;
+    }
+  }
+
+  const dados = await chrome.storage.local.get(CHAVE_MAPEAMENTO);
+  mapa = { ...mapa, ...(dados[CHAVE_MAPEAMENTO] || {}) };
+  mapa.linguagem = mapa.linguagem || LINGUAGEM_PADRAO;
+  mapa.convencao = mapa.convencao || CONVENCAO_PADRAO[mapa.linguagem] || "camelCase";
+  mapearLigado = true;
+  refletir();
+  seguirFixado();
+
+  chrome.storage.onChanged.addListener((mudancas, area) => {
+    if (area !== "local" || !mudancas[CHAVE_MAPEAMENTO]) return;
+    const novo = mudancas[CHAVE_MAPEAMENTO].newValue;
+    if (!novo) return;
+    mapa = { ...mapa, ...novo };
+    refletir();
+    seguirFixado();
+  });
+
+  $("#mapear-linguagem").addEventListener("change", () => {
+    mapa.linguagem = $("#mapear-linguagem").value;
+    mapa.convencao = CONVENCAO_PADRAO[mapa.linguagem] || mapa.convencao;
+    refletir();
+    gravar();
+  });
+
+  $("#mapear-convencao").addEventListener("change", () => {
+    mapa.convencao = $("#mapear-convencao").value;
+    gravar();
+  });
+
+  // O texto é da QA: o que ela digita aqui vale também na caixa da página.
+  $("#mapear-rascunho").addEventListener("input", () => {
+    mapa.rascunho = $("#mapear-rascunho").value;
+    gravar();
+  });
+
+  // Destrutivo de propósito e por isso explícito: trocar a linguagem não apaga
+  // o que foi editado à mão; só este botão reescreve tudo.
+  $("#btn-mapear-regerar").addEventListener("click", () => {
+    mapa.rascunho = gerarRascunho(mapa.elementos, mapa.linguagem, mapa.convencao);
+    $("#mapear-rascunho").value = mapa.rascunho;
+    gravar();
+  });
+
+  $("#btn-mapear-copiar").addEventListener("click", () => copiar($("#mapear-rascunho").value));
+
+  $("#btn-mapear-limpar").addEventListener("click", () => {
+    mapa.elementos = [];
+    mapa.rascunho = "";
+    refletir();
+    gravar();
+  });
+
+  $("#btn-mapear-soltar").addEventListener("click", () => {
+    mapa.fixado = false;
+    gravar();
+    mostrarView("documentos");
+  });
+}
+
+/**
+ * Fixado na lateral só faz sentido no painel: no popup a caixa flutuante não
+ * atrapalha, porque o popup fecha assim que a QA clica na página.
+ */
+function seguirFixado() {
+  if (!NO_PAINEL || !mapearLigado) return;
+  if (mapa.fixado && viewAtual !== "mapear") mostrarView("mapear");
+  else if (!mapa.fixado && viewAtual === "mapear") mostrarView("documentos");
 }
 
 // --- Utilitários de UI ------------------------------------------------------

@@ -199,8 +199,28 @@ chrome.permissions.onRemoved.addListener(sincronizarComPermissao);
 // Chrome mostra o diálogo. Se `onAdded` não alcançar o service worker — que em
 // MV3 pode estar dormindo —, a permissão fica concedida e o menu não existe:
 // para o QA, "ativei e não apareceu nada". O popup reconfirma a cada abertura.
-chrome.runtime.onMessage.addListener((msg, _remetente, responder) => {
+chrome.runtime.onMessage.addListener((msg, remetente, responder) => {
   if (!msg || msg.app !== "proteu") return false;
+
+  // O "fixar na lateral" do painel de mapear pede a abertura por aqui: o
+  // content script não tem acesso a chrome.sidePanel.
+  //
+  // O Chrome exige gesto do usuário em `open()`, e o clique aconteceu na
+  // página, não numa superfície da extensão. Quando o gesto não é aceito a
+  // chamada rejeita, e a resposta negativa faz a caixa flutuante voltar em vez
+  // de deixar a QA sem bloco de notas nenhum na tela.
+  if (msg.tipo === "ABRIR_LATERAL") {
+    const abaId = remetente?.tab?.id;
+    if (abaId == null || !chrome.sidePanel?.open) {
+      responder({ ok: false, erro: "sem-aba" });
+      return false;
+    }
+    chrome.sidePanel
+      .open({ tabId: abaId })
+      .then(() => responder({ ok: true }))
+      .catch((e) => responder({ ok: false, erro: e.message }));
+    return true;
+  }
 
   if (msg.tipo === "SINCRONIZAR") {
     sincronizarComPermissao()
