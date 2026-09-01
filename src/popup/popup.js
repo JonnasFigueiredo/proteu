@@ -21,7 +21,7 @@ import { gerarOverflow } from "../core/invalid/payloads.js";
 import { FAMILIAS_LIMITE } from "../core/invalid/casos-limite.js";
 import { gerarPersona } from "../core/persona.js";
 import { planejarPreenchimento } from "../core/mapeamento.js";
-import { gerarLote, serializar, FORMATOS } from "../core/exportar.js";
+import { gerarLote, serializar, separadorSugerido, FORMATOS } from "../core/exportar.js";
 import { proximoTema } from "../core/tema.js";
 import { gerarSenha, alfabetoDe, forcaDaSenha, CHAVE_NIVEL } from "../core/senha.js";
 import { t, LANG_ATTR, DIR_ATTR } from "../core/i18n.js";
@@ -66,6 +66,11 @@ function dicaCopiar(classe) {
   dica.setAttribute("aria-hidden", "true");
   return dica;
 }
+
+// Montado a partir do code point, e não digitado: um BOM literal no código é
+// invisível em qualquer editor, e some sem deixar rastro se alguém encostar
+// nessa linha. Aqui ele é impossível de apagar por acidente.
+const BOM_UTF8 = String.fromCharCode(0xfeff);
 
 // Janelinha destacada: o caminho de volta, do painel para o popup.
 const ICONE_POPUP =
@@ -116,6 +121,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   await detectarCampo();
   await sincronizarBotaoMapear(); // o modo pode ter ficado ligado na página
   ligarAbaSenha();
+  $("#exp-separador").value = separadorSugerido(idiomaAtual);
+  refletirSeparador();
   responderSeForPainel();
   await ligarMapear();
 });
@@ -650,6 +657,7 @@ function ligarEventos() {
   $("#btn-nova-persona").addEventListener("click", aoNovaPersona);
   $("#btn-preencher-form").addEventListener("click", aoPreencherFormulario);
   $("#btn-permissao-seletor").addEventListener("click", aoPedirPermissaoSeletor);
+  $("#exp-formato").addEventListener("change", refletirSeparador);
   $("#btn-exp-copiar").addEventListener("click", aoExportarCopiar);
   $("#btn-exp-baixar").addEventListener("click", aoExportarBaixar);
 
@@ -1028,7 +1036,13 @@ async function montarExportacao() {
   // O lote consome contadores: persistir mantém a sequência sem repetir dados.
   await persistirContador(lote.proximoContador);
   config.contador = lote.proximoContador;
-  return { texto: serializar(lote, formato), formato, lote };
+  const separador = $("#exp-separador").value;
+  return { texto: serializar(lote, formato, { separador }), formato, lote };
+}
+
+/** O separador só existe no CSV; nos outros formatos o campo confundiria. */
+function refletirSeparador() {
+  $("#exp-linha-sep").hidden = $("#exp-formato").value !== "csv";
 }
 
 async function aoExportarCopiar() {
@@ -1050,7 +1064,13 @@ async function aoExportarBaixar() {
   if (!r) return;
   // Blob + <a download>: baixa sem precisar da permissão "downloads".
   const ext = (FORMATOS[r.formato] || FORMATOS.csv).extensao;
-  const blob = new Blob([r.texto], { type: "text/plain;charset=utf-8" });
+
+  // BOM só no CSV. O Excel não tem como adivinhar a codificação de um .csv e
+  // assume a do sistema: sem o BOM, "Comércio" vira "ComÃ©rcio" na planilha.
+  // Nos outros formatos ele atrapalharia — um `import` de JS começando com
+  // U+FEFF, ou um JSON.parse recebendo um caractere antes da primeira chave.
+  const partes = r.formato === "csv" ? [BOM_UTF8, r.texto] : [r.texto];
+  const blob = new Blob(partes, { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

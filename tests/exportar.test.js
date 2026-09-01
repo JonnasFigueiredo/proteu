@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   gerarLote, paraCsv, paraJson, paraPlaywright, serializar, COLUNAS,
+  SEPARADORES, separadorSugerido,
 } from "../src/core/exportar.js";
 import { validarCpf } from "../src/core/documents/cpf.js";
 
@@ -57,6 +58,32 @@ describe("CSV (RFC 4180)", () => {
     const csv = paraCsv(lote);
     expect(csv).toContain('"Ana ""A"" Silva"');
     expect(csv).toContain('"Silva, Souza & Cia"');
+  });
+
+  // Bug real: em português o Excel usa ponto e vírgula como separador de
+  // listas, então o arquivo com vírgula abria com tudo empilhado na coluna A.
+  it("aceita ponto e vírgula e escapa o separador em uso", () => {
+    const lote = {
+      personas: [{ nome: "Ana; Maria", empresa: "Silva, Souza & Cia" }],
+      seed: "s", pais: "br", contadorInicial: 0,
+    };
+    const csv = paraCsv(lote, ";");
+    expect(csv.split("\n")[0]).toBe("nome;empresa");
+    // O ";" do valor precisa de aspas; a "," deixa de precisar.
+    expect(csv).toContain('"Ana; Maria"');
+    expect(csv).toContain("Silva, Souza & Cia");
+    expect(csv).not.toContain('"Silva, Souza & Cia"');
+  });
+
+  it("separador desconhecido cai na vírgula em vez de corromper o arquivo", () => {
+    const lote = { personas: [{ nome: "Ana", empresa: "X" }], seed: "s", pais: "br", contadorInicial: 0 };
+    expect(paraCsv(lote, "|")).toBe(paraCsv(lote, ","));
+    expect(SEPARADORES).toEqual([",", ";"]);
+  });
+
+  it("sugere o separador que o Excel do idioma espera", () => {
+    for (const idioma of ["pt", "es", "de"]) expect(separadorSugerido(idioma)).toBe(";");
+    for (const idioma of ["en", "zh", "hi", "ar"]) expect(separadorSugerido(idioma)).toBe(",");
   });
 
   it("o cabeçalho usa os slots (estáveis), não rótulos traduzidos", () => {
