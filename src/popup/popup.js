@@ -237,7 +237,10 @@ function criarCasoLimite(caso, fam) {
   inserir.className = "lim-caso__inserir";
   inserir.title = t(idiomaAtual, "inserir_campo");
   inserir.setAttribute("aria-label", t(idiomaAtual, "inserir_campo"));
-  inserir.innerHTML = ICONE_INSERIR;
+  // Com rótulo, não só ícone: aqui o cartão é alto e tem várias linhas de
+  // texto, e uma seta solta na lateral lia como divisória, não como botão.
+  // Sobra altura para a palavra, então ela paga o espaço que ocupa.
+  inserir.innerHTML = `${ICONE_INSERIR}<span>${t(idiomaAtual, "inserir_curto")}</span>`;
   inserir.addEventListener("click", (e) => {
     e.stopPropagation();
     usarValorAvulso(caso.valor, caso.rotulo);
