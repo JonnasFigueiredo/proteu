@@ -1,0 +1,59 @@
+1
+00:00:00,200 --> 00:00:03,000
+Um clique. Formulário inteiro.
+
+2
+00:00:03,200 --> 00:00:05,800
+CPF, CNPJ, CEP, datas.
+
+3
+00:00:05,900 --> 00:00:08,600
+Tudo com dígito verificador válido.
+
+4
+00:00:08,700 --> 00:00:11,000
+Nada de gerador aleatório da internet.
+
+5
+00:00:11,300 --> 00:00:14,500
+Achou um bug com esses dados?
+
+6
+00:00:14,700 --> 00:00:18,000
+Copie esta referência.
+
+7
+00:00:18,500 --> 00:00:22,500
+Cole. Mesma pessoa, mesmos documentos.
+
+8
+00:00:23,000 --> 00:00:27,000
+Bug reproduzível, não "não reproduz aqui".
+
+9
+00:00:27,400 --> 00:00:30,000
+Precisa dos seletores?
+
+10
+00:00:30,200 --> 00:00:33,500
+Clique nos elementos.
+
+11
+00:00:33,700 --> 00:00:36,800
+Variáveis prontas para a IDE.
+
+12
+00:00:37,000 --> 00:00:40,000
+Id gerado por build é descartado.
+
+13
+00:00:40,400 --> 00:00:42,200
+Proteu QA
+
+14
+00:00:42,300 --> 00:00:44,000
+Grátis, offline, código aberto.
+
+15
+00:00:44,100 --> 00:00:45,500
+Chrome Web Store
