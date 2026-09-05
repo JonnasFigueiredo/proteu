@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Proteu QA: مولّد بيانات الاختبار وتعبئة النماذج",
+    "description": "Nome da extensao exibido na Chrome Web Store e no navegador."
+  },
+  "extDesc": {
+    "message": "مولّد بيانات اختبار ببذرة قابلة للتكرار. وثائق صالحة من 12 دولة، تعبئة تلقائية للنماذج، ومحددات Playwright و Selenium.",
+    "description": "Descricao curta exibida na Chrome Web Store. Limite de 132 caracteres."
+  }
+}

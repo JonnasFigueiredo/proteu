@@ -23,7 +23,9 @@ const NOME = `proteu-qa-${manifest.version}.zip`;
 // O que a extensão precisa para rodar, mais LICENSE e NOTICE: a seção 4(a) da
 // Apache 2.0 exige que a licença acompanhe cada cópia distribuída, e o pacote
 // da loja é uma distribuição.
-const INCLUIR = ["manifest.json", "icons", "src", "LICENSE", "NOTICE"];
+// `_locales` é obrigatório: o manifesto declara `default_locale`, e um pacote
+// com essa chave e sem a pasta é recusado no upload.
+const INCLUIR = ["manifest.json", "_locales", "icons", "src", "LICENSE", "NOTICE"];
 // Ferramentas de desenvolvimento que moram nessas pastas mas não são da extensão.
 const EXCLUIR = [/\.ps1$/i, /\.md$/i];
 

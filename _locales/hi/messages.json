@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Proteu QA: टेस्ट डेटा जेनरेटर और फ़ॉर्म फिलर",
+    "description": "Nome da extensao exibido na Chrome Web Store e no navegador."
+  },
+  "extDesc": {
+    "message": "पुनरुत्पादन योग्य सीड के साथ टेस्ट डेटा जेनरेटर। 12 देशों के वैध दस्तावेज़, फ़ॉर्म ऑटो-फिल और Playwright व Selenium लोकेटर।",
+    "description": "Descricao curta exibida na Chrome Web Store. Limite de 132 caracteres."
+  }
+}

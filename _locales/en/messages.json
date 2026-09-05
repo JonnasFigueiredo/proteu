@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Proteu QA: Test Data Generator and Form Filler",
+    "description": "Nome da extensao exibido na Chrome Web Store e no navegador."
+  },
+  "extDesc": {
+    "message": "Test data generator with reproducible seeds. Valid IDs for 12 countries, form filler, Playwright and Selenium locators.",
+    "description": "Descricao curta exibida na Chrome Web Store. Limite de 132 caracteres."
+  }
+}

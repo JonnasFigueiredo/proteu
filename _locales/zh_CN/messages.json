@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Proteu QA：测试数据生成器与表单填充",
+    "description": "Nome da extensao exibido na Chrome Web Store e no navegador."
+  },
+  "extDesc": {
+    "message": "可复现种子的测试数据生成器。支持 12 个国家的有效证件号、表单自动填充，以及 Playwright 和 Selenium 定位器。",
+    "description": "Descricao curta exibida na Chrome Web Store. Limite de 132 caracteres."
+  }
+}
