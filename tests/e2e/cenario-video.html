@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nimbus · Novo cliente</title>
+<!--
+  Cenário de gravação do vídeo de lançamento.
+
+  Diferente de demo.html, que existe para EXERCITAR a extensão e por isso é
+  cheia de armadilhas, esta página existe para FILMAR. Tudo que não aparece
+  bem em vídeo saiu: nada de payload de XSS, nada de campo desabilitado, nada
+  de seção de casos-limite. O que sobrou é um cadastro plausível.
+
+  Três decisões vêm do formato do vídeo:
+
+  1. Coluna estreita (720px). A gravação em 1920x1080 vira um quadrado ou um
+     4:5 recortado do centro, então só a faixa central da tela sobrevive.
+  2. Tipografia grande. O vídeo é visto no celular; rótulo de 13px some.
+  3. Só campos que a extensão preenche de verdade. CNPJ e Inscrição Estadual
+     ficaram de fora porque hoje ela não os reconhece, e um campo vazio no meio
+     do preenchimento estragaria justamente os três segundos de abertura.
+
+  Fontes do sistema, sem CDN: a página precisa abrir igual toda vez, e um
+  webfont chegando atrasado no meio de uma tomada obriga a refazer.
+
+  Tecla R limpa o formulário, para engatar outra tomada sem recarregar.
+-->
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --tinta: #16191d;
+  --tinta-fraca: #5f6875;
+  --borda: #dfe3e8;
+  --fundo: #eef1f5;
+  --papel: #ffffff;
+  --acento: #1f6feb;
+  --acento-escuro: #1a5fd0;
+  --ok: #1a7f45;
+  --ok-suave: #e6f4ec;
+}
+
+body {
+  min-height: 100vh;
+  /* Folga curta embaixo de propósito: com 64px a página passava 14px da altura
+     e ganhava barra de rolagem, o que corta a borda do cartão no quadro. */
+  padding: 34px 24px 28px;
+  background: var(--fundo);
+  color: var(--tinta);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.coluna { width: 100%; max-width: 720px; margin: 0 auto; }
+
+/* ---------- cabeçalho ---------- */
+.topo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.logo {
+  display: grid;
+  place-items: center;
+  width: 44px; height: 44px;
+  font-size: 22px; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, #1f6feb, #6d3ff0);
+  border-radius: 12px;
+}
+.marca { font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
+.ambiente {
+  margin-left: auto;
+  padding: 5px 13px;
+  font-size: 13px; font-weight: 600;
+  color: #8a5a00; background: #fdf3d8;
+  border: 1px solid #f0dda6; border-radius: 100px;
+}
+
+/* ---------- cartão ---------- */
+.cartao {
+  padding: 32px;
+  background: var(--papel);
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(20,30,50,.05), 0 12px 28px rgba(20,30,50,.07);
+}
+h1 { font-size: 25px; font-weight: 700; letter-spacing: -.02em; }
+.sub { margin-top: 5px; color: var(--tinta-fraca); font-size: 15px; }
+
+.secao {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--borda);
+}
+.secao:first-of-type { border-top: 0; padding-top: 0; }
+.secao__rot {
+  margin-bottom: 16px;
+  font-size: 12.5px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--tinta-fraca);
+}
+
+.grade { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
+.campo { display: flex; flex-direction: column; gap: 7px; }
+.campo--largo { grid-column: 1 / -1; }
+
+label { font-size: 14.5px; font-weight: 600; color: var(--tinta); }
+
+input, select {
+  width: 100%;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 16.5px;
+  color: var(--tinta);
+  background: var(--papel);
+  border: 1.5px solid var(--borda);
+  border-radius: 9px;
+  transition: border-color .12s, box-shadow .12s;
+}
+input::placeholder { color: #a8b0bb; }
+input:focus, select:focus {
+  outline: 0;
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3.5px rgba(31,111,235,.16);
+}
+
+/* ---------- ações ---------- */
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--borda);
+}
+.botao {
+  padding: 13px 26px;
+  font-family: inherit; font-size: 16px; font-weight: 600;
+  border: 1.5px solid transparent; border-radius: 9px;
+  cursor: pointer;
+}
+.botao--primario { color: #fff; background: var(--acento); }
+.botao--primario:hover { background: var(--acento-escuro); }
+.botao--neutro {
+  color: var(--tinta); background: var(--papel); border-color: var(--borda);
+}
+.botao--neutro:hover { background: var(--fundo); }
+.espaco { flex: 1; }
+.dica-rodape { font-size: 14px; color: var(--tinta-fraca); }
+
+/* ---------- confirmação ---------- */
+.salvo {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 15px 18px;
+  font-size: 16px; font-weight: 600;
+  color: var(--ok); background: var(--ok-suave);
+  border: 1.5px solid #bfe3cd; border-radius: 11px;
+}
+.salvo.visivel { display: flex; }
+.salvo__marca {
+  display: grid; place-items: center;
+  width: 24px; height: 24px;
+  color: #fff; background: var(--ok); border-radius: 50%;
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<div class="coluna">
+  <header class="topo">
+    <div class="logo">N</div>
+    <div class="marca">Nimbus</div>
+    <span class="ambiente">Homologação</span>
+  </header>
+
+  <main class="cartao">
+    <h1>Novo cliente</h1>
+    <p class="sub">Preencha os dados para abrir o cadastro.</p>
+
+    <form id="cadastro" autocomplete="off">
+      <section class="secao">
+        <div class="secao__rot">Dados pessoais</div>
+        <div class="grade">
+          <div class="campo campo--largo">
+            <label for="nome">Nome completo</label>
+            <input id="nome" name="nome" type="text" placeholder="Como consta no documento">
+          </div>
+          <div class="campo campo--largo">
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" placeholder="nome@empresa.com.br">
+          </div>
+          <div class="campo">
+            <label for="cpf">CPF</label>
+            <input id="cpf" name="cpf" type="text" placeholder="000.000.000-00">
+          </div>
+          <div class="campo">
+            <label for="nascimento">Data de nascimento</label>
+            <input id="nascimento" name="nascimento" type="text" placeholder="dd/mm/aaaa">
+          </div>
+          <div class="campo">
+            <label for="telefone">Telefone</label>
+            <input id="telefone" name="telefone" type="text" placeholder="(00) 00000-0000">
+          </div>
+          <div class="campo">
+            <label for="cep">CEP</label>
+            <input id="cep" name="cep" type="text" placeholder="00000-000">
+          </div>
+        </div>
+      </section>
+
+      <section class="secao">
+        <div class="secao__rot">Vínculo</div>
+        <div class="grade">
+          <div class="campo campo--largo">
+            <label for="razao">Razão social</label>
+            <input id="razao" name="razao_social" type="text" placeholder="Empresa contratante">
+          </div>
+          <div class="campo campo--largo">
+            <label for="plano">Plano</label>
+            <!-- id com cara de gerado por build: é o elemento que mostra o
+                 mapeador descartando identificador instável. -->
+            <select id="a7f3c91e" name="plano">
+              <option>Essencial</option>
+              <option>Avançado</option>
+              <option>Corporativo</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <div class="acoes">
+        <button type="submit" class="botao botao--primario" data-testid="salvar-cadastro">
+          Salvar cadastro
+        </button>
+        <button type="button" class="botao botao--neutro" id="cancelar">Cancelar</button>
+        <span class="espaco"></span>
+        <span class="dica-rodape">Ambiente de teste</span>
+      </div>
+
+      <div class="salvo" id="salvo">
+        <span class="salvo__marca">&#10003;</span>
+        Cliente cadastrado com sucesso.
+      </div>
+    </form>
+  </main>
+</div>
+
+<script>
+  const form = document.getElementById("cadastro");
+  const salvo = document.getElementById("salvo");
+
+  form.addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    salvo.classList.add("visivel");
+  });
+
+  function limpar() {
+    form.reset();
+    salvo.classList.remove("visivel");
+    document.activeElement?.blur();
+  }
+
+  document.getElementById("cancelar").addEventListener("click", limpar);
+
+  // Tecla R para a próxima tomada. Recarregar a página funcionaria, mas o
+  // recarregamento derruba o content script do modo Mapear junto.
+  document.addEventListener("keydown", (ev) => {
+    const digitando = ["INPUT", "SELECT", "TEXTAREA"].includes(ev.target.tagName);
+    if (!digitando && (ev.key === "r" || ev.key === "R")) limpar();
+  });
+</script>
+
+</body>
+</html>
