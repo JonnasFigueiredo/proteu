@@ -12,14 +12,26 @@ forte para vídeo.
 
 ## Antes de gravar
 
-**Cenário.** Use a página de demonstração do próprio projeto:
+**Cenário.** Use a página feita para gravar:
 
 ```bash
 node tests/e2e/servir.mjs
 ```
 
-Depois abra `http://localhost:8791/tests/e2e/demo.html`. Ela já tem formulário
-de cliente, produto e os elementos difíceis para o mapeamento.
+Depois abra `http://localhost:8791/tests/e2e/cenario-video.html`. São quatro
+telas, uma por trecho do roteiro, trocadas pela seta no canto ou pelas setas do
+teclado. `?tela=3` abre direto naquela, o que ajuda a refazer uma tomada sem
+passar pelas anteriores.
+
+| Tela | Trecho |
+|---|---|
+| 1 · Novo cliente | o gancho: preencher tudo com um clique |
+| 2 · Chamado de defeito | a seed, com a referência dentro do chamado |
+| 3 · Lista de clientes | o mapeamento, com elementos variados |
+| 4 · Fechamento | os últimos segundos |
+
+A tecla `R` limpa o formulário para a próxima tomada. Recarregar a página também
+limparia, mas derruba o content script do modo Mapear junto.
 
 **Preparo da tela**
 

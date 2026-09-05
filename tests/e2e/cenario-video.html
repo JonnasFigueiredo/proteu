@@ -3,28 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nimbus · Novo cliente</title>
+<title>Nimbus · Cenário de gravação</title>
 <!--
   Cenário de gravação do vídeo de lançamento.
 
   Diferente de demo.html, que existe para EXERCITAR a extensão e por isso é
-  cheia de armadilhas, esta página existe para FILMAR. Tudo que não aparece
-  bem em vídeo saiu: nada de payload de XSS, nada de campo desabilitado, nada
-  de seção de casos-limite. O que sobrou é um cadastro plausível.
+  cheia de armadilhas, esta página existe para FILMAR. Nada de payload de XSS,
+  nada de campo desabilitado, nada de seção de casos-limite: o que sobrou é um
+  produto plausível.
+
+  São quatro telas, uma por trecho do roteiro, trocadas pela seta no canto ou
+  pelas setas do teclado. Assim a gravação vira quatro tomadas curtas em vez de
+  uma longa, e cada corte da edição já nasce no lugar certo.
 
   Três decisões vêm do formato do vídeo:
 
   1. Coluna estreita (720px). A gravação em 1920x1080 vira um quadrado ou um
      4:5 recortado do centro, então só a faixa central da tela sobrevive.
   2. Tipografia grande. O vídeo é visto no celular; rótulo de 13px some.
-  3. Só campos que a extensão preenche de verdade. CNPJ e Inscrição Estadual
-     ficaram de fora porque hoje ela não os reconhece, e um campo vazio no meio
-     do preenchimento estragaria justamente os três segundos de abertura.
+  3. Cada tela cabe em 1080x1080 sem rolar. Barra de rolagem cortaria a borda
+     do cartão no quadro.
 
-  Fontes do sistema, sem CDN: a página precisa abrir igual toda vez, e um
-  webfont chegando atrasado no meio de uma tomada obriga a refazer.
+  Só entram campos que a extensão preenche de verdade. CNPJ e Inscrição
+  Estadual ficaram de fora porque hoje ela não os reconhece, e um campo vazio
+  no meio do preenchimento estragaria os três segundos de abertura.
 
-  Tecla R limpa o formulário, para engatar outra tomada sem recarregar.
+  Fontes do sistema, sem CDN: um webfont chegando atrasado no meio de uma
+  tomada obriga a refazer.
+
+  Teclado: seta direita e esquerda trocam de tela, R limpa o formulário.
 -->
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,12 +46,18 @@
   --acento-escuro: #1a5fd0;
   --ok: #1a7f45;
   --ok-suave: #e6f4ec;
+  --alerta: #b54708;
+  --alerta-suave: #fdf3d8;
 }
 
 body {
+  /* Centralizado na vertical: as telas têm alturas diferentes, e alinhadas ao
+     topo as mais curtas deixavam metade do quadro vazia. Centralizar mantém a
+     composição igual entre os cortes, o que também facilita a edição. */
   min-height: 100vh;
-  /* Folga curta embaixo de propósito: com 64px a página passava 14px da altura
-     e ganhava barra de rolagem, o que corta a borda do cartão no quadro. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 34px 24px 28px;
   background: var(--fundo);
   color: var(--tinta);
@@ -57,15 +70,9 @@ body {
 .coluna { width: 100%; max-width: 720px; margin: 0 auto; }
 
 /* ---------- cabeçalho ---------- */
-.topo {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 28px;
-}
+.topo { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
 .logo {
-  display: grid;
-  place-items: center;
+  display: grid; place-items: center;
   width: 44px; height: 44px;
   font-size: 22px; font-weight: 700; color: #fff;
   background: linear-gradient(135deg, #1f6feb, #6d3ff0);
@@ -76,13 +83,13 @@ body {
   margin-left: auto;
   padding: 5px 13px;
   font-size: 13px; font-weight: 600;
-  color: #8a5a00; background: #fdf3d8;
+  color: #8a5a00; background: var(--alerta-suave);
   border: 1px solid #f0dda6; border-radius: 100px;
 }
 
 /* ---------- cartão ---------- */
 .cartao {
-  padding: 32px;
+  padding: 30px;
   background: var(--papel);
   border: 1px solid var(--borda);
   border-radius: 16px;
@@ -91,74 +98,56 @@ body {
 h1 { font-size: 25px; font-weight: 700; letter-spacing: -.02em; }
 .sub { margin-top: 5px; color: var(--tinta-fraca); font-size: 15px; }
 
-.secao {
-  margin-top: 28px;
-  padding-top: 22px;
-  border-top: 1px solid var(--borda);
-}
+.secao { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--borda); }
 .secao:first-of-type { border-top: 0; padding-top: 0; }
 .secao__rot {
-  margin-bottom: 16px;
+  margin-bottom: 15px;
   font-size: 12.5px; font-weight: 700;
   letter-spacing: .09em; text-transform: uppercase;
   color: var(--tinta-fraca);
 }
 
-.grade { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 20px; }
+.grade { display: grid; grid-template-columns: 1fr 1fr; gap: 17px 20px; }
 .campo { display: flex; flex-direction: column; gap: 7px; }
 .campo--largo { grid-column: 1 / -1; }
 
-label { font-size: 14.5px; font-weight: 600; color: var(--tinta); }
+label { font-size: 14.5px; font-weight: 600; }
 
-input, select {
+input, select, textarea {
   width: 100%;
   padding: 12px 14px;
-  font-family: inherit;
-  font-size: 16.5px;
-  color: var(--tinta);
-  background: var(--papel);
-  border: 1.5px solid var(--borda);
-  border-radius: 9px;
+  font-family: inherit; font-size: 16.5px;
+  color: var(--tinta); background: var(--papel);
+  border: 1.5px solid var(--borda); border-radius: 9px;
   transition: border-color .12s, box-shadow .12s;
 }
-input::placeholder { color: #a8b0bb; }
-input:focus, select:focus {
-  outline: 0;
-  border-color: var(--acento);
+textarea { resize: none; line-height: 1.5; }
+input::placeholder, textarea::placeholder { color: #a8b0bb; }
+input:focus, select:focus, textarea:focus {
+  outline: 0; border-color: var(--acento);
   box-shadow: 0 0 0 3.5px rgba(31,111,235,.16);
 }
 
 /* ---------- ações ---------- */
 .acoes {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 30px;
-  padding-top: 24px;
-  border-top: 1px solid var(--borda);
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--borda);
 }
 .botao {
   padding: 13px 26px;
   font-family: inherit; font-size: 16px; font-weight: 600;
-  border: 1.5px solid transparent; border-radius: 9px;
-  cursor: pointer;
+  border: 1.5px solid transparent; border-radius: 9px; cursor: pointer;
 }
 .botao--primario { color: #fff; background: var(--acento); }
 .botao--primario:hover { background: var(--acento-escuro); }
-.botao--neutro {
-  color: var(--tinta); background: var(--papel); border-color: var(--borda);
-}
+.botao--neutro { color: var(--tinta); background: var(--papel); border-color: var(--borda); }
 .botao--neutro:hover { background: var(--fundo); }
 .espaco { flex: 1; }
 .dica-rodape { font-size: 14px; color: var(--tinta-fraca); }
 
-/* ---------- confirmação ---------- */
 .salvo {
-  display: none;
-  align-items: center;
-  gap: 12px;
-  margin-top: 20px;
-  padding: 15px 18px;
+  display: none; align-items: center; gap: 12px;
+  margin-top: 18px; padding: 15px 18px;
   font-size: 16px; font-weight: 600;
   color: var(--ok); background: var(--ok-suave);
   border: 1.5px solid #bfe3cd; border-radius: 11px;
@@ -166,10 +155,111 @@ input:focus, select:focus {
 .salvo.visivel { display: flex; }
 .salvo__marca {
   display: grid; place-items: center;
-  width: 24px; height: 24px;
+  width: 24px; height: 24px; font-size: 14px;
   color: #fff; background: var(--ok); border-radius: 50%;
-  font-size: 14px;
 }
+
+/* ---------- tela 2: chamado ---------- */
+.chamado__cab { display: flex; align-items: center; gap: 12px; }
+.etiqueta {
+  padding: 4px 11px; font-size: 12.5px; font-weight: 700;
+  border-radius: 6px; letter-spacing: .02em;
+}
+.etiqueta--bug { color: #b42318; background: #fdeceb; }
+.linha-info {
+  display: grid; grid-template-columns: 170px 1fr;
+  gap: 12px; padding: 13px 0;
+  border-bottom: 1px solid var(--borda);
+  font-size: 16px;
+}
+.linha-info:last-child { border-bottom: 0; }
+.linha-info dt { color: var(--tinta-fraca); font-size: 15px; }
+.mono {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 16px;
+}
+.realce {
+  padding: 3px 9px;
+  color: #0b4f9e; background: #e7f0fb;
+  border: 1px solid #bcd8f7; border-radius: 6px;
+  font-weight: 600;
+}
+
+/* ---------- tela 3: mapear ---------- */
+.barra-filtros { display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: end; }
+.tabela { width: 100%; margin-top: 20px; border-collapse: collapse; font-size: 16px; }
+.tabela th {
+  padding: 10px 12px; text-align: left;
+  font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--tinta-fraca); border-bottom: 1.5px solid var(--borda);
+}
+.tabela td { padding: 13px 12px; border-bottom: 1px solid var(--borda); }
+.tabela tr:last-child td { border-bottom: 0; }
+.pilula {
+  padding: 3px 10px; font-size: 13.5px; font-weight: 600; border-radius: 100px;
+}
+.pilula--ativo { color: var(--ok); background: var(--ok-suave); }
+.pilula--pausado { color: var(--alerta); background: var(--alerta-suave); }
+.mini {
+  padding: 7px 15px; font-family: inherit; font-size: 14.5px; font-weight: 600;
+  color: var(--acento); background: var(--papel);
+  border: 1.5px solid var(--borda); border-radius: 7px; cursor: pointer;
+}
+.mini:hover { border-color: var(--acento); }
+
+/* ---------- tela 4: fechamento ---------- */
+.fecho { padding: 56px 40px; text-align: center; }
+.fecho__logo {
+  display: grid; place-items: center;
+  width: 84px; height: 84px; margin: 0 auto 24px;
+  font-size: 40px; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, #1f6feb, #6d3ff0);
+  border-radius: 22px;
+}
+.fecho h2 { font-size: 40px; font-weight: 700; letter-spacing: -.03em; }
+.fecho p { margin-top: 12px; font-size: 19px; color: var(--tinta-fraca); }
+.fecho__selos {
+  display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 26px;
+}
+.selo {
+  padding: 8px 17px; font-size: 15px; font-weight: 600;
+  color: var(--tinta); background: var(--fundo);
+  border: 1px solid var(--borda); border-radius: 100px;
+}
+.fecho__loja {
+  display: inline-block; margin-top: 30px;
+  padding: 14px 30px; font-size: 17px; font-weight: 700;
+  color: #fff; background: var(--acento); border-radius: 10px;
+}
+
+/* ---------- navegação entre telas ---------- */
+.tela[hidden] { display: none; }
+/* A tela de fechamento é sobre o Proteu QA, não sobre o produto fictício:
+   manter o cabeçalho do Nimbus ali faria a extensão parecer parte dele. */
+body.fechando .topo { visibility: hidden; }
+.nav {
+  position: fixed; right: 26px; bottom: 24px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 9px 7px 15px;
+  background: rgba(255,255,255,.94);
+  border: 1px solid var(--borda); border-radius: 100px;
+  box-shadow: 0 6px 20px rgba(20,30,50,.12);
+}
+.nav__conta {
+  font-size: 13.5px; font-weight: 600; color: var(--tinta-fraca);
+  font-variant-numeric: tabular-nums;
+}
+.nav button {
+  display: grid; place-items: center;
+  width: 38px; height: 38px;
+  font-size: 19px; color: var(--tinta);
+  background: var(--fundo); border: 1px solid var(--borda);
+  border-radius: 50%; cursor: pointer;
+}
+.nav button:hover { border-color: var(--acento); color: var(--acento); }
+.nav button:disabled { opacity: .35; cursor: default; }
+.nav button:disabled:hover { border-color: var(--borda); color: var(--tinta); }
 </style>
 </head>
 <body>
@@ -181,7 +271,8 @@ input:focus, select:focus {
     <span class="ambiente">Homologação</span>
   </header>
 
-  <main class="cartao">
+  <!-- ================= TELA 1 · o gancho: preencher com um clique ========= -->
+  <main class="cartao tela" data-tela="1">
     <h1>Novo cliente</h1>
     <p class="sub">Preencha os dados para abrir o cadastro.</p>
 
@@ -223,16 +314,6 @@ input:focus, select:focus {
             <label for="razao">Razão social</label>
             <input id="razao" name="razao_social" type="text" placeholder="Empresa contratante">
           </div>
-          <div class="campo campo--largo">
-            <label for="plano">Plano</label>
-            <!-- id com cara de gerado por build: é o elemento que mostra o
-                 mapeador descartando identificador instável. -->
-            <select id="a7f3c91e" name="plano">
-              <option>Essencial</option>
-              <option>Avançado</option>
-              <option>Corporativo</option>
-            </select>
-          </div>
         </div>
       </section>
 
@@ -251,9 +332,144 @@ input:focus, select:focus {
       </div>
     </form>
   </main>
+
+  <!-- ================= TELA 2 · a seed no chamado ========================= -->
+  <main class="cartao tela" data-tela="2" hidden>
+    <div class="chamado__cab">
+      <span class="etiqueta etiqueta--bug">Defeito</span>
+      <h1>CEP com 8 dígitos derruba o cálculo de frete</h1>
+    </div>
+    <p class="sub">Chamado NIM-4821 · aberto por QA · ambiente de homologação</p>
+
+    <section class="secao">
+      <dl>
+        <div class="linha-info">
+          <dt>Passos</dt>
+          <dd>Abrir Novo cliente, preencher e salvar.</dd>
+        </div>
+        <div class="linha-info">
+          <dt>Resultado esperado</dt>
+          <dd>Frete calculado para a região do CEP.</dd>
+        </div>
+        <div class="linha-info">
+          <dt>Resultado obtido</dt>
+          <dd>Erro 500 no cálculo.</dd>
+        </div>
+        <div class="linha-info">
+          <dt>Massa utilizada</dt>
+          <dd><span class="mono realce">7f2a91#8</span></dd>
+        </div>
+      </dl>
+    </section>
+
+    <div class="acoes">
+      <button type="button" class="botao botao--primario">Atribuir ao time</button>
+      <button type="button" class="botao botao--neutro">Comentar</button>
+      <span class="espaco"></span>
+      <span class="dica-rodape">Aberto há 2 horas</span>
+    </div>
+  </main>
+
+  <!-- ================= TELA 3 · elementos para mapear ===================== -->
+  <main class="cartao tela" data-tela="3" hidden>
+    <h1>Clientes</h1>
+    <p class="sub">124 registros no ambiente.</p>
+
+    <section class="secao">
+      <div class="barra-filtros">
+        <div class="campo">
+          <label for="busca">Buscar</label>
+          <input id="busca" name="busca" type="text" placeholder="Nome, CPF ou e-mail">
+        </div>
+        <div class="campo">
+          <label for="situacao">Situação</label>
+          <!-- id com cara de gerado por build: é o elemento que mostra o
+               mapeador descartando identificador instável. -->
+          <select id="a7f3c91e" name="situacao">
+            <option>Todas</option>
+            <option>Ativo</option>
+            <option>Pausado</option>
+          </select>
+        </div>
+        <button type="button" class="botao botao--primario" data-testid="aplicar-filtro">
+          Aplicar
+        </button>
+      </div>
+
+      <!-- Quatro botões idênticos: é aqui que o mapeador avisa que o
+           localizador casa com mais de um elemento. -->
+      <table class="tabela">
+        <thead>
+          <tr><th>Cliente</th><th>Plano</th><th>Situação</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Beatriz Oliveira</td><td>Avançado</td>
+            <td><span class="pilula pilula--ativo">Ativo</span></td>
+            <td><button type="button" class="mini">Abrir</button></td>
+          </tr>
+          <tr>
+            <td>Marcos Tavares</td><td>Essencial</td>
+            <td><span class="pilula pilula--ativo">Ativo</span></td>
+            <td><button type="button" class="mini">Abrir</button></td>
+          </tr>
+          <tr>
+            <td>Helena Duarte</td><td>Corporativo</td>
+            <td><span class="pilula pilula--pausado">Pausado</span></td>
+            <td><button type="button" class="mini">Abrir</button></td>
+          </tr>
+          <tr>
+            <td>Rafael Nogueira</td><td>Essencial</td>
+            <td><span class="pilula pilula--ativo">Ativo</span></td>
+            <td><button type="button" class="mini">Abrir</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- ================= TELA 4 · fechamento ================================ -->
+  <main class="cartao tela fecho" data-tela="4" hidden>
+    <div class="fecho__logo">P</div>
+    <h2>Proteu QA</h2>
+    <p>Massa de teste, seletores e formulários, direto no navegador.</p>
+    <div class="fecho__selos">
+      <span class="selo">Grátis</span>
+      <span class="selo">Sem conexão</span>
+      <span class="selo">Código aberto</span>
+    </div>
+    <div class="fecho__loja">Chrome Web Store</div>
+  </main>
 </div>
 
+<nav class="nav" aria-label="Telas do cenário">
+  <span class="nav__conta" id="conta">1 / 4</span>
+  <button type="button" id="anterior" aria-label="Tela anterior">&#8249;</button>
+  <button type="button" id="proxima" aria-label="Próxima tela">&#8250;</button>
+</nav>
+
 <script>
+  const telas = [...document.querySelectorAll(".tela")];
+  const conta = document.getElementById("conta");
+  const btnAnterior = document.getElementById("anterior");
+  const btnProxima = document.getElementById("proxima");
+  let atual = 0;
+
+  function mostrar(i) {
+    atual = Math.max(0, Math.min(telas.length - 1, i));
+    telas.forEach((t, k) => { t.hidden = k !== atual; });
+    conta.textContent = `${atual + 1} / ${telas.length}`;
+    btnAnterior.disabled = atual === 0;
+    btnProxima.disabled = atual === telas.length - 1;
+    document.body.classList.toggle("fechando", atual === telas.length - 1);
+    // Rolar para o topo: telas de alturas diferentes deixariam a próxima
+    // começando no meio, e isso aparece na gravação.
+    window.scrollTo(0, 0);
+  }
+
+  btnAnterior.addEventListener("click", () => mostrar(atual - 1));
+  btnProxima.addEventListener("click", () => mostrar(atual + 1));
+
   const form = document.getElementById("cadastro");
   const salvo = document.getElementById("salvo");
 
@@ -270,12 +486,20 @@ input:focus, select:focus {
 
   document.getElementById("cancelar").addEventListener("click", limpar);
 
-  // Tecla R para a próxima tomada. Recarregar a página funcionaria, mas o
-  // recarregamento derruba o content script do modo Mapear junto.
   document.addEventListener("keydown", (ev) => {
     const digitando = ["INPUT", "SELECT", "TEXTAREA"].includes(ev.target.tagName);
-    if (!digitando && (ev.key === "r" || ev.key === "R")) limpar();
+    if (digitando) return;
+    // Recarregar a página também limparia, mas derrubaria o content script do
+    // modo Mapear junto, obrigando a religar o modo a cada tomada.
+    if (ev.key === "r" || ev.key === "R") limpar();
+    if (ev.key === "ArrowRight") mostrar(atual + 1);
+    if (ev.key === "ArrowLeft") mostrar(atual - 1);
   });
+
+  // `?tela=3` abre direto naquela tela. Ajuda a refazer uma tomada sem passar
+  // pelas anteriores, e é como as conferências automáticas fotografam cada uma.
+  const pedida = parseInt(new URLSearchParams(location.search).get("tela"), 10);
+  mostrar(Number.isFinite(pedida) ? pedida - 1 : 0);
 </script>
 
 </body>
