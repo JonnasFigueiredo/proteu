@@ -27,7 +27,10 @@ const NOME = `proteu-qa-${manifest.version}.zip`;
 // com essa chave e sem a pasta é recusado no upload.
 const INCLUIR = ["manifest.json", "_locales", "icons", "src", "LICENSE", "NOTICE"];
 // Ferramentas de desenvolvimento que moram nessas pastas mas não são da extensão.
-const EXCLUIR = [/\.ps1$/i, /\.md$/i];
+// `gerar-icones.html` mora em icons/ mas é ferramenta de desenvolvimento: gera
+// os PNG a partir do SVG. Não dá para excluir todo .html, porque o popup, o
+// painel do DevTools e o devtools.html são a extensão.
+const EXCLUIR = [/\.ps1$/i, /\.md$/i, /^icons\/gerar-icones\.html$/];
 
 function listar(rel, acc = []) {
   const abs = path.join(RAIZ, rel);

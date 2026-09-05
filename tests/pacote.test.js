@@ -1,10 +1,8 @@
 // O que compõe a extensão distribuída.
 //
-// Os scripts de empacotar e sincronizar saíram do projeto, então não há mais
-// uma lista de arquivos para conferir. Estes testes passaram a validar o que
-// realmente importa e independe de ferramenta: todo caminho declarado no
-// manifest existe, aponta para dentro das pastas distribuídas, e os campos que
-// o Google verifica estão preenchidos.
+// Estes testes validam o que independe da ferramenta de empacotamento: todo
+// caminho declarado no manifest existe, aponta para dentro das pastas
+// distribuídas, e os campos que o Google verifica estão preenchidos.
 
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
@@ -35,7 +33,7 @@ describe("pacote — o que a extensão carrega existe de fato", () => {
   });
 
   it("LICENSE e NOTICE acompanham a distribuição", () => {
-    // A seção 4(a) da Apache 2.0 exige que a licença siga cada cópia.
+    // A AGPL exige que a licença e o aviso sigam cada cópia distribuída.
     for (const arq of ["LICENSE", "NOTICE"]) {
       expect(fs.existsSync(path.join(RAIZ, arq)), arq).toBe(true);
     }
