@@ -132,6 +132,39 @@ describe("manifest — recursos acessíveis pela página", () => {
     ]);
   });
 
+  // A listagem da loja é traduzida por `_locales`, não pelo i18n.js do popup:
+  // aquele roda no navegador, este o Chrome lê antes de instalar a extensão.
+  it("a listagem localizada está completa e dentro dos limites da loja", () => {
+    expect(manifest.default_locale).toBe("en");
+    expect(manifest.name).toBe("__MSG_extName__");
+    expect(manifest.description).toBe("__MSG_extDesc__");
+
+    const dir = path.join(RAIZ, "_locales");
+    const locales = fs.readdirSync(dir);
+    expect(locales).toContain(manifest.default_locale);
+
+    const doPadrao = new Set();
+    const porLocale = {};
+    for (const loc of locales) {
+      const txt = fs.readFileSync(path.join(dir, loc, "messages.json"), "utf8");
+      const msgs = JSON.parse(txt);
+      porLocale[loc] = msgs;
+      if (loc === manifest.default_locale) Object.keys(msgs).forEach((k) => doPadrao.add(k));
+    }
+
+    for (const [loc, msgs] of Object.entries(porLocale)) {
+      for (const [chave, v] of Object.entries(msgs)) {
+        // O Chrome recusa o pacote se um locale usar chave que o padrão não tem.
+        expect(doPadrao.has(chave), `${chave} existe em ${loc} mas falta em ${manifest.default_locale}`).toBe(true);
+        expect(typeof v.message, `${loc}/${chave} sem message`).toBe("string");
+      }
+      // Limites do campo: o nome aparece na barra do navegador e a descrição é
+      // o subtítulo da loja. Estourar reprova no upload, não em revisão.
+      expect([...msgs.extName.message].length, `extName de ${loc}`).toBeLessThanOrEqual(75);
+      expect([...msgs.extDesc.message].length, `extDesc de ${loc}`).toBeLessThanOrEqual(132);
+    }
+  });
+
   it("o painel lateral serve a mesma página do popup, marcada com ?lateral=1", () => {
     // A marca na query é o único sinal que distingue os dois contextos: a URL é
     // idêntica no resto. Se ela sumir do manifesto, o painel abre achando que é

@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Proteu QA: Generador de Datos de Prueba y Formularios",
+    "description": "Nome da extensao exibido na Chrome Web Store e no navegador."
+  },
+  "extDesc": {
+    "message": "Generador de datos de prueba con semilla reproducible. Documentos válidos de 12 países, autorrelleno y localizadores.",
+    "description": "Descricao curta exibida na Chrome Web Store. Limite de 132 caracteres."
+  }
+}

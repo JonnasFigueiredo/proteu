@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "Proteu QA: Gerador de Massa de Teste e Formulários",
+    "description": "Nome da extensao exibido na Chrome Web Store e no navegador."
+  },
+  "extDesc": {
+    "message": "Gera massa de teste com seed reproduzível: CPF, CNPJ, RG e docs de 12 países. Preenche formulários e gera locators.",
+    "description": "Descricao curta exibida na Chrome Web Store. Limite de 132 caracteres."
+  }
+}
