@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "Proteu QA: Gerador de Massa de Teste e Formulários",
+    "message": "Proteu QA: dados de teste e seletores",
     "description": "Nome da extensao exibido na Chrome Web Store e no navegador."
   },
   "extDesc": {
