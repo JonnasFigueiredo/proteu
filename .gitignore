@@ -4,3 +4,14 @@ node_modules/
 
 # Pacote gerado para a Chrome Web Store
 dist/
+
+# Material de divulgação: fica fora do repositório.
+# Roteiro, legendas, textos da loja e capturas são estratégia de publicação, não
+# código, e não têm por que ser públicos junto com a extensão.
+docs/loja/
+docs/imagens/
+docs/linkedin-post.md
+docs/roteiro-video.md
+docs/legendas-video.srt
+docs/loja.md
+docs/prompt-loja.txt
