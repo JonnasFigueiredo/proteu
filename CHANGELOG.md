@@ -3,6 +3,178 @@
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/);
 o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.2.6] — 2026-09-05
+
+### Adicionado
+- **Listagem da loja traduzida, por `_locales`.** O nome e a descrição curta
+  saem do pacote (`__MSG_extName__` e `__MSG_extDesc__`), resolvidos por
+  `_locales/<idioma>/messages.json` em sete idiomas. Quem abre a loja com o
+  navegador em alemão lê em alemão. As traduções da interface continuam em
+  `core/i18n.js`: são mecanismos diferentes, porque o Chrome precisa ler nome e
+  descrição **antes** de instalar a extensão, quando nenhum módulo dela rodou.
+- **O primeiro uso segue o idioma do navegador.** Antes o país era cravado em
+  Brasil, e quem instalasse vendo uma vitrine em inglês abria a extensão em
+  português gerando CPF. Agora `paisDoIdioma()` deriva o país do locale, com a
+  região mandando mais que o idioma: `en-AU` é Austrália e `es-AR` é Argentina.
+  Quem já tinha instalado não é afetado, porque a derivação só roda enquanto o
+  país ainda é nulo.
+- **CSV com BOM e separador escolhível.** Sem o BOM o Excel lê UTF-8 como
+  Windows-1252 e "Comércio" vira "ComÃ©rcio"; com vírgula em português ele joga a
+  linha inteira na coluna A, porque usa o separador de listas do sistema. Não dá
+  para agradar planilha e script com o mesmo arquivo, então a escolha ficou
+  explícita, sugerida pelo idioma da interface. O escape acompanha o separador em
+  uso, como manda a RFC 4180.
+
+### Alterado
+- **Licença Apache-2.0 → AGPL-3.0-or-later.** Versões até a 1.2.0 seguem
+  disponíveis sob Apache 2.0: licença concedida não se revoga. A cláusula de
+  rede (seção 13) é o que impede que o projeto seja fechado por cima, e mantém
+  o código auditável, que é o que sustenta a promessa de zero rede.
+- **Nome: "Proteu QA: dados de teste e seletores".** Dois substantivos, um por
+  diferencial, em vez de uma sequência de termos de busca. Cabe em 37
+  caracteres, então sobrevive ao truncamento da barra de ferramentas.
+- **Clicar no card copia; o botão ao lado insere.** Copiar é a ação mais
+  frequente e estava no alvo menor. O botão de inserir ganhou rótulo nos
+  casos-limite, onde o cartão é alto e uma seta solta na lateral lia como
+  divisória.
+- **README reescrito**, com índice, sem a seção de backlog e cobrindo painel
+  lateral, aba Senha e o formato de console do gravador.
+
+### Corrigido
+- **Tela em branco ao fechar uma view de ícone.** `mostrarView("documentos")`
+  apontava para um nome de view que não existe mais: nenhum painel casava, todos
+  ficavam escondidos e o conteúdo sumia. Sem erro no console, porque tirar a
+  classe de todo mundo é operação válida. Um teste passou a comparar todo alvo de
+  `mostrarView` com os `data-view` do HTML.
+- **A caixa do Mapear ficava inalcançável atrás do painel lateral.** Abrir o
+  painel encolhe a viewport, e a caixa não se movia: continuava visível para o
+  CSS e fora do alcance do mouse.
+- **O estado do modo Mapear não chegava às outras janelas.** O painel lateral
+  consultava só ao carregar e, como fica aberto por muito tempo, exibia "ligar
+  modo mapear" com o modo já rodando.
+- **Chave de tradução duplicada** (`inserir_curto` repetia `inserir`) e a
+  contagem de permissões, que dizia quatro em textos públicos quando já eram
+  cinco.
+
+## [1.2.5] — 2026-08-31
+
+### Adicionado
+- **Painel lateral.** Um botão no cabeçalho leva a mesma interface para a
+  lateral do navegador, e o mesmo botão traz de volta. A diferença que importa é
+  que o painel **não fecha quando se clica na página**, o que evita reabrir a
+  extensão a cada campo do formulário. Em troca ele não herda o `activeTab`, que
+  é concedido por gesto e expira quando a aba navega, então os recursos que agem
+  sobre a página passam a depender do acesso opcional aos sites. A mesma
+  `popup.html` serve aos dois contextos, distinguidos por `?lateral=1`: duas
+  telas separadas divergiriam na primeira mudança esquecida.
+- **O bloco de notas do Mapear encaixa no painel lateral**, arrastado até a
+  borda direita ou pelo botão no cabeçalho dele. Em tela cheia de formulário a
+  caixa flutuante cobre justamente o que se quer clicar.
+- **Página de demonstração** (`tests/e2e/demo.html`) com elementos difíceis de
+  propósito: id gerado por build, irmãos idênticos, Shadow DOM e iframe.
+
+### Corrigido
+- **Rolagem dupla no popup.** `.conteudo` tinha `max-height: 430px` cravado,
+  calculado antes de o bloco "Mapear elementos" existir acima dele. Com ele, a
+  soma passava dos 600px que o Chrome permite e a janela ganhava a própria
+  barra. O número mágico saiu: o conteúdo agora ocupa a altura que sobra.
+
+## [1.2.0] — 2026-08-18
+
+### Adicionado
+- **Aba de geração de senha**, com tamanho ajustável, escolha das classes de
+  caractere e medidor de força em bits de entropia. Garante ao menos um
+  caractere de cada classe marcada, porque senha sem dígito reprova em política
+  que exige número e isso só apareceria no cadastro. É a **única geração que não
+  passa pela seed**: derivá-la de uma seed visível na tela tornaria previsível
+  algo que o medidor chama de forte. O sorteio usa `crypto.getRandomValues` com
+  rejeição, porque `% teto` enviesa para o começo do alfabeto.
+
+### Alterado
+- Os testes de pacote deixaram de depender do script de empacotamento e passaram
+  a validar o que independe de ferramenta: todo caminho declarado no manifesto
+  existe e mora nas pastas distribuídas.
+
+## [1.1.0] — 2026-08-17
+
+### Adicionado
+- **Modo Mapear.** Liga a captura por clique e cada elemento vira uma declaração
+  de variável num rascunho editável, em 9 linguagens e 5 convenções de nome. O
+  quadro vive num shadow root fechado, então não herda o CSS do site nem aparece
+  no que está sendo mapeado. Clique não aciona a página: mapear um botão de
+  excluir não exclui nada.
+- **A seed virou referência copiável, no formato `seed#posição`.** A seed
+  sozinha abre uma *sequência*: mandá-la entregaria o começo da fila, não a
+  pessoa que está na tela. Colar a referência traz aquela pessoa de volta.
+- **Script executável no console, com laço.** Cola no console do navegador e
+  roda, sem instalar driver, repetindo o fluxo com uma persona diferente a cada
+  volta. Resolve popular ambiente por tela que só aceita cadastro manual.
+- **Austrália, Japão e Coreia do Sul**, com TFN, ABN, ACN, Medicare, マイナンバー,
+  法人番号, 주민등록번호, 사업자등록번호 e 법인등록번호. Os países marcados como
+  "em breve" saíram do seletor. Os algoritmos australianos são conferidos contra
+  números públicos reais (o ABN do próprio ATO e o ABN e ACN da Telstra), então
+  erro de implementação reprova no teste.
+- **Quadro do Mapear redimensionável pelas oito pontas**, lembrando o tamanho:
+  caminho CSS passa fácil dos 80 caracteres.
+
+### Alterado
+- **O CEP passou a existir de verdade.** Sai de uma tabela de 540 CEPs reais, 20
+  por UF, coletados e conferidos um a um. A coleta é ferramenta de
+  desenvolvimento e roda fora da extensão: o que entra em `src/` é array
+  literal. Quem precisa de CEP inexistente de propósito pede `sintetico: true`.
+- **O localizador respeita a linguagem de destino.** Cypress e Playwright nunca
+  recebem XPath, porque não o executam; Selenium recebe `By.id` quando cabe.
+
+### Corrigido
+- **Trocar a seed não atualizava a pessoa na tela.** O campo salvava a config e
+  não redesenhava, então a referência exibida apontava para outra pessoa.
+- **A data de admissão podia vir antes de a pessoa poder trabalhar.** Agora as
+  duas datas saem da mesma derivação, com piso de 16 anos conferindo mês e dia,
+  não só o ano.
+- **Acentos destruíam o nome da variável**: "Salvar alterações" virava
+  `botaoSalvarAlteraEs`. A normalização passou a acontecer antes da separação
+  das palavras.
+
+## [1.0.0] — 2026-08-02
+
+Primeira versão publicada na Chrome Web Store.
+
+### Adicionado
+- **Diagnóstico do menu de seletores no popup**, mostrando quais das três
+  condições falharam (permissão, content script registrado, menu montado). Sem
+  ele, "não aparece nada" era indistinguível entre três causas com soluções
+  diferentes.
+- **Unidade "caracteres (ASCII)" na geração por tamanho**, para quem não quer
+  entrar no mérito de grafema contra code point: o texto sai em ASCII puro e as
+  quatro contagens dão o mesmo número.
+- **Ícone próprio**, nos quatro tamanhos.
+
+### Alterado
+- O aviso de ação passou a aparecer **num lugar só**, ancorado abaixo das abas.
+  Antes cada aba tinha o seu no rodapé, e como o conteúdo rola, o "copiado"
+  nascia fora da área visível: a QA copiava e não via confirmação.
+- Máscara e CNPJ alfanumérico subiram para o topo da aba Perfil, onde a decisão
+  acontece antes de gerar.
+- O aviso de permissão do menu de seletores saiu de dentro de "Opções" para o
+  topo do popup. Enterrado ali ninguém achava, e o sintoma de não achar era o
+  menu do botão direito parecer quebrado.
+
+### Corrigido
+- **A checagem de permissão usava `<all_urls>` e dava falso-negativo.** Ao
+  escolher "em todos os sites", o Chrome concede `http` e `https`, não os demais
+  esquemas que `<all_urls>` engloba: a checagem devolvia `false` com a permissão
+  visivelmente ligada, e o menu nunca era montado. Passou a pedir e conferir
+  exatamente `http://*/*` e `https://*/*`.
+- **O menu não se montava quando o evento `onAdded` se perdia**, o que acontece
+  porque o popup fecha no instante em que o Chrome mostra o diálogo e o service
+  worker MV3 pode estar dormindo. O popup passou a reconfirmar a cada abertura.
+- **`devtools.html` foi para a raiz**, tirando uma aposta sobre resolução de
+  caminho relativo que falhava em parte dos casos.
+- **O agente do DevTools usava uma cópia própria da leitura de DOM**, que sairia
+  de sincronia na primeira mudança. Passou a compartilhar a implementação com o
+  content script.
+- **O gerador de ícones vazava para dentro do pacote.**
+
 ## [0.25.0] — 2026-07-31
 
 ### Adicionado
@@ -79,13 +251,6 @@ o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   geradores carregam código Java e Python como dado, e
   `import org.openqa.selenium.chrome.ChromeDriver` contém `chrome.` sem ser
   chamada de API nenhuma.
-
-## [Não lançado]
-
-### Planejado
-- Dados de Chile, Uruguai e Paraguai (arquitetura pronta; cada país é um
-  arquivo em `core/paises/`).
-- Inscrição Estadual das demais UFs (hoje só SP).
 
 ## [0.24.1] — 2026-07-29
 
