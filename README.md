@@ -270,7 +270,7 @@ testado não economiza tempo: gasta. Três garantias, cada uma coberta por teste
 ## Arquitetura
 
 ```
-reproduzivel/
+proteu/
 ├── manifest.json                     # MV3, service_worker, 5 permissões
 ├── icons/                            # 16 / 32 / 48 / 128 px
 ├── empacotar.mjs                     # gera o zip da loja (Node puro, zero deps)
