@@ -3,7 +3,7 @@
 // manifest). Nenhuma requisição de rede acontece aqui nem em lugar nenhum.
 
 import { carregarConfig, carregarHistorico } from "../storage.js";
-import { idiomaDoPais, PAIS_PADRAO } from "../core/gerador.js";
+import { idiomaDoPais, paisDoIdioma } from "../core/gerador.js";
 import { t } from "../core/i18n.js";
 
 const PREFIXO_MENU = "proteu:sel:";
@@ -56,7 +56,10 @@ async function construirMenu() {
   if (!(await temPermissao())) return;
 
   const config = await carregarConfig();
-  const idioma = config.idiomaFixo || idiomaDoPais(config.pais || PAIS_PADRAO);
+  // Antes de o popup abrir pela primeira vez, `config.pais` ainda é nulo: o
+  // menu segue o idioma do navegador em vez de assumir português.
+  const pais = config.pais || paisDoIdioma(chrome.i18n?.getUILanguage?.());
+  const idioma = config.idiomaFixo || idiomaDoPais(pais);
 
   chrome.contextMenus.create({
     id: "proteu:raiz",

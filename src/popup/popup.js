@@ -9,7 +9,9 @@ import {
   adicionarHistorico,
   limparHistorico,
 } from "../storage.js";
-import { gerar, tiposDoPais, idiomaDoPais, paisMostraOpcoesCnpj, PAISES_DISPONIVEIS } from "../core/gerador.js";
+import {
+  gerar, tiposDoPais, idiomaDoPais, paisMostraOpcoesCnpj, paisDoIdioma, PAISES_DISPONIVEIS,
+} from "../core/gerador.js";
 import { gerarSeedAleatoria } from "../core/config.js";
 import { normalizarReferencia, formatarReferencia, criarRng } from "../core/seed.js";
 import { gerarSetFronteira } from "../core/field.js";
@@ -27,7 +29,6 @@ import { gerarSenha, alfabetoDe, forcaDaSenha, CHAVE_NIVEL } from "../core/senha
 import { t, LANG_ATTR, DIR_ATTR } from "../core/i18n.js";
 import { cnpjDeRaiz } from "../core/documents/cnpj.js";
 
-const PAIS_PADRAO = "br";
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -103,9 +104,11 @@ let abaAoAbrir = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   config = await carregarConfig();
-  // Primeiro uso: define o país (Brasil por ora) e persiste.
+  // Primeiro uso: o país sai do idioma do navegador, e a interface o segue.
+  // Cravar Brasil aqui fazia quem instalasse pela vitrine em inglês abrir a
+  // extensão em português gerando CPF. O QA troca de país quando quiser.
   if (!config.pais) {
-    config.pais = PAIS_PADRAO;
+    config.pais = paisDoIdioma(chrome.i18n?.getUILanguage?.() || navigator.language);
     config = await salvarConfig(config);
   }
   prepararLateral();

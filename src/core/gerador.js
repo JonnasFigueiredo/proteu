@@ -67,6 +67,51 @@ export function idiomaDoPais(pais) {
   return p ? p.idioma : "pt";
 }
 
+// Idioma do navegador quando ele não traz região, ou traz uma que não
+// atendemos. Espanha e Portugal não estão na lista, então "es" cai no México e
+// "pt" no Brasil, que são os maiores falantes entre os países implementados.
+const PAIS_DO_IDIOMA = {
+  pt: "br",
+  en: "us",
+  es: "mx",
+  de: "de",
+  zh: "cn",
+  ar: "sa",
+  hi: "in",
+  ja: "jp",
+  ko: "kr",
+  fr: "ca", // único país implementado com francês oficial
+};
+
+/**
+ * País dos dados a partir do idioma do navegador, para o primeiro uso.
+ *
+ * Antes o primeiro uso cravava Brasil. Com a listagem da loja traduzida, quem
+ * instala vendo um título em inglês abria a extensão em português gerando CPF,
+ * e a promessa da vitrine não se cumpria na primeira tela.
+ *
+ * A região tem prioridade sobre o idioma: `en-AU` é Austrália, não Estados
+ * Unidos, e `es-AR` é Argentina, não México. Só quando a região não é atendida
+ * é que o idioma decide.
+ *
+ * Cuidado que o código exige: "ar" é árabe como idioma e Argentina como região.
+ * Conferir a região primeiro resolve os dois casos sem ambiguidade, porque
+ * `es-AR` traz região e `ar` sozinho não.
+ */
+export function paisDoIdioma(locale) {
+  if (typeof locale !== "string" || !locale) return PAIS_PADRAO;
+
+  const [idioma, regiao] = locale.toLowerCase().replace(/_/g, "-").split("-");
+
+  const implementados = new Set(
+    PAISES_DISPONIVEIS.filter((p) => p.implementado).map((p) => p.codigo)
+  );
+  if (regiao && implementados.has(regiao)) return regiao;
+
+  const porIdioma = PAIS_DO_IDIOMA[idioma];
+  return porIdioma && implementados.has(porIdioma) ? porIdioma : PAIS_PADRAO;
+}
+
 /** Se o país tem as opções de CNPJ alfanumérico (só o Brasil, por ora). */
 export function paisMostraOpcoesCnpj(pais) {
   return !!(PAISES[pais] || {}).opcoesCnpj;

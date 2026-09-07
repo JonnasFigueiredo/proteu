@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { gerar, tiposDoPais, idiomaDoPais, paisMostraOpcoesCnpj } from "../src/core/gerador.js";
+import {
+  gerar, tiposDoPais, idiomaDoPais, paisMostraOpcoesCnpj, paisDoIdioma, PAIS_PADRAO,
+} from "../src/core/gerador.js";
 
 const TIPOS = tiposDoPais("br");
 import { configPadrao } from "../src/core/config.js";
@@ -98,6 +100,58 @@ describe("gerar", () => {
     for (const tipo of ["cpf", "cnpj", "cnpjRaiz", "rg", "ie", "cep", "telefone"]) {
       const { valor } = gerar(tipo, { ...semMascara });
       expect(valor, `tipo ${tipo}: ${valor}`).not.toMatch(/[.\-/() ]/);
+    }
+  });
+});
+
+describe("país no primeiro uso, a partir do idioma do navegador", () => {
+  // Antes o primeiro uso cravava Brasil. Com a listagem traduzida, quem instala
+  // vendo o título em inglês precisa abrir a extensão já no país dele.
+  it("a região manda mais que o idioma", () => {
+    expect(paisDoIdioma("en-AU")).toBe("au");
+    expect(paisDoIdioma("en-CA")).toBe("ca");
+    expect(paisDoIdioma("en-IN")).toBe("in");
+    // Argentina como REGIÃO de espanhol, não árabe como idioma.
+    expect(paisDoIdioma("es-AR")).toBe("ar");
+    expect(paisDoIdioma("es-MX")).toBe("mx");
+  });
+
+  it("sem região, decide pelo idioma", () => {
+    expect(paisDoIdioma("pt")).toBe("br");
+    expect(paisDoIdioma("en")).toBe("us");
+    expect(paisDoIdioma("es")).toBe("mx");
+    expect(paisDoIdioma("de")).toBe("de");
+    expect(paisDoIdioma("zh")).toBe("cn");
+    expect(paisDoIdioma("ja")).toBe("jp");
+    expect(paisDoIdioma("ko")).toBe("kr");
+    expect(paisDoIdioma("hi")).toBe("in");
+    // "ar" sozinho é árabe, e leva à Arábia Saudita.
+    expect(paisDoIdioma("ar")).toBe("sa");
+  });
+
+  it("região que não atendemos cai no idioma", () => {
+    expect(paisDoIdioma("en-GB")).toBe("us");
+    expect(paisDoIdioma("pt-PT")).toBe("br");
+    expect(paisDoIdioma("zh-TW")).toBe("cn");
+    expect(paisDoIdioma("ar-AE")).toBe("sa");
+  });
+
+  it("aceita as duas grafias de locale e ignora caixa", () => {
+    expect(paisDoIdioma("pt_BR")).toBe("br");
+    expect(paisDoIdioma("EN-au")).toBe("au");
+  });
+
+  it("entrada inútil não quebra: cai no padrão", () => {
+    for (const v of [undefined, null, "", "xx", "klingon", 42, {}]) {
+      expect(paisDoIdioma(v)).toBe(PAIS_PADRAO);
+    }
+  });
+
+  it("todo país devolvido é um país implementado de verdade", () => {
+    const locales = ["pt-BR", "en-US", "en-AU", "es-AR", "de-DE", "zh-CN", "ar-SA", "hi-IN", "ja-JP", "ko-KR", "fr-CA"];
+    for (const l of locales) {
+      const pais = paisDoIdioma(l);
+      expect(Object.keys(tiposDoPais(pais)).length, `${l} caiu em ${pais}, que não gera nada`).toBeGreaterThan(0);
     }
   });
 });
