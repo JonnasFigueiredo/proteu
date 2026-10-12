@@ -93,6 +93,6 @@ autorização.
 
 ## Licença
 
-AGPL-3.0-or-later. Você pode usar, estudar, modificar e redistribuir; versões
+[AGPL-3.0-or-later](LICENSE). Você pode usar, estudar, modificar e redistribuir; versões
 modificadas distribuídas ou disponibilizadas por rede saem sob a mesma licença, com
 o código acessível. Versões até a 1.2.0 permanecem sob Apache 2.0.
