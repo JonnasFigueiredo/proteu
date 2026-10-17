@@ -3,6 +3,16 @@
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/);
 o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [1.2.7] — Não publicado
+
+### Corrigido
+- Inclui `devtools.html` no ZIP de distribuição; o manifesto já apontava para esse arquivo.
+- Teste de regressão verifica o conteúdo do ZIP gerado, incluindo popup, painel lateral e DevTools.
+- Documentação distingue acesso temporário de `activeTab`, permissões opcionais e os nove formatos de exportação.
+
+### Documentação
+- Prévia do produto, instalação por lockfile e política de releases.
+
 ## [1.2.6] — 2026-09-05
 
 ### Adicionado

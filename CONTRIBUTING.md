@@ -31,7 +31,7 @@ ver o mesmo popup no formato do painel lateral.
 ## Testes
 
 ```bash
-npm install        # instala o Vitest (única devDependency)
+npm ci             # instala as versões do lockfile
 npm test           # roda toda a suíte unitária uma vez
 npm run test:watch
 ```

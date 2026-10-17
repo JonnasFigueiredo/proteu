@@ -20,12 +20,11 @@ const manifest = JSON.parse(fs.readFileSync(path.join(RAIZ, "manifest.json"), "u
 const DESTINO = path.join(RAIZ, "dist");
 const NOME = `proteu-qa-${manifest.version}.zip`;
 
-// O que a extensão precisa para rodar, mais LICENSE e NOTICE: a seção 4(a) da
-// Apache 2.0 exige que a licença acompanhe cada cópia distribuída, e o pacote
-// da loja é uma distribuição.
+// O que a extensão precisa para rodar, mais LICENSE e NOTICE, que acompanham
+// as cópias distribuídas conforme a licença do projeto.
 // `_locales` é obrigatório: o manifesto declara `default_locale`, e um pacote
 // com essa chave e sem a pasta é recusado no upload.
-const INCLUIR = ["manifest.json", "_locales", "icons", "src", "LICENSE", "NOTICE"];
+const INCLUIR = ["manifest.json", "devtools.html", "_locales", "icons", "src", "LICENSE", "NOTICE"];
 // Ferramentas de desenvolvimento que moram nessas pastas mas não são da extensão.
 // `gerar-icones.html` mora em icons/ mas é ferramenta de desenvolvimento: gera
 // os PNG a partir do SVG. Não dá para excluir todo .html, porque o popup, o

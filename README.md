@@ -9,9 +9,14 @@ de ser "não reproduzível".
 
 **[Instalar na Chrome Web Store](https://chromewebstore.google.com/detail/proteu-qa/edpjppimngkekieldgokejdccfpiehgn)**
 
-100% local · sem requisições de rede · sem coleta de dados · Vanilla JS · 974 testes
+100% local · sem requisições de rede · sem coleta de dados · Vanilla JS · [testes automatizados](https://github.com/JonnasFigueiredo/proteu/actions/workflows/tests.yml)
 
-<!-- gif do produto entra aqui -->
+![Geração de dados no Proteu QA](docs/images/documentos.png)
+
+Prévia interativa local: `node tests/e2e/servir.mjs`, depois abra
+`http://localhost:8791/previa/popup`. A prévia simula as APIs do Chrome;
+para testar permissões e inserção em páginas, carregue a extensão conforme
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Diferenciais
 
@@ -24,8 +29,8 @@ de ser "não reproduzível".
   falha amanhã, e aqui isso fica visível antes. Classe de build (`css-1a2b3c`) e id
   com hash são rebaixados, porque não sobrevivem ao próximo deploy.
 - **Mapear a tela clicando.** Liga o modo, clica nos elementos, e cada um vira uma
-  declaração de variável em 9 linguagens (Selenium, Playwright, Cypress, Robot
-  Framework), com o nome saindo do papel do elemento e da pista mais estável
+  declaração em 9 formatos: 8 combinações de linguagem/framework
+  (Selenium, Playwright, Cypress e Robot Framework) e texto simples, com o nome saindo do papel do elemento e da pista mais estável
   disponível.
 - **Inserção robusta em frameworks.** Preenche campos controlados por React, Vue e
   Angular, Shadow DOM aberto e iframes de mesma origem, onde as concorrentes
@@ -53,9 +58,9 @@ de ser "não reproduzível".
 ## Como usar
 
 Instale pela [Chrome Web Store](https://chromewebstore.google.com/detail/proteu-qa/edpjppimngkekieldgokejdccfpiehgn),
-fixe o ícone e clique para abrir. São 5 permissões, e nenhuma delas dá acesso a
-páginas: o acesso que o mapeamento de seletores precisa é opcional e só é pedido
-quando você liga o recurso.
+fixe o ícone e clique para abrir. A instalação pede 5 permissões. `activeTab` permite acesso temporário à aba
+ativa após uma ação sua; os acessos opcionais a sites são solicitados ao usar
+os recursos que deles precisam.
 
 O fluxo segue o ciclo de quem automatiza: gerar a massa, preencher o formulário com
 ela, mapear os elementos da tela em variáveis e gravar o fluxo como script. A
@@ -76,8 +81,10 @@ passar a usar.
 
 ## Privacidade e permissões
 
-Nenhum acesso de rede, nunca. As cinco permissões da instalação (`contextMenus`,
-`storage`, `activeTab`, `scripting`, `sidePanel`) não incluem acesso a páginas. O
+Nenhum acesso de rede, nunca. As cinco permissões da instalação são `contextMenus`,
+`storage`, `activeTab`, `scripting` e `sidePanel`. `activeTab` concede acesso
+temporário à aba ativa após uma ação explícita sua; `scripting` permite executar
+scripts nas páginas autorizadas. O
 acesso aos sites é uma permissão opcional, pedida só quando você usa o copiar-seletor
 ou o modo Mapear, e revogável a qualquer momento. O código nunca é ofuscado: cada
 gerador e cada dígito verificador podem ser auditados, que é o que sustenta a
@@ -96,3 +103,5 @@ autorização.
 [AGPL-3.0-or-later](LICENSE). Você pode usar, estudar, modificar e redistribuir; versões
 modificadas distribuídas ou disponibilizadas por rede saem sob a mesma licença, com
 o código acessível. Versões até a 1.2.0 permanecem sob Apache 2.0.
+
+[Versões e validação de releases](docs/RELEASING.md)
